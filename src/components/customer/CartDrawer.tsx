@@ -37,6 +37,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number; label: string } | null>(null)
   const [promoError, setPromoError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string }>({})
 
   if (!isOpen) return null
 
@@ -62,8 +63,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       setPromoError('Kode voucher tidak ditemukan')
     }
   }
-
-  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string }>({})
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
