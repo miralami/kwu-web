@@ -1,0 +1,243 @@
+import React, { useState } from 'react'
+import { Bot, X, Send, Key } from 'lucide-react'
+import { ADMIN_CONTACT } from '../../data/menu'
+
+interface Message {
+  sender: 'bot' | 'user'
+  text: string
+}
+
+const FAQ_KNOWLEDGE: Record<string, string> = {
+  cibay:
+    'Cibay (Aci Ngambay) adalah camilan khas Sunda berbahan aci gurih berbumbu ayam dan daun bawang, dibungkus kulit lumpia lalu digoreng garing saat dipesan. Dilengkapi bumbu cabai pedas!',
+  ramyeon:
+    'Spicy Ramyeon Roll adalah mie ramyeon Korea pedas gurih yang digulung dengan Rice Paper kenyal transparan khas jajanan viral TikTok.',
+  puding:
+    'Puding Karamel & Buah Segar adalah dessert cup dingin lembut dengan saus karamel dan potongan buah segar manis penyejuk rasa pedas.',
+  qris:
+    'Saat checkout, kamu mendapatkan tampilan QRIS Statis dengan batas bayar 15 menit. Simpan gambar QRIS, scan via m-Banking/e-Wallet, lalu klik tombol konfirmasi WhatsApp ya!',
+  lokasi: `Lokasi pengambilan pesanan di ${ADMIN_CONTACT.pickupPoint}. Bisa juga titip di kelas jika kamu sebutkan di catatan pemesanan.`,
+  pedas:
+    'Level pedas berada di kisaran sedang-ke-pedas (level 2-3). Jika tidak tahan pedas, tulis di catatan "Bumbu cabai dipisah/sedikit".',
+  combo:
+    'Paket Combo Juara berisi 2 Cibay + 2 Spicy Ramyeon Roll seharga Rp13.000 (hemat Rp1.000 dari normal Rp14.000).',
+}
+
+export const AiChatbot: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      sender: 'bot',
+      text: 'Halo! Ada yang bisa dibantu seputar menu PO, lokasi ambil, atau cara bayar QRIS?',
+    },
+  ])
+  const [input, setInput] = useState('')
+  const [openRouterKey, setOpenRouterKey] = useState('')
+  const [showKeyInput, setShowKeyInput] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSend = async (customText?: string) => {
+    const textToSend = customText || input
+    if (!textToSend.trim()) return
+
+    const newMsgs: Message[] = [...messages, { sender: 'user', text: textToSend }]
+    setMessages(newMsgs)
+    setInput('')
+    setIsLoading(true)
+
+    if (openRouterKey.trim()) {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${openRouterKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'meta-llama/llama-3.2-3b-instruct:free',
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'Kamu adalah customer service ramah anak kuliahan untuk Laris Manis KWU Telkom University. Jual Cibay (Rp3rb/Rp5rb), Spicy Ramyeon Roll (Rp5rb/Rp9rb), Puding Karamel (Rp10rb), Paket Combo Rp13rb. Jawab singkat, ramah, dan solutif.',
+              },
+              ...newMsgs.map((m) => ({
+                role: m.sender === 'bot' ? 'assistant' : 'user',
+                content: m.text,
+              })),
+            ],
+          }),
+        })
+
+        const data = await response.json()
+        const botReply = data.choices?.[0]?.message?.content
+        if (botReply) {
+          setMessages((prev) => [...prev, { sender: 'bot', text: botReply }])
+          setIsLoading(false)
+          return
+        }
+      } catch (e) {
+        console.warn('OpenRouter request failed, fallback to local KB:', e)
+      }
+    }
+
+    setTimeout(() => {
+      const lower = textToSend.toLowerCase()
+      let reply =
+        'Pertanyaan kamu bisa langsung ditanyakan ke admin via WhatsApp atau silakan pilih menu di atas ya.'
+
+      if (lower.includes('cibay') || lower.includes('aci')) {
+        reply = FAQ_KNOWLEDGE.cibay
+      } else if (lower.includes('ramyeon') || lower.includes('roll') || lower.includes('korea')) {
+        reply = FAQ_KNOWLEDGE.ramyeon
+      } else if (lower.includes('puding') || lower.includes('karamel') || lower.includes('manis')) {
+        reply = FAQ_KNOWLEDGE.puding
+      } else if (lower.includes('qris') || lower.includes('bayar') || lower.includes('transfer')) {
+        reply = FAQ_KNOWLEDGE.qris
+      } else if (lower.includes('lokasi') || lower.includes('ambil') || lower.includes('dimana')) {
+        reply = FAQ_KNOWLEDGE.lokasi
+      } else if (lower.includes('pedas') || lower.includes('cabe') || lower.includes('level')) {
+        reply = FAQ_KNOWLEDGE.pedas
+      } else if (lower.includes('combo') || lower.includes('hemat') || lower.includes('paket')) {
+        reply = FAQ_KNOWLEDGE.combo
+      }
+
+      setMessages((prev) => [...prev, { sender: 'bot', text: reply }])
+      setIsLoading(false)
+    }, 300)
+  }
+
+  return (
+    <>
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-20 sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-white px-3.5 py-2 rounded-lg shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800"
+          title="Tanya Info Menu (Draft)"
+        >
+          <Bot className="w-4 h-4 text-terracotta-200" />
+          <span className="text-xs font-bold hidden sm:inline">Tanya Menu</span>
+          <span className="text-xs bg-terracotta-700 px-1.5 py-0.5 rounded font-bold uppercase">
+            Draft
+          </span>
+        </button>
+      )}
+
+      {isOpen && (
+        <div
+          role="dialog"
+          aria-modal="false"
+          aria-label="Asisten Virtual Laris Manis"
+          className="fixed bottom-20 sm:bottom-5 right-5 z-40 w-full max-w-[340px] sm:max-w-sm bg-white rounded-xl shadow-2xl border border-paper-200 overflow-hidden flex flex-col h-[480px]"
+        >
+          <div className="bg-ink-900 text-white p-3.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Bot className="w-4 h-4 text-terracotta-200" />
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-extrabold text-xs">Asisten Virtual Laris Manis</h3>
+                  <span className="text-xs bg-ink-800 text-paper-200 font-bold px-1 rounded">
+                    DRAFT
+                  </span>
+                </div>
+                <p className="text-xs text-paper-300">Tanya seputar menu & PO</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setShowKeyInput(!showKeyInput)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-paper-300 hover:text-white rounded"
+                title="Input OpenRouter API Key (Opsional)"
+                aria-label="Input API Key"
+              >
+                <Key className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-paper-300 hover:text-white rounded"
+                aria-label="Tutup Chatbot"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {showKeyInput && (
+            <div className="p-2 bg-paper-100 border-b border-paper-200 text-xs space-y-1">
+              <label className="text-xs font-bold text-ink-600">OpenRouter API Key (Opsional):</label>
+              <input
+                type="password"
+                placeholder="sk-or-v1-..."
+                value={openRouterKey}
+                onChange={(e) => setOpenRouterKey(e.target.value)}
+                className="w-full text-xs p-1.5 border border-paper-200 rounded bg-white"
+              />
+            </div>
+          )}
+
+          <div
+            className="flex-1 overflow-y-auto p-3 space-y-2.5 bg-paper-50 text-xs"
+            aria-live="polite"
+          >
+            {messages.map((m, idx) => (
+              <div
+                key={idx}
+                className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[85%] rounded-lg px-3 py-2 leading-relaxed ${
+                    m.sender === 'user'
+                      ? 'bg-terracotta-600 text-white'
+                      : 'bg-white text-ink-900 border border-paper-200 shadow-sm'
+                  }`}
+                >
+                  {m.text}
+                </div>
+              </div>
+            ))}
+            {isLoading && (
+              <div className="text-xs text-ink-400 italic">Mengetik jawaban...</div>
+            )}
+          </div>
+
+          <div className="p-2 bg-white border-t border-paper-100 flex gap-1.5 overflow-x-auto no-scrollbar">
+            {[
+              'Apa itu Cibay?',
+              'Spicy Ramyeon Roll?',
+              'Puding Karamel?',
+              'Cara Bayar QRIS?',
+              'Lokasi Ambil?',
+            ].map((chip) => (
+              <button
+                key={chip}
+                onClick={() => handleSend(chip)}
+                className="min-h-[44px] text-xs font-bold bg-paper-100 hover:bg-paper-200 text-ink-800 px-3 py-1.5 rounded whitespace-nowrap border border-paper-200 flex items-center"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+
+          <div className="p-2.5 bg-white border-t border-paper-200 flex gap-1.5">
+            <input
+              type="text"
+              placeholder="Ketik pertanyaan..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              className="flex-1 min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg bg-paper-50"
+            />
+            <button
+              onClick={() => handleSend()}
+              className="min-h-[44px] min-w-[44px] px-3 bg-ink-900 text-white rounded-lg hover:bg-ink-800 flex items-center justify-center"
+              aria-label="Kirim pertanyaan"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}

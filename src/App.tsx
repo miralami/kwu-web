@@ -1,0 +1,315 @@
+import React, { useState, useEffect } from 'react'
+import confetti from 'canvas-confetti'
+import { MenuItem, MenuOption, CartItem, Order } from './types'
+import { MENU_ITEMS } from './data/menu'
+import {
+  getOrders,
+  saveOrder,
+  updateOrderStatus,
+  deleteOrder,
+  subscribeOrders,
+  generateOrderId,
+} from './services/storage'
+import { Navbar } from './components/Navbar'
+import { MenuCatalog } from './components/customer/MenuCatalog'
+import { OptionModal } from './components/customer/OptionModal'
+import { CartDrawer } from './components/customer/CartDrawer'
+import { OrderReceiptModal } from './components/customer/OrderReceiptModal'
+import { AdminDashboard } from './components/admin/AdminDashboard'
+import { AiChatbot } from './components/chat/AiChatbot'
+import { Lock, ShoppingBag, ArrowRight } from 'lucide-react'
+
+export function App() {
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [activeItemForOption, setActiveItemForOption] = useState<MenuItem | null>(null)
+  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [activeReceiptOrder, setActiveReceiptOrder] = useState<Order | null>(null)
+
+  // Admin PIN Auth
+  const [isAdminOpen, setIsAdminOpen] = useState(false)
+  const [isPinModalOpen, setIsPinModalOpen] = useState(false)
+  const [pinInput, setPinInput] = useState('')
+  const [pinError, setPinError] = useState(false)
+
+  useEffect(() => {
+    getOrders().then(setOrders)
+    const unsubscribe = subscribeOrders(setOrders)
+    return () => unsubscribe()
+  }, [])
+
+  const handleAddToCart = (
+    item: MenuItem,
+    option: MenuOption,
+    quantity: number,
+    notes: string = ''
+  ) => {
+    const id = `${item.id}-${option.id}`
+    setCartItems((prev) => {
+      const existing = prev.find((i) => i.id === id)
+      if (existing) {
+        return prev.map((i) =>
+          i.id === id ? { ...i, quantity: i.quantity + quantity, notes: notes || i.notes } : i
+        )
+      }
+      return [
+        ...prev,
+        {
+          id,
+          menuItemId: item.id,
+          name: item.name,
+          optionId: option.id,
+          optionLabel: option.label,
+          pieces: option.pieces,
+          price: option.price,
+          quantity,
+          notes,
+        },
+      ]
+    })
+  }
+
+  const handleQuickAdd = (item: MenuItem, option: MenuOption) => {
+    handleAddToCart(item, option, 1)
+  }
+
+  const handleUpdateQuantity = (id: string, delta: number) => {
+    setCartItems((prev) =>
+      prev
+        .map((i) => (i.id === id ? { ...i, quantity: i.quantity + delta } : i))
+        .filter((i) => i.quantity > 0)
+    )
+  }
+
+  const handleRemoveItem = (id: string) => {
+    setCartItems((prev) => prev.filter((i) => i.id !== id))
+  }
+
+  const handleCheckout = async (formData: {
+    customerName: string
+    customerPhone: string
+    customerClass: string
+    customerNotes: string
+    paymentMethod: 'qris' | 'tunai'
+    referralCode?: string
+    discountAmount: number
+  }) => {
+    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const totalPieces = cartItems.reduce((sum, item) => sum + item.pieces * item.quantity, 0)
+    const total = Math.max(0, subtotal - formData.discountAmount)
+
+    const newOrder: Order = {
+      id: generateOrderId(),
+      customerName: formData.customerName,
+      customerPhone: formData.customerPhone,
+      customerClass: formData.customerClass,
+      items: [...cartItems],
+      totalItems: cartItems.length,
+      totalPieces,
+      subtotal,
+      discountAmount: formData.discountAmount,
+      referralCode: formData.referralCode,
+      total,
+      paymentMethod: formData.paymentMethod,
+      paymentStatus: formData.paymentMethod === 'tunai' ? 'verified' : 'pending',
+      orderStatus: 'menunggu_pembayaran',
+      customerNotes: formData.customerNotes,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 15 * 60000).toISOString(),
+    }
+
+    await saveOrder(newOrder)
+
+    try {
+      confetti({
+        particleCount: 60,
+        spread: 55,
+        origin: { y: 0.6 },
+      })
+    } catch {
+      // Ignore
+    }
+
+    setCartItems([])
+    setIsCartOpen(false)
+    setActiveReceiptOrder(newOrder)
+  }
+
+  const handleVerifyPin = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (pinInput === '1234' || pinInput === '002' || pinInput === '2026') {
+      setIsPinModalOpen(false)
+      setIsAdminOpen(true)
+      setPinInput('')
+      setPinError(false)
+    } else {
+      setPinError(true)
+    }
+  }
+
+  const handleAdminToggle = () => {
+    if (isAdminOpen) {
+      setIsAdminOpen(false)
+    } else {
+      setIsPinModalOpen(true)
+    }
+  }
+
+  const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+  const cartSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+
+  return (
+    <div className="min-h-screen bg-[#fcfbf9] text-ink-900 flex flex-col justify-between pb-24 sm:pb-12">
+      <div>
+        <Navbar
+          cartCount={totalCartCount}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenAdmin={handleAdminToggle}
+          isAdmin={isAdminOpen}
+        />
+
+        <main className="max-w-3xl mx-auto px-4 py-6">
+          <MenuCatalog
+            items={MENU_ITEMS}
+            onSelectItem={(item) => setActiveItemForOption(item)}
+            onQuickAdd={handleQuickAdd}
+            onViewCombo={() => {
+              const comboItem = MENU_ITEMS.find((m) => m.id === 'paket-combo')
+              if (comboItem) setActiveItemForOption(comboItem)
+            }}
+          />
+        </main>
+      </div>
+
+      {/* Sticky Bottom Thumb-Zone Bar (Master Checklist 1.2.6 & 1.2.8) */}
+      {totalCartCount > 0 && !isCartOpen && !activeReceiptOrder && (
+        <div className="fixed bottom-0 inset-x-0 z-30 p-3 bg-white/95 backdrop-blur-md border-t border-paper-200 shadow-lg">
+          <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+            <div>
+              <div className="text-xs text-ink-500 font-bold uppercase tracking-wider">
+                Total ({totalCartCount} Item)
+              </div>
+              <div className="text-base font-extrabold text-ink-900">
+                Rp{cartSubtotal.toLocaleString('id-ID')}
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsCartOpen(true)}
+              className="min-h-[48px] bg-terracotta-600 hover:bg-terracotta-700 text-white px-5 rounded-lg text-xs sm:text-sm font-extrabold flex items-center gap-2 active:scale-[0.98] transition-all shadow-sm"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>Lihat Pesanan & Bayar</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-paper-200 mt-12 py-8 text-center text-xs text-ink-500 space-y-2">
+        <div className="flex items-center justify-center gap-1.5 font-bold text-ink-800">
+          <span>Laris Manis</span>
+          <span>•</span>
+          <span>Kelompok 1 Kewirausahaan Telkom University Jakarta</span>
+        </div>
+        <p className="max-w-md mx-auto px-4 text-ink-400">
+          Cibay Gurih Lumer, Spicy Ramyeon Roll Rice Paper, & Puding Karamel Dingin.
+        </p>
+      </footer>
+
+      {/* Option Picker Modal */}
+      {activeItemForOption && (
+        <OptionModal
+          item={activeItemForOption}
+          onClose={() => setActiveItemForOption(null)}
+          onAddToCart={handleAddToCart}
+        />
+      )}
+
+      {/* Cart Drawer */}
+      <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        items={cartItems}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onCheckout={handleCheckout}
+      />
+
+      {/* Receipt & QRIS Modal */}
+      <OrderReceiptModal
+        order={activeReceiptOrder}
+        onClose={() => setActiveReceiptOrder(null)}
+      />
+
+      {/* Admin Dashboard */}
+      {isAdminOpen && (
+        <AdminDashboard
+          orders={orders}
+          onUpdateStatus={(id, oStatus, pStatus) => updateOrderStatus(id, oStatus, pStatus)}
+          onDeleteOrder={(id) => deleteOrder(id)}
+          onClose={() => setIsAdminOpen(false)}
+        />
+      )}
+
+      {/* Admin PIN Prompt Modal */}
+      {isPinModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pin-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/60 backdrop-blur-sm p-4"
+        >
+          <div className="bg-white rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-paper-200">
+            <div className="w-12 h-12 bg-paper-100 text-ink-900 rounded-full flex items-center justify-center mx-auto border border-paper-200">
+              <Lock className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 id="pin-modal-title" className="font-extrabold text-base text-ink-900">Akses Tim Laris Manis</h3>
+              <p className="text-xs text-ink-500 mt-1">
+                Masukkan PIN anggota tim KWU (Default: <span className="font-bold text-ink-900">1234</span>)
+              </p>
+            </div>
+
+            <form onSubmit={handleVerifyPin} className="space-y-3">
+              <input
+                type="password"
+                autoFocus
+                maxLength={6}
+                placeholder="PIN"
+                value={pinInput}
+                onChange={(e) => {
+                  setPinInput(e.target.value)
+                  setPinError(false)
+                }}
+                className="w-full min-h-[48px] text-center text-lg tracking-widest font-extrabold border border-paper-200 rounded-lg focus:outline-none focus:border-terracotta-600 bg-paper-50"
+              />
+              {pinError && <p className="text-xs text-red-600 font-bold">PIN Salah! Coba 1234</p>}
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPinModalOpen(false)}
+                  className="flex-1 min-h-[44px] rounded-lg text-xs font-bold text-ink-700 bg-paper-100 hover:bg-paper-200"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 min-h-[44px] rounded-lg text-xs font-bold text-white bg-ink-900 hover:bg-ink-800"
+                >
+                  Masuk
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Floating AI Chatbot */}
+      <AiChatbot />
+    </div>
+  )
+}
+export default App
