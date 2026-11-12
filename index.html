@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="preload" as="image" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#d81616" />
     <meta name="description" content="Laris Manis - Jajanan Sunda Korea & Puding Buah Segar Telkom University Jakarta" />
@@ -11,8 +12,100 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Splash screen: CSS inline agar tampil seketika, sebelum bundle JS/CSS selesai dimuat -->
+    <style>
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+        background: #ffffff;
+        font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+        transition: opacity 0.45s ease, visibility 0.45s ease;
+      }
+      #splash.is-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      #splash .splash-logo {
+        width: 76px;
+        height: 76px;
+        border-radius: 20px;
+        object-fit: contain;
+        background: #ffffff;
+        box-shadow: 0 10px 30px -12px rgba(216, 22, 22, 0.35);
+        animation:
+          splash-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+          splash-breathe 2.4s ease-in-out 0.6s infinite;
+      }
+      #splash.is-hidden .splash-logo {
+        transform: scale(1.08);
+        transition: transform 0.45s ease;
+      }
+      #splash .splash-name {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: #1c1917;
+        animation: splash-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.12s both;
+      }
+      #splash .splash-tagline {
+        margin: -14px 0 0;
+        font-size: 12px;
+        font-weight: 500;
+        color: #78716c;
+        animation: splash-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
+      }
+      #splash .splash-bar {
+        position: relative;
+        width: 136px;
+        height: 4px;
+        border-radius: 999px;
+        background: #f1ede6;
+        overflow: hidden;
+        animation: splash-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.28s both;
+      }
+      #splash .splash-bar::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        width: 40%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #d81616, #fdb41d);
+        animation: splash-slide 1.15s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+      }
+      @keyframes splash-enter {
+        from { opacity: 0; transform: translateY(8px) scale(0.94); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes splash-breathe {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.045); }
+      }
+      @keyframes splash-slide {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(250%); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #splash *, #splash *::after { animation: none !important; }
+        #splash .splash-bar::after { width: 100%; opacity: 0.5; }
+      }
+    </style>
   </head>
-  <body class="bg-stone-50 text-stone-900 font-['Plus_Jakarta_Sans',sans-serif] antialiased selection:bg-orange-500 selection:text-white">
+  <body>
+    <div id="splash" role="status" aria-label="Memuat Laris Manis">
+      <img class="splash-logo" src="/logo.png" alt="" width="76" height="76" />
+      <p class="splash-name">Laris Manis</p>
+      <p class="splash-tagline">Jajanan Kampus Tel-U Jakarta</p>
+      <div class="splash-bar" aria-hidden="true"></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
