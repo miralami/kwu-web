@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
-import { Bot, X, Send, Key } from 'lucide-react'
+import { X, Send, Key } from 'lucide-react'
+import { ChatbotMascot } from './ChatbotMascot'
+import { TypingIndicator } from './TypingIndicator'
 import { ADMIN_CONTACT } from '../../data/menu'
 
 interface Message {
@@ -111,7 +113,7 @@ export const AiChatbot: React.FC = () => {
 
       setMessages((prev) => [...prev, { sender: 'bot', text: reply }])
       setIsLoading(false)
-    }, 300)
+    }, 900) // jeda agar animasi mengetik sempat terlihat
   }
 
   return (
@@ -119,12 +121,13 @@ export const AiChatbot: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-surface px-3.5 py-2 rounded-lg shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800"
+          className="fixed bottom-20 sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-surface pl-1.5 pr-3 py-1.5 rounded-full shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800"
           title="Tanya Info Menu (Draft)"
+          aria-label="Tanya Menu: buka asisten virtual Laris Manis"
         >
-          <Bot className="w-4 h-4 text-brand-200" />
+          <ChatbotMascot className="w-9 h-9" />
           <span className="text-xs font-bold hidden sm:inline">Tanya Menu</span>
-          <span className="text-xs bg-brand-700 px-1.5 py-0.5 rounded font-bold uppercase">
+          <span className="text-xs bg-brand-700 text-white px-1.5 py-0.5 rounded font-bold uppercase">
             Draft
           </span>
         </button>
@@ -139,7 +142,7 @@ export const AiChatbot: React.FC = () => {
         >
           <div className="bg-inverse text-white p-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bot className="w-4 h-4 text-[#ffc4c4]" />
+              <ChatbotMascot className="w-9 h-9" />
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-extrabold text-xs">Asisten Virtual Laris Manis</h3>
@@ -203,9 +206,7 @@ export const AiChatbot: React.FC = () => {
                 </div>
               </div>
             ))}
-            {isLoading && (
-              <div className="text-xs text-ink-400 italic">Mengetik jawaban...</div>
-            )}
+            {isLoading && <TypingIndicator />}
           </div>
 
           <div className="p-2 bg-surface border-t border-paper-100 flex gap-1.5 overflow-x-auto no-scrollbar">
