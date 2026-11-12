@@ -123,7 +123,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       expiresAt: new Date(Date.now() + 15 * 60000).toISOString(),
     }
 
-    await saveOrder(newOrder)
+    try {
+      await saveOrder(newOrder)
+    } catch (err) {
+      setPosFeedback({
+        type: 'error',
+        text: err instanceof Error ? err.message : 'Transaksi gagal dicatat. Coba lagi.',
+      })
+      return
+    }
     setPosCart({})
     setPosCustomerName('Pembeli Kampus / Walk-in')
     setPosFeedback({ type: 'success', text: `Transaksi #${newOrder.id} berhasil dicatat & masuk rekap!` })

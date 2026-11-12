@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Order } from '../../types'
 import { ADMIN_CONTACT } from '../../data/menu'
+import { getCustomerStatus, isOrderActive, STATUS_TONE_CLASS } from '../../data/orderStatus'
 import {
   X,
   Download,
@@ -39,6 +40,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
   const minutes = Math.floor(timeLeft / 60)
   const seconds = timeLeft % 60
   const isExpired = timeLeft <= 0
+  const status = getCustomerStatus(order)
 
   const handleCopyAmount = () => {
     navigator.clipboard.writeText(order.total.toString())
@@ -155,10 +157,24 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                 <span className="text-xs font-bold mt-1 text-ink-800">Siap Ambil</span>
               </div>
             </div>
+
+            <div
+              role="status"
+              className={`mt-3 p-2.5 rounded-lg border text-xs ${STATUS_TONE_CLASS[status.tone]}`}
+            >
+              <div className="font-extrabold">{status.label}</div>
+              <p className="mt-0.5 font-medium">{status.message}</p>
+            </div>
+            {isOrderActive(order) && (
+              <p className="mt-2 text-xs text-ink-500">
+                Status diperbarui otomatis. Bisa dibuka lagi lewat <strong>Pesanan Saya</strong> di
+                halaman menu.
+              </p>
+            )}
           </div>
 
-          {/* QRIS Display */}
-          {order.paymentMethod === 'qris' && (
+          {/* QRIS Display (disembunyikan setelah pembayaran diverifikasi admin) */}
+          {order.paymentMethod === 'qris' && order.paymentStatus !== 'verified' && isOrderActive(order) && (
             <div className="bg-paper-50 rounded-lg border border-paper-200 p-4 text-center space-y-3">
               {/* 3-Step Manual QRIS Guide */}
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-left space-y-1.5 text-xs text-amber-950">

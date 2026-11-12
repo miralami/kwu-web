@@ -99,10 +99,32 @@ const INITIAL_SEED_ORDERS: Order[] = [
 type OrderListener = (orders: Order[]) => void
 const listeners: Set<OrderListener> = new Set()
 
+// Realtime Supabase: setiap perubahan di tabel orders (dari HP mana pun) memicu muat ulang
+let realtimeChannel: ReturnType<SupabaseClient['channel']> | null = null
+
+function startRealtime() {
+  if (!supabase || realtimeChannel) return
+  realtimeChannel = supabase
+    .channel('orders-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+      getOrders().then(notifyListeners)
+    })
+    .subscribe()
+}
+
+function stopRealtime() {
+  if (supabase && realtimeChannel) {
+    supabase.removeChannel(realtimeChannel)
+    realtimeChannel = null
+  }
+}
+
 export function subscribeOrders(listener: OrderListener) {
   listeners.add(listener)
+  startRealtime()
   return () => {
     listeners.delete(listener)
+    if (listeners.size === 0) stopRealtime()
   }
 }
 
@@ -138,19 +160,21 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function saveOrder(order: Order): Promise<void> {
+  // Simpan ke server dulu: kalau gagal, pesanan tidak boleh dianggap terkirim karena
+  // admin tidak akan pernah melihatnya
+  if (supabase) {
+    const { error } = await supabase.from('orders').insert(order)
+    if (error) {
+      console.error('Failed to save order to Supabase:', error)
+      throw new Error('Pesanan gagal terkirim ke server. Periksa koneksi internet lalu coba lagi.')
+    }
+  }
+
   const current = await getOrders()
   const updated = [order, ...current.filter((o) => o.id !== order.id)]
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
   notifyListeners(updated)
-
-  if (supabase) {
-    try {
-      await supabase.from('orders').upsert(order)
-    } catch (e) {
-      console.error('Failed to sync order to Supabase:', e)
-    }
-  }
 }
 
 export async function updateOrderStatus(
@@ -174,16 +198,17 @@ export async function updateOrderStatus(
   notifyListeners(updated)
 
   if (supabase) {
-    try {
-      await supabase
-        .from('orders')
-        .update({
-          orderStatus,
-          ...(paymentStatus ? { paymentStatus } : {}),
-        })
-        .eq('id', orderId)
-    } catch (e) {
-      console.error('Failed to update status on Supabase:', e)
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        orderStatus,
+        ...(paymentStatus ? { paymentStatus } : {}),
+      })
+      .eq('id', orderId)
+    if (error) {
+      console.error('Failed to update status on Supabase:', error)
+      alert('Gagal memperbarui status di server. Periksa koneksi lalu coba lagi.')
+      getOrders().then(notifyListeners) // kembalikan tampilan ke data server
     }
   }
 }
@@ -196,10 +221,11 @@ export async function deleteOrder(orderId: string): Promise<void> {
   notifyListeners(updated)
 
   if (supabase) {
-    try {
-      await supabase.from('orders').delete().eq('id', orderId)
-    } catch (e) {
-      console.error('Failed to delete on Supabase:', e)
+    const { error } = await supabase.from('orders').delete().eq('id', orderId)
+    if (error) {
+      console.error('Failed to delete on Supabase:', error)
+      alert('Gagal menghapus pesanan di server. Periksa koneksi lalu coba lagi.')
+      getOrders().then(notifyListeners)
     }
   }
 }
@@ -247,8 +273,52 @@ export function calculateSalesReport(orders: Order[]): SalesReport {
   }
 }
 
-// Generate unique order ID: LM-XXXX
+// --- Pelacakan pesanan milik pelanggan di perangkat ini ---
+
+const MY_ORDERS_KEY = 'laris_manis_my_orders_v1'
+
+export function getMyOrderIds(): string[] {
+  try {
+    const raw = localStorage.getItem(MY_ORDERS_KEY)
+    const ids = raw ? JSON.parse(raw) : []
+    return Array.isArray(ids) ? ids : []
+  } catch {
+    return []
+  }
+}
+
+export function rememberMyOrder(orderId: string): void {
+  try {
+    const ids = [orderId, ...getMyOrderIds().filter((id) => id !== orderId)].slice(0, 10)
+    localStorage.setItem(MY_ORDERS_KEY, JSON.stringify(ids))
+  } catch {
+    // Penyimpanan diblokir (mis. mode privat): pelacakan hanya berlaku selama tab terbuka
+  }
+}
+
+// Ambil pesanan tertentu saja (bukan seluruh tabel) agar status terbaru dari admin
+// bisa dibaca pelanggan di HP-nya sendiri.
+export async function getOrdersByIds(ids: string[]): Promise<Order[]> {
+  if (ids.length === 0) return []
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('orders').select('*').in('id', ids)
+      if (!error && data) {
+        return (data as Order[]).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      }
+    } catch (e) {
+      console.warn('Supabase fetch failed, fallback to local:', e)
+    }
+  }
+
+  const local = await getOrders()
+  return local.filter((o) => ids.includes(o.id))
+}
+
+// Generate unique order ID: LM-XXXXXX
+// 6 digit (900 ribu kombinasi): dengan 4 digit, ratusan pesanan hampir pasti ada yang bentrok
 export function generateOrderId(): string {
-  const num = Math.floor(1000 + Math.random() * 9000)
+  const num = Math.floor(100000 + Math.random() * 900000)
   return `LM-${num}`
 }

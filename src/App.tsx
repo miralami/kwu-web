@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import confetti from 'canvas-confetti'
 import { MenuItem, MenuOption, CartItem, Order } from './types'
 import { MENU_ITEMS } from './data/menu'
+import { isOrderActive } from './data/orderStatus'
 import {
   getOrders,
   saveOrder,
@@ -9,7 +10,11 @@ import {
   deleteOrder,
   subscribeOrders,
   generateOrderId,
+  getMyOrderIds,
+  rememberMyOrder,
+  getOrdersByIds,
 } from './services/storage'
+import { MyOrdersBanner } from './components/customer/MyOrdersBanner'
 import { Navbar } from './components/Navbar'
 import { MenuCatalog } from './components/customer/MenuCatalog'
 import { OptionModal } from './components/customer/OptionModal'
@@ -24,7 +29,10 @@ export function App() {
   const [orders, setOrders] = useState<Order[]>([])
   const [activeItemForOption, setActiveItemForOption] = useState<MenuItem | null>(null)
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [activeReceiptOrder, setActiveReceiptOrder] = useState<Order | null>(null)
+  // Pesanan milik pelanggan di perangkat ini, statusnya disegarkan berkala dari server
+  const [myOrders, setMyOrders] = useState<Order[]>([])
+  const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null)
+  const activeReceiptOrder = myOrders.find((o) => o.id === trackedOrderId) ?? null
 
   // Admin PIN Auth
   const [isAdminOpen, setIsAdminOpen] = useState(false)
@@ -37,6 +45,44 @@ export function App() {
     const unsubscribe = subscribeOrders(setOrders)
     return () => unsubscribe()
   }, [])
+
+  const refreshMyOrders = useCallback(async () => {
+    const fresh = await getOrdersByIds(getMyOrderIds())
+    setMyOrders((prev) => {
+      // Pertahankan pesanan yang belum terbaca dari server (mis. sinkronisasi masih tertunda)
+      const freshIds = new Set(fresh.map((o) => o.id))
+      return [...fresh, ...prev.filter((o) => !freshIds.has(o.id))]
+    })
+  }, [])
+
+  // Segarkan saat dibuka, saat data lokal berubah (admin di perangkat yang sama),
+  // dan saat pelanggan kembali ke tab
+  useEffect(() => {
+    refreshMyOrders()
+  }, [orders, refreshMyOrders])
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshMyOrders()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [refreshMyOrders])
+
+  // Polling hanya selama masih ada pesanan aktif, agar update admin dari HP lain ikut masuk
+  const hasActiveOrder = myOrders.some(isOrderActive)
+  useEffect(() => {
+    if (!hasActiveOrder) return
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') refreshMyOrders()
+    }, 10000)
+    return () => clearInterval(timer)
+  }, [hasActiveOrder, refreshMyOrders])
+
+  // Tampilkan pesanan aktif + yang baru selesai/dibatalkan dalam 12 jam terakhir
+  const visibleMyOrders = myOrders.filter(
+    (o) => isOrderActive(o) || Date.now() - new Date(o.createdAt).getTime() < 12 * 3600_000
+  )
 
   const handleAddToCart = (
     item: MenuItem,
@@ -119,6 +165,8 @@ export function App() {
     }
 
     await saveOrder(newOrder)
+    rememberMyOrder(newOrder.id)
+    setMyOrders((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
 
     try {
       confetti({
@@ -132,7 +180,7 @@ export function App() {
 
     setCartItems([])
     setIsCartOpen(false)
-    setActiveReceiptOrder(newOrder)
+    setTrackedOrderId(newOrder.id)
   }
 
   const handleVerifyPin = (e: React.FormEvent) => {
@@ -169,6 +217,7 @@ export function App() {
         />
 
         <main className="max-w-3xl mx-auto px-4 py-6">
+          <MyOrdersBanner orders={visibleMyOrders} onOpenOrder={setTrackedOrderId} />
           <MenuCatalog
             items={MENU_ITEMS}
             onSelectItem={(item) => setActiveItemForOption(item)}
@@ -240,7 +289,7 @@ export function App() {
       {/* Receipt & QRIS Modal */}
       <OrderReceiptModal
         order={activeReceiptOrder}
-        onClose={() => setActiveReceiptOrder(null)}
+        onClose={() => setTrackedOrderId(null)}
       />
 
       {/* Admin Dashboard */}

@@ -37,6 +37,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number; label: string } | null>(null)
   const [promoError, setPromoError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string }>({})
 
   if (!isOpen) return null
@@ -85,6 +86,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     try {
       setIsSubmitting(true)
+      setSubmitError('')
       await onCheckout({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
@@ -94,6 +96,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         referralCode: appliedPromo?.code,
         discountAmount,
       })
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Pesanan gagal dikirim. Coba lagi.')
     } finally {
       setIsSubmitting(false)
     }
@@ -386,6 +390,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span className="text-brand-600">Rp{total.toLocaleString('id-ID')}</span>
                 </div>
               </div>
+
+              {submitError && (
+                <p role="alert" className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg p-2.5">
+                  {submitError}
+                </p>
+              )}
 
               <button
                 type="submit"
