@@ -43,7 +43,10 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
               <span>Paket Combo Hemat (Cibay + Roll)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
-            <span className="text-xs text-ink-500 font-medium">Harga mulai Rp3.000 / pcs</span>
+            <span className="text-xs text-ink-500 font-medium">
+              Harga mulai Rp
+              {Math.min(...items.flatMap((i) => i.options.map((o) => o.price))).toLocaleString('id-ID')}
+            </span>
           </div>
         </div>
       </section>
@@ -121,7 +124,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
 
                   {/* Clean Tabular Price Badge */}
                   <div className="absolute bottom-3 right-3 bg-ink-900 text-white px-2.5 py-1 rounded text-xs font-extrabold tracking-tight">
-                    Mulai Rp{minPrice.toLocaleString('id-ID')}
+                    {item.options.length > 1 ? 'Mulai ' : ''}Rp{minPrice.toLocaleString('id-ID')}
                   </div>
                 </div>
 

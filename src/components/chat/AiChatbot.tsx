@@ -9,20 +9,20 @@ interface Message {
 
 const FAQ_KNOWLEDGE: Record<string, string> = {
   cibay:
-    'Cibay (Aci Ngambay) adalah camilan khas Sunda berbahan aci gurih berbumbu ayam dan daun bawang, dibungkus kulit lumpia lalu digoreng garing saat dipesan. Dilengkapi bumbu cabai pedas!',
+    'Cibay (Aci Ngambay) adalah camilan khas Sunda berbahan aci gurih berbumbu ayam dan daun bawang, dibungkus kulit lumpia lalu digoreng garing saat dipesan. Dilengkapi bumbu cabai pedas! Dijual per porsi: 1 porsi isi 3 pcs Rp10.000.',
   ramyeon:
-    'Spicy Ramyeon Roll adalah mie ramyeon Korea pedas gurih yang digulung dengan Rice Paper kenyal transparan khas jajanan viral TikTok.',
+    'Spicy Ramyeon Roll adalah mie ramyeon Korea pedas gurih yang digulung dengan Rice Paper kenyal transparan khas jajanan viral TikTok. Harganya Rp5.000 isi 2 pcs.',
   puding:
-    'Puding Karamel & Buah Segar adalah dessert cup dingin lembut dengan saus karamel dan potongan buah segar manis penyejuk rasa pedas.',
+    'Puding Karamel & Buah Dingin adalah dessert cup 240 ml yang lembut dengan saus karamel dan potongan buah segar, penyejuk rasa pedas. Harganya Rp15.000 per cup.',
   qris:
     'Saat checkout, kamu mendapatkan tampilan QRIS Statis dengan batas bayar 15 menit. Simpan gambar QRIS, scan via m-Banking/e-Wallet, lalu klik tombol konfirmasi WhatsApp ya!',
   lokasi: `Lokasi pengambilan pesanan di ${ADMIN_CONTACT.pickupPoint}. Bisa juga titip di kelas jika kamu sebutkan di catatan pemesanan.`,
   pedas:
     'Level pedas berada di kisaran sedang-ke-pedas (level 2-3). Jika tidak tahan pedas, tulis di catatan "Bumbu cabai dipisah/sedikit".',
   combo:
-    'Paket Combo Juara berisi 2 Cibay + 2 Spicy Ramyeon Roll seharga Rp13.000 (hemat Rp1.000 dari normal Rp14.000).',
+    'Paket Combo Juara berisi 1 porsi Cibay (isi 3) + 2 Spicy Ramyeon Roll seharga Rp14.000 (hemat Rp1.000 dari normal Rp15.000).',
   rekomendasi:
-    'Baru pertama coba? Ambil Paket Combo Juara (2 Cibay + 2 Spicy Ramyeon Roll) cuma Rp13.000, hemat Rp1.000 dan bisa cicip dua menu gurih sekaligus. Kurang tahan pedas? Tambah Puding Karamel & Buah Dingin (Rp10.000) buat penyegar. Mau ngemil hemat sendiri? Cibay 2 pcs Rp5.000 paling pas.',
+    'Baru pertama coba? Ambil Paket Combo Juara (1 porsi Cibay isi 3 + 2 Spicy Ramyeon Roll) cuma Rp14.000, hemat Rp1.000 dan bisa cicip dua menu gurih sekaligus. Kurang tahan pedas? Tambah Puding Karamel & Buah Dingin 240 ml (Rp15.000) buat penyegar. Mau ngemil hemat sendiri? Spicy Ramyeon Roll Rp5.000 isi 2 paling pas.',
 }
 
 const REKOMENDASI_KEYWORDS = ['rekomen', 'best', 'laris', 'favorit', 'bingung', 'paling enak', 'pilih apa', 'saran']
@@ -63,7 +63,7 @@ export const AiChatbot: React.FC = () => {
               {
                 role: 'system',
                 content:
-                  'Kamu adalah customer service ramah anak kuliahan untuk Laris Manis KWU Telkom University. Jual Cibay (Rp3rb/Rp5rb), Spicy Ramyeon Roll (Rp5rb/Rp9rb), Puding Karamel (Rp10rb), Paket Combo Rp13rb. Kalau pembeli bingung atau minta rekomendasi, sarankan Paket Combo Juara untuk pembeli baru dan Puding Karamel sebagai penyegar setelah makan pedas. Jawab singkat, ramah, dan solutif.',
+                  'Kamu adalah customer service ramah anak kuliahan untuk Laris Manis KWU Telkom University. Jual Cibay (1 porsi isi 3 pcs Rp10rb), Spicy Ramyeon Roll (isi 2 pcs Rp5rb), Puding Karamel & Buah 240 ml (Rp15rb), Paket Combo Juara 1 porsi Cibay + 2 Roll Rp14rb (hemat Rp1rb). Kalau pembeli bingung atau minta rekomendasi, sarankan Paket Combo Juara untuk pembeli baru dan Puding Karamel sebagai penyegar setelah makan pedas. Jawab singkat, ramah, dan solutif.',
               },
               ...newMsgs.map((m) => ({
                 role: m.sender === 'bot' ? 'assistant' : 'user',
