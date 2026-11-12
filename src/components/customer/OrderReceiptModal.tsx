@@ -57,64 +57,9 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
   const waLink = `https://wa.me/${ADMIN_CONTACT.phone}?text=${waMessage}`
 
   const handleDownloadQris = () => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 400
-    canvas.height = 480
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    // Clean physical receipt background
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, 400, 480)
-
-    ctx.fillStyle = '#1c1917'
-    ctx.fillRect(0, 0, 400, 60)
-
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 18px sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillText('LARIS MANIS KWU TELKOM', 200, 28)
-    ctx.font = '11px sans-serif'
-    ctx.fillText('QRIS STATIS PEMBAYARAN', 200, 46)
-
-    // Inner QR container
-    ctx.fillStyle = '#f5f3ef'
-    ctx.fillRect(50, 80, 300, 300)
-    ctx.fillStyle = '#1c1917'
-    ctx.strokeRect(50, 80, 300, 300)
-
-    // Distinct corners
-    ctx.fillStyle = '#1c1917'
-    ctx.fillRect(75, 105, 50, 50)
-    ctx.fillRect(275, 105, 50, 50)
-    ctx.fillRect(75, 305, 50, 50)
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(85, 115, 30, 30)
-    ctx.fillRect(285, 115, 30, 30)
-    ctx.fillRect(85, 315, 30, 30)
-    ctx.fillStyle = '#1c1917'
-    ctx.fillRect(93, 123, 14, 14)
-    ctx.fillRect(293, 123, 14, 14)
-    ctx.fillRect(93, 323, 14, 14)
-
-    // Center details
-    ctx.font = 'bold 13px sans-serif'
-    ctx.fillText(`ID: #${order.id}`, 200, 235)
-    ctx.font = 'bold 16px sans-serif'
-    ctx.fillText(`Rp${order.total.toLocaleString('id-ID')}`, 200, 260)
-
-    // Footer info
-    ctx.fillStyle = '#1c1917'
-    ctx.font = 'bold 12px sans-serif'
-    ctx.fillText(ADMIN_CONTACT.qrisName, 200, 410)
-    ctx.font = '11px sans-serif'
-    ctx.fillStyle = '#57534e'
-    ctx.fillText(`NMID: ${ADMIN_CONTACT.qrisNmid}`, 200, 430)
-    ctx.fillText('Scan via m-Banking / e-Wallet apa saja', 200, 450)
-
     const link = document.createElement('a')
     link.download = `QRIS-LarisManis-${order.id}.png`
-    link.href = canvas.toDataURL('image/png')
+    link.href = ADMIN_CONTACT.qrisImage
     link.click()
   }
 
@@ -247,16 +192,17 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               </div>
 
               {/* QR Container */}
-              <div className="mx-auto w-48 h-48 bg-white border border-paper-300 rounded-lg p-2 flex flex-col items-center justify-center">
-                <div className="w-full h-full border border-dashed border-paper-300 rounded flex flex-col items-center justify-center p-2 bg-paper-50">
-                  <div className="w-24 h-24 bg-ink-900 rounded flex items-center justify-center text-white font-bold text-xs text-center p-1">
-                    [QRIS STATIS]
-                  </div>
-                  <span className="text-xs font-bold text-ink-900 mt-2">
-                    {ADMIN_CONTACT.qrisName}
-                  </span>
-                  <span className="text-xs text-ink-500">Scan via BCA / GoPay / OVO</span>
-                </div>
+              <div className="mx-auto w-full max-w-[280px] space-y-1.5">
+                <img
+                  src={ADMIN_CONTACT.qrisImage}
+                  alt={`QRIS statis a.n. ${ADMIN_CONTACT.qrisName}, NMID ${ADMIN_CONTACT.qrisNmid}`}
+                  width={904}
+                  height={1280}
+                  className="w-full h-auto rounded-lg border border-paper-300"
+                />
+                <p className="text-xs text-ink-600">
+                  Pastikan nama penerima <span className="font-bold text-ink-900">{ADMIN_CONTACT.qrisName}</span>
+                </p>
               </div>
 
               {/* Exact Amount */}

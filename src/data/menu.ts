@@ -78,6 +78,7 @@ export const ADMIN_CONTACT = {
   name: 'Admin PO Laris Manis (Yudi / Willy)',
   phone: '6285717600986', // WhatsApp number from group chat
   qrisName: 'LARIS MANIS KWU TELKOM',
-  qrisNmid: 'ID1020423000201',
+  qrisNmid: 'ID1025439257516',
+  qrisImage: '/qris.png', // QRIS statis GoPay Merchant
   pickupPoint: 'Lantai 3 Gedung C / Gazebo Kampus Telkom University Jakarta',
 }
