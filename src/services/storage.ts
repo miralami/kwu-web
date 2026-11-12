@@ -230,13 +230,17 @@ export async function deleteOrder(orderId: string): Promise<void> {
   }
 }
 
+// Pesanan yang dihitung sebagai penjualan: tidak dibatalkan dan sudah dibayar (atau tunai/selesai)
+export function isCountedOrder(o: Order): boolean {
+  return (
+    o.orderStatus !== 'dibatalkan' &&
+    (o.paymentStatus === 'verified' || o.paymentMethod === 'tunai' || o.orderStatus === 'selesai')
+  )
+}
+
 export function calculateSalesReport(orders: Order[]): SalesReport {
   // Only count verified payments or completed orders
-  const validOrders = orders.filter(
-    (o) =>
-      o.orderStatus !== 'dibatalkan' &&
-      (o.paymentStatus === 'verified' || o.paymentMethod === 'tunai' || o.orderStatus === 'selesai')
-  )
+  const validOrders = orders.filter(isCountedOrder)
 
   let totalRevenue = 0
   let totalPiecesSold = 0
@@ -268,6 +272,7 @@ export function calculateSalesReport(orders: Order[]): SalesReport {
     totalOrders: validOrders.length,
     totalPiecesSold,
     targetPieces: 738, // Target from Business Plan page 5
+    targetRevenue: 4786000, // Proyeksi omzet Minggu 10-12 (Business Plan)
     estimatedProfit,
     itemsBreakdown: breakdown,
   }

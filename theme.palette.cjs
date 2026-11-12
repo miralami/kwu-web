@@ -43,6 +43,11 @@ module.exports = {
     700: ['#b96f0a', '#fbbf24'],
     900: ['#6e3f10', '#fde68a'],
   },
+  // Warna grafik kategori ke-2 (pasangan merah brand). Pasangan merah+biru lolos validator
+  // dataviz (buta warna & kontras) di kedua mode; kuning brand terlalu terang untuk isi grafik.
+  chart: {
+    blue: ['#2a78d6', '#3987e5'],
+  },
   // Warna status bawaan Tailwind yang dipakai aplikasi; nilai terang = bawaan Tailwind
   green: {
     50: ['#f0fdf4', '#0f2418'],

@@ -3,6 +3,13 @@ import { Order, OrderStatus, PaymentStatus } from '../../types'
 import { MENU_ITEMS } from '../../data/menu'
 import { calculateSalesReport, saveOrder, generateOrderId } from '../../services/storage'
 import {
+  TargetMeters,
+  DailyRevenueChart,
+  MenuRevenueBars,
+  PaymentSplitBar,
+  buildDailySeries,
+} from './FinanceCharts'
+import {
   ShieldAlert,
   CheckCircle,
   ChefHat,
@@ -44,6 +51,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [posFeedback, setPosFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const report = calculateSalesReport(orders)
+  const dailySeries = buildDailySeries(orders)
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
@@ -594,10 +602,10 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   <span>Pcs Terjual</span>
                 </div>
                 <div className="text-lg sm:text-xl font-black text-ink-900 mt-1">
-                  {report.totalPiecesSold} <span className="text-xs font-medium text-ink-400">/ 738 pcs</span>
+                  {report.totalPiecesSold} <span className="text-xs font-medium text-ink-400">/ {report.targetPieces} pcs</span>
                 </div>
                 <div className="text-xs text-brand-600 font-bold mt-0.5">
-                  {Math.round((report.totalPiecesSold / 738) * 100)}% Target Tercapai
+                  {Math.round((report.totalPiecesSold / report.targetPieces) * 100)}% Target Tercapai
                 </div>
               </div>
 
@@ -615,50 +623,24 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               <div className="bg-surface p-4 rounded-lg border border-paper-200">
                 <div className="text-xs text-ink-500 font-bold uppercase">Target Omzet Akhir</div>
                 <div className="text-lg sm:text-xl font-black text-ink-700 mt-1">
-                  Rp4.786.000
+                  Rp{report.targetRevenue.toLocaleString('id-ID')}
                 </div>
                 <div className="text-xs text-ink-400 mt-0.5">Proyeksi Minggu 10-12</div>
               </div>
             </div>
 
-            {/* Target Progress Bar */}
-            <div className="bg-surface p-4 rounded-lg border border-paper-200 space-y-2">
-              <div className="flex justify-between text-xs font-bold text-ink-800">
-                <span>Progress Penjualan Target Pcs (Minggu 10 - 12)</span>
-                <span>{report.totalPiecesSold} / 738 pcs</span>
-              </div>
-              <div className="w-full bg-paper-100 rounded-full h-3 overflow-hidden border border-paper-200">
-                <div
-                  className="bg-brand-600 h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.min(100, (report.totalPiecesSold / 738) * 100)}%` }}
-                />
-              </div>
+            {/* Grafik untuk investor */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TargetMeters
+                revenue={report.totalRevenue}
+                revenueTarget={report.targetRevenue}
+                pieces={report.totalPiecesSold}
+                piecesTarget={report.targetPieces}
+              />
+              <PaymentSplitBar orders={orders} />
             </div>
-
-            {/* Breakdown per menu */}
-            <div className="bg-surface rounded-lg border border-paper-200 p-4 space-y-3">
-              <h3 className="font-extrabold text-sm text-ink-900">Rincian Penjualan per Menu</h3>
-              <div className="space-y-2">
-                {Object.values(report.itemsBreakdown).length === 0 ? (
-                  <p className="text-xs text-ink-400">Belum ada menu yang laku.</p>
-                ) : (
-                  Object.values(report.itemsBreakdown).map((item) => (
-                    <div
-                      key={item.name}
-                      className="flex items-center justify-between p-2.5 bg-paper-50 rounded-lg text-xs border border-paper-100"
-                    >
-                      <div>
-                        <span className="font-bold text-ink-900">{item.name}</span>
-                        <span className="text-ink-500 ml-2">({item.pieces} pcs)</span>
-                      </div>
-                      <span className="font-bold text-ink-900">
-                        Rp{item.revenue.toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+            <DailyRevenueChart data={dailySeries} />
+            <MenuRevenueBars items={Object.values(report.itemsBreakdown)} />
 
             {/* Export and copy buttons */}
             <div className="flex flex-col sm:flex-row gap-2">
