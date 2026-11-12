@@ -1,6 +1,7 @@
 import React from 'react'
-import { Check, ChefHat, Clock, PackageCheck, X, LucideIcon } from 'lucide-react'
+import { Check, CookingPot, Clock, PackageCheck, X, LucideIcon } from 'lucide-react'
 import { Order } from '../../types'
+import { CookingPotAnimated } from './CookingPotAnimated'
 
 type StepState = 'complete' | 'current' | 'upcoming' | 'problem'
 
@@ -8,8 +9,8 @@ interface StepDef {
   label: string
   icon: LucideIcon
   currentClass: string // warna lingkaran saat langkah ini sedang berjalan
-  pingClass: string // warna denyut di belakang lingkaran
   motionClass: string // gerakan ikon saat langkah ini sedang berjalan
+  currentIcon?: React.ReactNode // ikon animasi khusus, menggantikan icon + motionClass
 }
 
 const STEPS: StepDef[] = [
@@ -17,21 +18,19 @@ const STEPS: StepDef[] = [
     label: 'Verifikasi',
     icon: Clock,
     currentClass: 'bg-accent-500 text-ink-900',
-    pingClass: 'bg-accent-500',
-    motionClass: 'motion-safe:animate-spin-slow',
+    motionClass: 'motion-safe:animate-spin-tick',
   },
   {
     label: 'Dimasak',
-    icon: ChefHat,
+    icon: CookingPot,
     currentClass: 'bg-brand-600 text-white',
-    pingClass: 'bg-brand-500',
-    motionClass: 'motion-safe:animate-bob',
+    motionClass: '',
+    currentIcon: <CookingPotAnimated className="w-7 h-7" />,
   },
   {
     label: 'Siap Ambil',
     icon: PackageCheck,
     currentClass: 'bg-green-700 text-white',
-    pingClass: 'bg-green-600',
     motionClass: 'motion-safe:animate-bob',
   },
 ]
@@ -66,11 +65,6 @@ export const OrderStatusStepper: React.FC<{ order: Order }> = ({ order }) => {
           <React.Fragment key={step.label}>
             <div className="flex flex-col items-center w-16 shrink-0">
               <div className="relative w-9 h-9">
-                {state === 'current' && (
-                  <span
-                    className={`absolute inset-0 rounded-full opacity-60 motion-safe:animate-ping ${step.pingClass}`}
-                  />
-                )}
                 <div
                   // key berganti saat status berubah, sehingga animasi muncul diputar ulang
                   key={state}
@@ -84,7 +78,11 @@ export const OrderStatusStepper: React.FC<{ order: Order }> = ({ order }) => {
                       : 'bg-paper-200 text-ink-400'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${state === 'current' ? step.motionClass : ''}`} />
+                  {state === 'current' && step.currentIcon ? (
+                    step.currentIcon
+                  ) : (
+                    <Icon className={`w-4 h-4 ${state === 'current' ? step.motionClass : ''}`} />
+                  )}
                 </div>
               </div>
               <span
