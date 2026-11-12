@@ -21,14 +21,18 @@ const FAQ_KNOWLEDGE: Record<string, string> = {
     'Level pedas berada di kisaran sedang-ke-pedas (level 2-3). Jika tidak tahan pedas, tulis di catatan "Bumbu cabai dipisah/sedikit".',
   combo:
     'Paket Combo Juara berisi 2 Cibay + 2 Spicy Ramyeon Roll seharga Rp13.000 (hemat Rp1.000 dari normal Rp14.000).',
+  rekomendasi:
+    'Baru pertama coba? Ambil Paket Combo Juara (2 Cibay + 2 Spicy Ramyeon Roll) cuma Rp13.000, hemat Rp1.000 dan bisa cicip dua menu gurih sekaligus. Kurang tahan pedas? Tambah Puding Karamel & Buah Dingin (Rp10.000) buat penyegar. Mau ngemil hemat sendiri? Cibay 2 pcs Rp5.000 paling pas.',
 }
+
+const REKOMENDASI_KEYWORDS = ['rekomen', 'best', 'laris', 'favorit', 'bingung', 'paling enak', 'pilih apa', 'saran']
 
 export const AiChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'bot',
-      text: 'Halo! Ada yang bisa dibantu seputar menu PO, lokasi ambil, atau cara bayar QRIS?',
+      text: 'Halo! Ada yang bisa dibantu seputar menu PO, rekomendasi menu, lokasi ambil, atau cara bayar QRIS?',
     },
   ])
   const [input, setInput] = useState('')
@@ -59,7 +63,7 @@ export const AiChatbot: React.FC = () => {
               {
                 role: 'system',
                 content:
-                  'Kamu adalah customer service ramah anak kuliahan untuk Laris Manis KWU Telkom University. Jual Cibay (Rp3rb/Rp5rb), Spicy Ramyeon Roll (Rp5rb/Rp9rb), Puding Karamel (Rp10rb), Paket Combo Rp13rb. Jawab singkat, ramah, dan solutif.',
+                  'Kamu adalah customer service ramah anak kuliahan untuk Laris Manis KWU Telkom University. Jual Cibay (Rp3rb/Rp5rb), Spicy Ramyeon Roll (Rp5rb/Rp9rb), Puding Karamel (Rp10rb), Paket Combo Rp13rb. Kalau pembeli bingung atau minta rekomendasi, sarankan Paket Combo Juara untuk pembeli baru dan Puding Karamel sebagai penyegar setelah makan pedas. Jawab singkat, ramah, dan solutif.',
               },
               ...newMsgs.map((m) => ({
                 role: m.sender === 'bot' ? 'assistant' : 'user',
@@ -86,7 +90,10 @@ export const AiChatbot: React.FC = () => {
       let reply =
         'Pertanyaan kamu bisa langsung ditanyakan ke admin via WhatsApp atau silakan pilih menu di atas ya.'
 
-      if (lower.includes('cibay') || lower.includes('aci')) {
+      // Dicek paling awal: "Laris Manis" mengandung "manis" yang memicu jawaban puding
+      if (REKOMENDASI_KEYWORDS.some((kw) => lower.includes(kw))) {
+        reply = FAQ_KNOWLEDGE.rekomendasi
+      } else if (lower.includes('cibay') || lower.includes('aci')) {
         reply = FAQ_KNOWLEDGE.cibay
       } else if (lower.includes('ramyeon') || lower.includes('roll') || lower.includes('korea')) {
         reply = FAQ_KNOWLEDGE.ramyeon
@@ -203,6 +210,7 @@ export const AiChatbot: React.FC = () => {
 
           <div className="p-2 bg-white border-t border-paper-100 flex gap-1.5 overflow-x-auto no-scrollbar">
             {[
+              'Rekomendasi?',
               'Apa itu Cibay?',
               'Spicy Ramyeon Roll?',
               'Puding Karamel?',
