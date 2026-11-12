@@ -119,7 +119,7 @@ export const AiChatbot: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-white px-3.5 py-2 rounded-lg shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800"
+          className="fixed bottom-20 sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-surface px-3.5 py-2 rounded-lg shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800"
           title="Tanya Info Menu (Draft)"
         >
           <Bot className="w-4 h-4 text-brand-200" />
@@ -135,26 +135,26 @@ export const AiChatbot: React.FC = () => {
           role="dialog"
           aria-modal="false"
           aria-label="Asisten Virtual Laris Manis"
-          className="fixed bottom-20 sm:bottom-5 right-5 z-40 w-full max-w-[340px] sm:max-w-sm bg-white rounded-xl shadow-2xl border border-paper-200 overflow-hidden flex flex-col h-[480px]"
+          className="fixed bottom-20 sm:bottom-5 right-5 z-40 w-full max-w-[340px] sm:max-w-sm bg-surface rounded-xl shadow-2xl border border-paper-200 overflow-hidden flex flex-col h-[480px]"
         >
-          <div className="bg-ink-900 text-white p-3.5 flex items-center justify-between">
+          <div className="bg-inverse text-white p-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bot className="w-4 h-4 text-brand-200" />
+              <Bot className="w-4 h-4 text-[#ffc4c4]" />
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-extrabold text-xs">Asisten Virtual Laris Manis</h3>
-                  <span className="text-xs bg-ink-800 text-paper-200 font-bold px-1 rounded">
+                  <span className="text-xs bg-white/15 text-stone-200 font-bold px-1 rounded">
                     DRAFT
                   </span>
                 </div>
-                <p className="text-xs text-paper-300">Tanya seputar menu & PO</p>
+                <p className="text-xs text-stone-300">Tanya seputar menu & PO</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setShowKeyInput(!showKeyInput)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-paper-300 hover:text-white rounded"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-stone-300 hover:text-white rounded"
                 title="Input OpenRouter API Key (Opsional)"
                 aria-label="Input API Key"
               >
@@ -162,7 +162,7 @@ export const AiChatbot: React.FC = () => {
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-paper-300 hover:text-white rounded"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-stone-300 hover:text-white rounded"
                 aria-label="Tutup Chatbot"
               >
                 <X className="w-4 h-4" />
@@ -178,7 +178,7 @@ export const AiChatbot: React.FC = () => {
                 placeholder="sk-or-v1-..."
                 value={openRouterKey}
                 onChange={(e) => setOpenRouterKey(e.target.value)}
-                className="w-full text-xs p-1.5 border border-paper-200 rounded bg-white"
+                className="w-full text-xs p-1.5 border border-paper-200 rounded bg-surface"
               />
             </div>
           )}
@@ -196,7 +196,7 @@ export const AiChatbot: React.FC = () => {
                   className={`max-w-[85%] rounded-lg px-3 py-2 leading-relaxed ${
                     m.sender === 'user'
                       ? 'bg-brand-600 text-white'
-                      : 'bg-white text-ink-900 border border-paper-200 shadow-sm'
+                      : 'bg-surface text-ink-900 border border-paper-200 shadow-sm'
                   }`}
                 >
                   {m.text}
@@ -208,7 +208,7 @@ export const AiChatbot: React.FC = () => {
             )}
           </div>
 
-          <div className="p-2 bg-white border-t border-paper-100 flex gap-1.5 overflow-x-auto no-scrollbar">
+          <div className="p-2 bg-surface border-t border-paper-100 flex gap-1.5 overflow-x-auto no-scrollbar">
             {[
               'Rekomendasi?',
               'Apa itu Cibay?',
@@ -227,7 +227,7 @@ export const AiChatbot: React.FC = () => {
             ))}
           </div>
 
-          <div className="p-2.5 bg-white border-t border-paper-200 flex gap-1.5">
+          <div className="p-2.5 bg-surface border-t border-paper-200 flex gap-1.5">
             <input
               type="text"
               placeholder="Ketik pertanyaan..."
@@ -238,7 +238,7 @@ export const AiChatbot: React.FC = () => {
             />
             <button
               onClick={() => handleSend()}
-              className="min-h-[44px] min-w-[44px] px-3 bg-ink-900 text-white rounded-lg hover:bg-ink-800 flex items-center justify-center"
+              className="min-h-[44px] min-w-[44px] px-3 bg-ink-900 text-surface rounded-lg hover:bg-ink-800 flex items-center justify-center"
               aria-label="Kirim pertanyaan"
             >
               <Send className="w-4 h-4" />

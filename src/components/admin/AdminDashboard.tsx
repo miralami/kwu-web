@@ -184,27 +184,27 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
       className="fixed inset-0 z-50 bg-paper-100 flex flex-col overflow-hidden"
     >
       {/* Top Navbar */}
-      <div className="bg-ink-900 text-white px-4 py-3 flex items-center justify-between border-b border-paper-200">
+      <div className="bg-inverse text-white px-4 py-3 flex items-center justify-between border-b border-paper-200">
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-5 h-5 text-brand-500" />
           <div>
             <h1 className="font-extrabold text-sm sm:text-base leading-tight">
               Dashboard Tim & Kasir Laris Manis
             </h1>
-            <p className="text-xs text-paper-300">Kelompok 1 • S1SI-KJ-23-002</p>
+            <p className="text-xs text-stone-300">Kelompok 1 • S1SI-KJ-23-002</p>
           </div>
         </div>
 
         <button
           onClick={onClose}
-          className="min-h-[44px] px-3 bg-ink-800 hover:bg-ink-700 text-white rounded-lg text-xs font-bold"
+          className="min-h-[44px] px-3 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold"
         >
           Keluar Mode Tim
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-paper-200 px-4 flex gap-1 overflow-x-auto no-scrollbar">
+      <div className="bg-surface border-b border-paper-200 px-4 flex gap-1 overflow-x-auto no-scrollbar">
         {[
           { id: 'orders', label: 'Pesanan Masuk', count: orders.length },
           { id: 'pos', label: 'Kasir Walk-in POS' },
@@ -246,7 +246,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   placeholder="Cari ID, nama pemesan, kelas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full min-h-[44px] pl-9 pr-3 py-2 text-xs bg-white border border-paper-200 rounded-lg"
+                  className="w-full min-h-[44px] pl-9 pr-3 py-2 text-xs bg-surface border border-paper-200 rounded-lg"
                 />
               </div>
 
@@ -263,8 +263,8 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                     onClick={() => setOrderFilter(f.id)}
                     className={`min-h-[44px] px-3 rounded-lg text-xs font-bold whitespace-nowrap border ${
                       orderFilter === f.id
-                        ? 'bg-ink-900 text-white border-ink-900'
-                        : 'bg-white text-ink-700 border-paper-200 hover:bg-paper-50'
+                        ? 'bg-ink-900 text-surface border-ink-900'
+                        : 'bg-surface text-ink-700 border-paper-200 hover:bg-paper-50'
                     }`}
                   >
                     {f.label}
@@ -275,7 +275,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
 
             {/* Orders Feed */}
             {filteredOrders.length === 0 ? (
-              <div className="p-8 text-center bg-white rounded-lg border border-paper-200 text-ink-500 text-xs">
+              <div className="p-8 text-center bg-surface rounded-lg border border-paper-200 text-ink-500 text-xs">
                 Tidak ada pesanan pada filter ini.
               </div>
             ) : (
@@ -284,7 +284,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   return (
                     <div
                       key={order.id}
-                      className="bg-white rounded-lg border border-paper-200 p-4 shadow-sm space-y-3"
+                      className="bg-surface rounded-lg border border-paper-200 p-4 shadow-sm space-y-3"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper-100 pb-2.5">
                         <div className="flex items-center gap-2">
@@ -444,7 +444,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
 
         {/* TAB 2: KASIR OFFLINE */}
         {activeTab === 'pos' && (
-          <div className="bg-white rounded-lg border border-paper-200 p-5 space-y-5">
+          <div className="bg-surface rounded-lg border border-paper-200 p-5 space-y-5">
             <div>
               <h2 className="font-extrabold text-base text-ink-900">Kasir Jualan Kampus (Walk-in)</h2>
               <p className="text-xs text-ink-500">
@@ -486,7 +486,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                       className={`min-h-[44px] p-2 rounded-lg text-xs font-bold border ${
                         posMethod === 'tunai'
                           ? 'bg-green-50 border-green-600 text-green-900'
-                          : 'bg-white border-paper-200 text-ink-700'
+                          : 'bg-surface border-paper-200 text-ink-700'
                       }`}
                     >
                       Tunai (Cash)
@@ -497,7 +497,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                       className={`min-h-[44px] p-2 rounded-lg text-xs font-bold border ${
                         posMethod === 'qris'
                           ? 'bg-brand-50 border-brand-600 text-brand-900'
-                          : 'bg-white border-paper-200 text-ink-700'
+                          : 'bg-surface border-paper-200 text-ink-700'
                       }`}
                     >
                       QRIS Statis
@@ -537,7 +537,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                               {opt.label} • Rp{opt.price.toLocaleString('id-ID')}
                             </div>
                           </div>
-                          <div className="flex items-center border border-paper-200 rounded-lg bg-white">
+                          <div className="flex items-center border border-paper-200 rounded-lg bg-surface">
                             <button
                               type="button"
                               onClick={() => handlePosChange(key, -1)}
@@ -565,7 +565,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
 
               <button
                 type="submit"
-                className="w-full min-h-[48px] bg-ink-900 text-white rounded-lg text-xs sm:text-sm font-extrabold hover:bg-ink-800"
+                className="w-full min-h-[48px] bg-ink-900 text-surface rounded-lg text-xs sm:text-sm font-extrabold hover:bg-ink-800"
               >
                 Catat Transaksi Penjualan Masuk
               </button>
@@ -577,7 +577,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
         {activeTab === 'report' && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-white p-4 rounded-lg border border-paper-200">
+              <div className="bg-surface p-4 rounded-lg border border-paper-200">
                 <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold uppercase">
                   <DollarSign className="w-3.5 h-3.5 text-green-700" />
                   <span>Total Omzet</span>
@@ -588,7 +588,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 <div className="text-xs text-ink-400 mt-0.5">{report.totalOrders} Transaksi Sukses</div>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border border-paper-200">
+              <div className="bg-surface p-4 rounded-lg border border-paper-200">
                 <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold uppercase">
                   <Package className="w-3.5 h-3.5 text-ink-700" />
                   <span>Pcs Terjual</span>
@@ -601,7 +601,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 </div>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border border-paper-200">
+              <div className="bg-surface p-4 rounded-lg border border-paper-200">
                 <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold uppercase">
                   <TrendingUp className="w-3.5 h-3.5 text-brand-600" />
                   <span>Estimasi Laba</span>
@@ -612,7 +612,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 <div className="text-xs text-ink-400 mt-0.5">Margin ~40.5% (BP)</div>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border border-paper-200">
+              <div className="bg-surface p-4 rounded-lg border border-paper-200">
                 <div className="text-xs text-ink-500 font-bold uppercase">Target Omzet Akhir</div>
                 <div className="text-lg sm:text-xl font-black text-ink-700 mt-1">
                   Rp4.786.000
@@ -622,7 +622,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
             </div>
 
             {/* Target Progress Bar */}
-            <div className="bg-white p-4 rounded-lg border border-paper-200 space-y-2">
+            <div className="bg-surface p-4 rounded-lg border border-paper-200 space-y-2">
               <div className="flex justify-between text-xs font-bold text-ink-800">
                 <span>Progress Penjualan Target Pcs (Minggu 10 - 12)</span>
                 <span>{report.totalPiecesSold} / 738 pcs</span>
@@ -636,7 +636,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
             </div>
 
             {/* Breakdown per menu */}
-            <div className="bg-white rounded-lg border border-paper-200 p-4 space-y-3">
+            <div className="bg-surface rounded-lg border border-paper-200 p-4 space-y-3">
               <h3 className="font-extrabold text-sm text-ink-900">Rincian Penjualan per Menu</h3>
               <div className="space-y-2">
                 {Object.values(report.itemsBreakdown).length === 0 ? (
@@ -671,7 +671,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               </button>
               <button
                 onClick={handleDownloadCsv}
-                className="flex-1 min-h-[48px] bg-ink-900 hover:bg-ink-800 text-white px-4 rounded-lg text-xs font-bold flex items-center justify-center gap-2"
+                className="flex-1 min-h-[48px] bg-ink-900 hover:bg-ink-800 text-surface px-4 rounded-lg text-xs font-bold flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 <span>Export Data CSV (Google Sheets)</span>
@@ -682,7 +682,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
 
         {/* TAB 4: TEAM */}
         {activeTab === 'team' && (
-          <div className="bg-white rounded-lg border border-paper-200 p-5 space-y-4">
+          <div className="bg-surface rounded-lg border border-paper-200 p-5 space-y-4">
             <div>
               <h2 className="font-extrabold text-base text-ink-900">
                 Struktur Tim Kelompok 1 - Laris Manis

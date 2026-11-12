@@ -25,7 +25,7 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
           <button
             key={order.id}
             onClick={() => onOpenOrder(order.id)}
-            className="w-full min-h-[56px] bg-white border border-paper-200 rounded-lg p-3 flex items-center justify-between gap-3 text-left hover:border-ink-500 transition-colors shadow-sm"
+            className="w-full min-h-[56px] bg-surface border border-paper-200 rounded-lg p-3 flex items-center justify-between gap-3 text-left hover:border-ink-500 transition-colors shadow-sm"
           >
             <div className="min-w-0">
               <div className="text-sm font-extrabold text-ink-900">

@@ -25,7 +25,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
   return (
     <div className="space-y-6">
       {/* Editorial Headline Section (No Eyebrow, No Gradient Soup) */}
-      <section className="bg-white border border-paper-200 rounded-xl p-5 sm:p-6 shadow-sm">
+      <section className="bg-surface border border-paper-200 rounded-xl p-5 sm:p-6 shadow-sm">
         <div className="max-w-xl space-y-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-ink-900 tracking-tight leading-tight">
             Jajanan Sunda ✕ Korea & Dessert Dingin
@@ -66,8 +66,8 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
               onClick={() => setActiveCategory(tab.id as ProductCategory)}
               className={`min-h-[44px] px-4 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
                 isActive
-                  ? 'bg-ink-900 text-white border-ink-900'
-                  : 'bg-white text-ink-600 hover:bg-paper-100 border-paper-200'
+                  ? 'bg-ink-900 text-surface border-ink-900'
+                  : 'bg-surface text-ink-600 hover:bg-paper-100 border-paper-200'
               }`}
             >
               {tab.label}
@@ -94,7 +94,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
                   onSelectItem(item)
                 }
               }}
-              className="bg-white border border-paper-200 rounded-xl overflow-hidden shadow-sm hover:border-paper-300 transition-all cursor-pointer flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-brand-600"
+              className="bg-surface border border-paper-200 rounded-xl overflow-hidden shadow-sm hover:border-paper-300 transition-all cursor-pointer flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-brand-600"
             >
               <div>
                 {/* Product Photo with Real Aspect Ratio */}
@@ -116,14 +116,14 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
                       </span>
                     ) : null}
                     {item.isBestValue && (
-                      <span className="text-xs bg-accent-500 text-ink-900 font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                      <span className="text-xs bg-accent-500 text-stone-900 font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
                         <Sparkles className="w-3 h-3" /> Hemat Rp1.000
                       </span>
                     )}
                   </div>
 
                   {/* Clean Tabular Price Badge */}
-                  <div className="absolute bottom-3 right-3 bg-ink-900 text-white px-2.5 py-1 rounded text-xs font-extrabold tracking-tight">
+                  <div className="absolute bottom-3 right-3 bg-black/80 text-white px-2.5 py-1 rounded text-xs font-extrabold tracking-tight">
                     {item.options.length > 1 ? 'Mulai ' : ''}Rp{minPrice.toLocaleString('id-ID')}
                   </div>
                 </div>

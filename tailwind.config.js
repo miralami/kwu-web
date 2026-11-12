@@ -1,5 +1,36 @@
+import { createRequire } from 'node:module'
+import plugin from 'tailwindcss/plugin'
+
+const require = createRequire(import.meta.url)
+const palette = require('./theme.palette.cjs')
+
+const hexToRgb = (hex) => {
+  const n = parseInt(hex.slice(1), 16)
+  return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`
+}
+const varName = (group, shade) => `--c-${group}${shade === 'DEFAULT' ? '' : `-${shade}`}`
+
+// Warna Tailwind -> variabel CSS, agar opacity modifier (bg-surface/95) tetap berfungsi
+const themeColors = Object.fromEntries(
+  Object.entries(palette).map(([group, shades]) => [
+    group,
+    Object.fromEntries(
+      Object.keys(shades).map((shade) => [shade, `rgb(var(${varName(group, shade)}) / <alpha-value>)`])
+    ),
+  ])
+)
+
+// Nilai variabel untuk mode terang (:root) dan gelap (.dark)
+const cssVars = (mode) =>
+  Object.fromEntries(
+    Object.entries(palette).flatMap(([group, shades]) =>
+      Object.entries(shades).map(([shade, pair]) => [varName(group, shade), hexToRgb(pair[mode])])
+    )
+  )
+
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -54,45 +85,15 @@ export default {
         boil: 'boil 0.25s linear infinite',
         'spin-tick': 'spin 2.4s steps(12) infinite',
       },
-      colors: {
-        paper: {
-          50: '#ffffff',
-          100: '#f7f5f0',
-          200: '#ede8df',
-          300: '#ded7c9',
-          400: '#c5bbae',
-        },
-        ink: {
-          900: '#1c1917',
-          800: '#292524',
-          700: '#44403c',
-          600: '#57534e',
-          500: '#78716c',
-        },
-        // Warna utama: merah #d81616 (teks putih di atasnya: kontras 5.2:1)
-        brand: {
-          50: '#fff1f1',
-          100: '#ffdfdf',
-          200: '#ffc4c4',
-          500: '#ee3434',
-          600: '#d81616',
-          700: '#b31111',
-          800: '#941212',
-          900: '#7a1515',
-        },
-        // Aksen: kuning #fdb41d. Selalu pakai teks gelap (ink-900) di atasnya,
-        // jangan dipakai sebagai warna teks di latar putih (kontras hanya 1.8:1)
-        accent: {
-          50: '#fff9eb',
-          100: '#ffefc6',
-          200: '#fedd88',
-          500: '#fdb41d',
-          600: '#e1940a',
-          700: '#b96f0a',
-          900: '#6e3f10',
-        },
-      },
+      colors: themeColors,
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(({ addBase }) => {
+      addBase({
+        ':root': { ...cssVars(0), colorScheme: 'light' },
+        '.dark': { ...cssVars(1), colorScheme: 'dark' },
+      })
+    }),
+  ],
 }

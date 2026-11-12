@@ -112,12 +112,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-ink-900/60 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-l border-paper-200">
+        <div className="w-screen max-w-md bg-surface shadow-2xl flex flex-col border-l border-paper-200">
           {/* Header */}
           <div className="p-4 border-b border-paper-200 flex items-center justify-between bg-paper-50">
             <div>
@@ -142,7 +142,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </p>
               <button
                 onClick={onClose}
-                className="min-h-[44px] px-4 bg-ink-900 text-white text-xs font-bold rounded-lg"
+                className="min-h-[44px] px-4 bg-ink-900 text-surface text-xs font-bold rounded-lg"
               >
                 Kembali ke Menu
               </button>
@@ -175,7 +175,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
 
                     {/* Stepper with >= 44px hit targets */}
-                    <div className="flex items-center border border-paper-200 rounded-lg bg-white">
+                    <div className="flex items-center border border-paper-200 rounded-lg bg-surface">
                       <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
                         className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-600 hover:text-ink-900"
@@ -211,7 +211,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span>Kode Voucher / Promo</span>
                 </div>
                 {appliedPromo ? (
-                  <div className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-green-300 text-xs">
+                  <div className="flex items-center justify-between bg-surface px-3 py-2 rounded-lg border border-green-300 text-xs">
                     <span className="font-bold text-green-800 flex items-center gap-1">
                       <Check className="w-3.5 h-3.5" /> {appliedPromo.code} - {appliedPromo.label}
                     </span>
@@ -229,12 +229,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       placeholder="RAWONSETO / LARISMANIS"
                       value={referralInput}
                       onChange={(e) => setReferralInput(e.target.value)}
-                      className="flex-1 min-h-[44px] text-xs px-3 bg-white border border-paper-200 rounded-lg uppercase font-bold tracking-wider"
+                      className="flex-1 min-h-[44px] text-xs px-3 bg-surface border border-paper-200 rounded-lg uppercase font-bold tracking-wider"
                     />
                     <button
                       type="button"
                       onClick={handleApplyPromo}
-                      className="min-h-[44px] bg-ink-900 text-white text-xs font-bold px-4 rounded-lg hover:bg-ink-800"
+                      className="min-h-[44px] bg-ink-900 text-surface text-xs font-bold px-4 rounded-lg hover:bg-ink-800"
                     >
                       Terapkan
                     </button>
@@ -313,8 +313,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         onClick={() => setCustomerClass(loc)}
                         className={`text-xs px-2 py-1 rounded border font-medium transition-colors ${
                           customerClass === loc
-                            ? 'bg-ink-900 text-white border-ink-900'
-                            : 'bg-white text-ink-600 border-paper-200 hover:bg-paper-100'
+                            ? 'bg-ink-900 text-surface border-ink-900'
+                            : 'bg-surface text-ink-600 border-paper-200 hover:bg-paper-100'
                         }`}
                       >
                         {loc}
@@ -334,7 +334,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       className={`min-h-[48px] p-2.5 rounded-lg border flex items-center gap-2 text-xs font-bold transition-all ${
                         paymentMethod === 'qris'
                           ? 'border-brand-600 bg-brand-50 text-brand-900'
-                          : 'border-paper-200 bg-white text-ink-700 hover:bg-paper-50'
+                          : 'border-paper-200 bg-surface text-ink-700 hover:bg-paper-50'
                       }`}
                     >
                       <CreditCard className="w-4 h-4 text-brand-600" />
@@ -346,7 +346,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       className={`min-h-[48px] p-2.5 rounded-lg border flex items-center gap-2 text-xs font-bold transition-all ${
                         paymentMethod === 'tunai'
                           ? 'border-brand-600 bg-brand-50 text-brand-900'
-                          : 'border-paper-200 bg-white text-ink-700 hover:bg-paper-50'
+                          : 'border-paper-200 bg-surface text-ink-700 hover:bg-paper-50'
                       }`}
                     >
                       <Banknote className="w-4 h-4 text-green-700" />

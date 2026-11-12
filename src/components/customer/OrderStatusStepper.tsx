@@ -17,7 +17,7 @@ const STEPS: StepDef[] = [
   {
     label: 'Verifikasi',
     icon: Clock,
-    currentClass: 'bg-accent-500 text-ink-900',
+    currentClass: 'bg-accent-500 text-stone-900',
     motionClass: 'motion-safe:animate-spin-tick',
   },
   {

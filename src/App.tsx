@@ -207,7 +207,7 @@ export function App() {
   const cartSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   return (
-    <div className="min-h-screen bg-white text-ink-900 flex flex-col justify-between pb-24 sm:pb-12">
+    <div className="min-h-screen bg-surface text-ink-900 flex flex-col justify-between pb-24 sm:pb-12">
       <div>
         <Navbar
           cartCount={totalCartCount}
@@ -232,7 +232,7 @@ export function App() {
 
       {/* Sticky Bottom Thumb-Zone Bar (Master Checklist 1.2.6 & 1.2.8) */}
       {totalCartCount > 0 && !isCartOpen && !activeReceiptOrder && (
-        <div className="fixed bottom-0 inset-x-0 z-30 p-3 bg-white/95 backdrop-blur-md border-t border-paper-200 shadow-lg">
+        <div className="fixed bottom-0 inset-x-0 z-30 p-3 bg-surface/95 backdrop-blur-md border-t border-paper-200 shadow-lg">
           <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
             <div>
               <div className="text-xs text-ink-500 font-bold uppercase tracking-wider">
@@ -256,7 +256,7 @@ export function App() {
       )}
 
       {/* Footer */}
-      <footer className="bg-white border-t border-paper-200 mt-12 py-8 text-center text-xs text-ink-500 space-y-2">
+      <footer className="bg-surface border-t border-paper-200 mt-12 py-8 text-center text-xs text-ink-500 space-y-2">
         <div className="flex items-center justify-center gap-1.5 font-bold text-ink-800">
           <span>Laris Manis</span>
           <span>•</span>
@@ -308,9 +308,9 @@ export function App() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="pin-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/60 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
         >
-          <div className="bg-white rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-paper-200">
+          <div className="bg-surface rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-paper-200">
             <div className="w-12 h-12 bg-paper-100 text-ink-900 rounded-full flex items-center justify-center mx-auto border border-paper-200">
               <Lock className="w-6 h-6" />
             </div>
@@ -346,7 +346,7 @@ export function App() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 min-h-[44px] rounded-lg text-xs font-bold text-white bg-ink-900 hover:bg-ink-800"
+                  className="flex-1 min-h-[44px] rounded-lg text-xs font-bold text-surface bg-ink-900 hover:bg-ink-800"
                 >
                   Masuk
                 </button>

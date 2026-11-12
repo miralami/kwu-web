@@ -69,22 +69,22 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
       role="dialog"
       aria-modal="true"
       aria-labelledby="receipt-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/70 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
     >
-      <div className="relative w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden my-6 border border-paper-200">
+      <div className="relative w-full max-w-lg bg-surface rounded-xl shadow-2xl overflow-hidden my-6 border border-paper-200">
         {/* Receipt Header */}
-        <div className="bg-ink-900 text-white p-5">
+        <div className="bg-inverse text-white p-5">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-brand-200 uppercase tracking-wider">
+              <span className="text-xs font-bold text-[#ffc4c4] uppercase tracking-wider">
                 Bukti Pemesanan PO
               </span>
               <h2 id="receipt-modal-title" className="text-xl font-extrabold mt-0.5">Pesanan #{order.id}</h2>
-              <p className="text-xs text-paper-200">{order.customerName} • {order.customerClass}</p>
+              <p className="text-xs text-stone-300">{order.customerName} • {order.customerClass}</p>
             </div>
             <button
               onClick={onClose}
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center text-paper-200 hover:text-white rounded-lg"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center text-stone-300 hover:text-white rounded-lg"
               aria-label="Tutup"
             >
               <X className="w-5 h-5" />
@@ -92,7 +92,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
           </div>
         </div>
 
-        <div className="p-5 space-y-5 max-h-[75vh] overflow-y-auto bg-white">
+        <div className="p-5 space-y-5 max-h-[75vh] overflow-y-auto bg-surface">
           {/* Order Status Progress */}
           <div className="bg-paper-50 p-4 rounded-lg border border-paper-200">
             <div className="text-xs font-bold text-ink-600 mb-2">Status Pesanan:</div>
@@ -163,7 +163,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               </div>
 
               {/* Exact Amount */}
-              <div className="bg-white p-3 rounded-lg border border-paper-200 flex items-center justify-between">
+              <div className="bg-surface p-3 rounded-lg border border-paper-200 flex items-center justify-between">
                 <div className="text-left">
                   <div className="text-xs text-ink-500 uppercase font-bold">
                     Nominal Transfer Tepat
@@ -183,7 +183,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
 
               <button
                 onClick={handleDownloadQris}
-                className="w-full min-h-[44px] bg-ink-900 text-white py-2.5 px-4 rounded-lg text-xs font-bold hover:bg-ink-800 flex items-center justify-center gap-2"
+                className="w-full min-h-[44px] bg-ink-900 text-surface py-2.5 px-4 rounded-lg text-xs font-bold hover:bg-ink-800 flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 <span>Simpan Gambar QRIS ke Galeri HP</span>

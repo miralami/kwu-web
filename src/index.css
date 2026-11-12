@@ -4,8 +4,10 @@
 
 @layer base {
   body {
-    background-color: #ffffff;
-    color: #1c1917;
+    /* Variabel warna didefinisikan di tailwind.config.js (palet di theme.palette.cjs) */
+    background-color: rgb(var(--c-surface));
+    color: rgb(var(--c-ink-900));
+    transition: background-color 0.25s ease, color 0.25s ease;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
