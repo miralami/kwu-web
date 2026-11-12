@@ -161,7 +161,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       </div>
                       <div className="text-xs text-ink-500">{item.optionLabel}</div>
                       {item.notes && (
-                        <div className="text-xs text-terracotta-700 italic truncate">
+                        <div className="text-xs text-brand-700 italic truncate">
                           "{item.notes}"
                         </div>
                       )}
@@ -203,7 +203,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               {/* Promo Section */}
               <div className="bg-paper-50 p-3.5 rounded-lg border border-paper-200 space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-ink-800">
-                  <Tag className="w-3.5 h-3.5 text-terracotta-600" />
+                  <Tag className="w-3.5 h-3.5 text-brand-600" />
                   <span>Kode Voucher / Promo</span>
                 </div>
                 {appliedPromo ? (
@@ -259,7 +259,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       if (formErrors.name) setFormErrors((p) => ({ ...p, name: undefined }))
                     }}
                     className={`w-full min-h-[44px] text-xs px-3 border rounded-lg focus:outline-none bg-paper-50 ${
-                      formErrors.name ? 'border-red-500 focus:border-red-600' : 'border-paper-200 focus:border-terracotta-600'
+                      formErrors.name ? 'border-red-500 focus:border-red-600' : 'border-paper-200 focus:border-brand-600'
                     }`}
                   />
                   {formErrors.name && (
@@ -281,7 +281,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       if (formErrors.phone) setFormErrors((p) => ({ ...p, phone: undefined }))
                     }}
                     className={`w-full min-h-[44px] text-xs px-3 border rounded-lg focus:outline-none bg-paper-50 ${
-                      formErrors.phone ? 'border-red-500 focus:border-red-600' : 'border-paper-200 focus:border-terracotta-600'
+                      formErrors.phone ? 'border-red-500 focus:border-red-600' : 'border-paper-200 focus:border-brand-600'
                     }`}
                   />
                   {formErrors.phone && (
@@ -299,7 +299,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     placeholder="Contoh: S1SI-02 / Lantai 3 Gedung B"
                     value={customerClass}
                     onChange={(e) => setCustomerClass(e.target.value)}
-                    className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg focus:outline-none focus:border-terracotta-600 bg-paper-50"
+                    className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg focus:outline-none focus:border-brand-600 bg-paper-50"
                   />
                   <div className="flex gap-1.5 mt-1.5 flex-wrap">
                     {['S1SI-02', 'Lantai 3 Gedung B', 'Selasar Kelas', 'Gazebo'].map((loc) => (
@@ -329,11 +329,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       onClick={() => setPaymentMethod('qris')}
                       className={`min-h-[48px] p-2.5 rounded-lg border flex items-center gap-2 text-xs font-bold transition-all ${
                         paymentMethod === 'qris'
-                          ? 'border-terracotta-600 bg-terracotta-50 text-terracotta-900'
+                          ? 'border-brand-600 bg-brand-50 text-brand-900'
                           : 'border-paper-200 bg-white text-ink-700 hover:bg-paper-50'
                       }`}
                     >
-                      <CreditCard className="w-4 h-4 text-terracotta-600" />
+                      <CreditCard className="w-4 h-4 text-brand-600" />
                       <span>QRIS Statis</span>
                     </button>
                     <button
@@ -341,7 +341,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       onClick={() => setPaymentMethod('tunai')}
                       className={`min-h-[48px] p-2.5 rounded-lg border flex items-center gap-2 text-xs font-bold transition-all ${
                         paymentMethod === 'tunai'
-                          ? 'border-terracotta-600 bg-terracotta-50 text-terracotta-900'
+                          ? 'border-brand-600 bg-brand-50 text-brand-900'
                           : 'border-paper-200 bg-white text-ink-700 hover:bg-paper-50'
                       }`}
                     >
@@ -360,7 +360,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     placeholder="Contoh: Ambil pas istirahat jam 12.00"
                     value={customerNotes}
                     onChange={(e) => setCustomerNotes(e.target.value)}
-                    className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg focus:outline-none focus:border-terracotta-600 bg-paper-50"
+                    className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg focus:outline-none focus:border-brand-600 bg-paper-50"
                   />
                 </div>
               </form>
@@ -383,7 +383,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 )}
                 <div className="flex justify-between text-base font-extrabold text-ink-900 pt-1 border-t border-paper-200">
                   <span>Total Tagihan</span>
-                  <span className="text-terracotta-600">Rp{total.toLocaleString('id-ID')}</span>
+                  <span className="text-brand-600">Rp{total.toLocaleString('id-ID')}</span>
                 </div>
               </div>
 
@@ -391,7 +391,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 type="submit"
                 form="checkout-form"
                 disabled={isSubmitting}
-                className="w-full min-h-[50px] bg-terracotta-600 text-white py-3.5 px-4 rounded-lg text-sm font-extrabold hover:bg-terracotta-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full min-h-[50px] bg-brand-600 text-white py-3.5 px-4 rounded-lg text-sm font-extrabold hover:bg-brand-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <span>{isSubmitting ? 'Memproses Pesanan...' : 'Konfirmasi Pre-Order'}</span>
                 <ArrowRight className="w-4 h-4" />

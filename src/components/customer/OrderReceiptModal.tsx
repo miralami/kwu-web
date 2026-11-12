@@ -130,7 +130,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
         <div className="bg-ink-900 text-white p-5">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-terracotta-200 uppercase tracking-wider">
+              <span className="text-xs font-bold text-brand-200 uppercase tracking-wider">
                 Bukti Pemesanan PO
               </span>
               <h2 id="receipt-modal-title" className="text-xl font-extrabold mt-0.5">Pesanan #{order.id}</h2>
@@ -156,7 +156,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                     order.paymentStatus === 'verified' || order.paymentMethod === 'tunai'
                       ? 'bg-green-700 text-white'
-                      : 'bg-amber-600 text-white'
+                      : 'bg-accent-500 text-ink-900'
                   }`}
                 >
                   <Clock className="w-4 h-4" />
@@ -180,7 +180,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                     order.orderStatus === 'sedang_diproses' ||
                     order.orderStatus === 'siap_diambil' ||
                     order.orderStatus === 'selesai'
-                      ? 'bg-terracotta-600 text-white'
+                      ? 'bg-brand-600 text-white'
                       : 'bg-paper-200 text-ink-400'
                   }`}
                 >
@@ -265,7 +265,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                   <div className="text-xs text-ink-500 uppercase font-bold">
                     Nominal Transfer Tepat
                   </div>
-                  <div className="text-lg font-black text-terracotta-600">
+                  <div className="text-lg font-black text-brand-600">
                     Rp{order.total.toLocaleString('id-ID')}
                   </div>
                 </div>
@@ -323,7 +323,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
 
             <div className="pt-2 border-t border-paper-300 flex justify-between text-xs font-extrabold text-ink-900">
               <span>Total Tagihan</span>
-              <span className="text-terracotta-600">Rp{order.total.toLocaleString('id-ID')}</span>
+              <span className="text-brand-600">Rp{order.total.toLocaleString('id-ID')}</span>
             </div>
           </div>
 

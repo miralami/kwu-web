@@ -15,9 +15,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   isAdmin,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-[#fcfbf9]/95 backdrop-blur-md border-b border-paper-200">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-paper-200">
       {/* Top Notice */}
-      <div className="bg-ink-900 text-paper-50 text-xs font-semibold py-2 px-4 text-center">
+      <div className="bg-brand-600 text-white text-xs font-semibold py-2 px-4 text-center">
         PO Batch 1 Dibuka • Kampus Tel-U Jakarta • Ambil di Lantai 3 Gedung B
       </div>
 
@@ -39,7 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="font-extrabold text-base tracking-tight text-ink-900">
                 Laris Manis
               </span>
-              <span className="text-xs font-bold text-terracotta-700 bg-terracotta-100 px-2 py-0.5 rounded border border-terracotta-200">
+              <span className="text-xs font-bold text-brand-700 bg-brand-100 px-2 py-0.5 rounded border border-brand-200">
                 Kelompok 1
               </span>
             </div>
@@ -66,13 +66,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Cart Trigger */}
           <button
             onClick={onOpenCart}
-            className="relative min-h-[44px] min-w-[44px] bg-terracotta-600 text-white px-3.5 rounded-lg text-xs font-bold hover:bg-terracotta-700 active:scale-[0.98] transition-all flex items-center gap-2"
+            className="relative min-h-[44px] min-w-[44px] bg-brand-600 text-white px-3.5 rounded-lg text-xs font-bold hover:bg-brand-700 active:scale-[0.98] transition-all flex items-center gap-2"
             aria-label="Buka Keranjang Pesanan"
           >
             <ShoppingBag className="w-4 h-4" />
-            <span className="hidden xs:inline">Pesanan</span>
+            <span className="hidden sm:inline">Keranjang</span>
             {cartCount > 0 && (
-              <span className="bg-white text-terracotta-700 text-xs font-extrabold px-1.5 py-0.2 rounded-full border border-terracotta-200">
+              <span className="bg-white text-brand-700 text-xs font-extrabold px-1.5 py-0.2 rounded-full border border-brand-200">
                 {cartCount}
               </span>
             )}

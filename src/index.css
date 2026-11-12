@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    background-color: #fcfbf9;
+    background-color: #ffffff;
     color: #1c1917;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -14,7 +14,7 @@
 
   /* Browser surface styling */
   ::selection {
-    background-color: #c2410c;
+    background-color: #d81616;
     color: #ffffff;
   }
 }

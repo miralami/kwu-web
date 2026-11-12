@@ -122,9 +122,9 @@ export const AiChatbot: React.FC = () => {
           className="fixed bottom-20 sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-white px-3.5 py-2 rounded-lg shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800"
           title="Tanya Info Menu (Draft)"
         >
-          <Bot className="w-4 h-4 text-terracotta-200" />
+          <Bot className="w-4 h-4 text-brand-200" />
           <span className="text-xs font-bold hidden sm:inline">Tanya Menu</span>
-          <span className="text-xs bg-terracotta-700 px-1.5 py-0.5 rounded font-bold uppercase">
+          <span className="text-xs bg-brand-700 px-1.5 py-0.5 rounded font-bold uppercase">
             Draft
           </span>
         </button>
@@ -139,7 +139,7 @@ export const AiChatbot: React.FC = () => {
         >
           <div className="bg-ink-900 text-white p-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Bot className="w-4 h-4 text-terracotta-200" />
+              <Bot className="w-4 h-4 text-brand-200" />
               <div>
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-extrabold text-xs">Asisten Virtual Laris Manis</h3>
@@ -195,7 +195,7 @@ export const AiChatbot: React.FC = () => {
                 <div
                   className={`max-w-[85%] rounded-lg px-3 py-2 leading-relaxed ${
                     m.sender === 'user'
-                      ? 'bg-terracotta-600 text-white'
+                      ? 'bg-brand-600 text-white'
                       : 'bg-white text-ink-900 border border-paper-200 shadow-sm'
                   }`}
                 >

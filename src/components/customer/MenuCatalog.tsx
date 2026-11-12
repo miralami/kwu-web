@@ -38,7 +38,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <button
               onClick={onViewCombo}
-              className="min-h-[44px] px-4 rounded-lg bg-terracotta-50 text-terracotta-700 hover:bg-terracotta-100 border border-terracotta-200 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-[0.98]"
+              className="min-h-[44px] px-4 rounded-lg bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-[0.98]"
             >
               <span>Paket Combo Hemat (Cibay + Roll)</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -91,7 +91,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
                   onSelectItem(item)
                 }
               }}
-              className="bg-white border border-paper-200 rounded-xl overflow-hidden shadow-sm hover:border-paper-300 transition-all cursor-pointer flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-terracotta-600"
+              className="bg-white border border-paper-200 rounded-xl overflow-hidden shadow-sm hover:border-paper-300 transition-all cursor-pointer flex flex-col justify-between focus:outline-none focus:ring-2 focus:ring-brand-600"
             >
               <div>
                 {/* Product Photo with Real Aspect Ratio */}
@@ -113,7 +113,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
                       </span>
                     ) : null}
                     {item.isBestValue && (
-                      <span className="text-xs bg-amber-600 text-white font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                      <span className="text-xs bg-accent-500 text-ink-900 font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
                         <Sparkles className="w-3 h-3" /> Hemat Rp1.000
                       </span>
                     )}
@@ -152,7 +152,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
                       onSelectItem(item)
                     }
                   }}
-                  className="min-h-[44px] min-w-[44px] px-3.5 bg-paper-100 hover:bg-terracotta-600 hover:text-white text-ink-800 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border border-paper-200"
+                  className="min-h-[44px] min-w-[44px] px-3.5 bg-paper-100 hover:bg-brand-600 hover:text-white text-ink-800 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border border-paper-200"
                 >
                   <Plus className="w-4 h-4" />
                   <span>{item.options.length > 1 ? 'Pilih Porsi' : 'Tambah'}</span>

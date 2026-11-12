@@ -159,7 +159,7 @@ export function App() {
   const cartSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9] text-ink-900 flex flex-col justify-between pb-24 sm:pb-12">
+    <div className="min-h-screen bg-white text-ink-900 flex flex-col justify-between pb-24 sm:pb-12">
       <div>
         <Navbar
           cartCount={totalCartCount}
@@ -196,7 +196,7 @@ export function App() {
 
             <button
               onClick={() => setIsCartOpen(true)}
-              className="min-h-[48px] bg-terracotta-600 hover:bg-terracotta-700 text-white px-5 rounded-lg text-xs sm:text-sm font-extrabold flex items-center gap-2 active:scale-[0.98] transition-all shadow-sm"
+              className="min-h-[48px] bg-brand-600 hover:bg-brand-700 text-white px-5 rounded-lg text-xs sm:text-sm font-extrabold flex items-center gap-2 active:scale-[0.98] transition-all shadow-sm"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>Lihat Pesanan & Bayar</span>
@@ -283,7 +283,7 @@ export function App() {
                   setPinInput(e.target.value)
                   setPinError(false)
                 }}
-                className="w-full min-h-[48px] text-center text-lg tracking-widest font-extrabold border border-paper-200 rounded-lg focus:outline-none focus:border-terracotta-600 bg-paper-50"
+                className="w-full min-h-[48px] text-center text-lg tracking-widest font-extrabold border border-paper-200 rounded-lg focus:outline-none focus:border-brand-600 bg-paper-50"
               />
               {pinError && <p className="text-xs text-red-600 font-bold">PIN Salah! Coba 1234</p>}
 

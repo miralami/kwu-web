@@ -178,7 +178,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
       {/* Top Navbar */}
       <div className="bg-ink-900 text-white px-4 py-3 flex items-center justify-between border-b border-paper-200">
         <div className="flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5 text-terracotta-500" />
+          <ShieldAlert className="w-5 h-5 text-brand-500" />
           <div>
             <h1 className="font-extrabold text-sm sm:text-base leading-tight">
               Dashboard Tim & Kasir Laris Manis
@@ -210,7 +210,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               onClick={() => setActiveTab(tab.id as any)}
               className={`min-h-[44px] py-2 px-3 sm:px-4 text-xs font-bold whitespace-nowrap border-b-2 transition-all flex items-center gap-1.5 ${
                 isActive
-                  ? 'border-terracotta-600 text-terracotta-700 bg-terracotta-50'
+                  ? 'border-brand-600 text-brand-700 bg-brand-50'
                   : 'border-transparent text-ink-600 hover:text-ink-900'
               }`}
             >
@@ -340,7 +340,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                           ))}
                           <div className="pt-1.5 border-t border-paper-200 flex justify-between font-extrabold text-xs text-ink-900">
                             <span>Total ({order.totalPieces} Pcs)</span>
-                            <span className="text-terracotta-600">
+                            <span className="text-brand-600">
                               Rp{order.total.toLocaleString('id-ID')}
                             </span>
                           </div>
@@ -364,7 +364,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                             onClick={() => onUpdateStatus(order.id, 'sedang_diproses')}
                             className={`min-h-[44px] text-xs font-bold px-3 rounded-lg flex items-center gap-1 border ${
                               order.orderStatus === 'sedang_diproses'
-                                ? 'bg-terracotta-600 text-white border-terracotta-600'
+                                ? 'bg-brand-600 text-white border-brand-600'
                                 : 'bg-paper-100 hover:bg-paper-200 text-ink-700 border-paper-200'
                             }`}
                           >
@@ -488,7 +488,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                       onClick={() => setPosMethod('qris')}
                       className={`min-h-[44px] p-2 rounded-lg text-xs font-bold border ${
                         posMethod === 'qris'
-                          ? 'bg-terracotta-50 border-terracotta-600 text-terracotta-900'
+                          ? 'bg-brand-50 border-brand-600 text-brand-900'
                           : 'bg-white border-paper-200 text-ink-700'
                       }`}
                     >
@@ -588,17 +588,17 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 <div className="text-lg sm:text-xl font-black text-ink-900 mt-1">
                   {report.totalPiecesSold} <span className="text-xs font-medium text-ink-400">/ 738 pcs</span>
                 </div>
-                <div className="text-xs text-terracotta-600 font-bold mt-0.5">
+                <div className="text-xs text-brand-600 font-bold mt-0.5">
                   {Math.round((report.totalPiecesSold / 738) * 100)}% Target Tercapai
                 </div>
               </div>
 
               <div className="bg-white p-4 rounded-lg border border-paper-200">
                 <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold uppercase">
-                  <TrendingUp className="w-3.5 h-3.5 text-terracotta-600" />
+                  <TrendingUp className="w-3.5 h-3.5 text-brand-600" />
                   <span>Estimasi Laba</span>
                 </div>
-                <div className="text-lg sm:text-xl font-black text-terracotta-600 mt-1">
+                <div className="text-lg sm:text-xl font-black text-brand-600 mt-1">
                   Rp{report.estimatedProfit.toLocaleString('id-ID')}
                 </div>
                 <div className="text-xs text-ink-400 mt-0.5">Margin ~40.5% (BP)</div>
@@ -621,7 +621,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               </div>
               <div className="w-full bg-paper-100 rounded-full h-3 overflow-hidden border border-paper-200">
                 <div
-                  className="bg-terracotta-600 h-full rounded-full transition-all duration-500"
+                  className="bg-brand-600 h-full rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, (report.totalPiecesSold / 738) * 100)}%` }}
                 />
               </div>
@@ -685,8 +685,8 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-terracotta-50 rounded-lg border border-terracotta-200">
-                <span className="text-xs font-bold uppercase text-terracotta-700">Ketua Tim</span>
+              <div className="p-3 bg-brand-50 rounded-lg border border-brand-200">
+                <span className="text-xs font-bold uppercase text-brand-700">Ketua Tim</span>
                 <div className="font-black text-ink-900 mt-0.5">Muhammad Rayfan Pashya</div>
                 <div className="text-ink-500 text-xs">NIM: 102042300174</div>
               </div>

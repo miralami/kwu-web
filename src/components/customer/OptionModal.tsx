@@ -84,7 +84,7 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
                     onClick={() => setSelectedOption(opt)}
                     className={`w-full min-h-[48px] flex items-center justify-between p-3 rounded-lg border text-left transition-colors ${
                       isSelected
-                        ? 'border-terracotta-600 bg-terracotta-50 text-terracotta-900 font-bold'
+                        ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold'
                         : 'border-paper-200 hover:border-paper-300 text-ink-800'
                     }`}
                   >
@@ -92,7 +92,7 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
                       <div
                         className={`w-4 h-4 rounded-full border flex items-center justify-center ${
                           isSelected
-                            ? 'border-terracotta-600 bg-terracotta-600 text-white'
+                            ? 'border-brand-600 bg-brand-600 text-white'
                             : 'border-paper-300'
                         }`}
                       >
@@ -125,7 +125,7 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
               placeholder="Contoh: Bumbu cabai dipisah, tidak terlalu pedas"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg focus:outline-none focus:border-terracotta-600 bg-paper-50"
+              className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg focus:outline-none focus:border-brand-600 bg-paper-50"
               maxLength={80}
             />
           </div>
@@ -156,7 +156,7 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
 
           <button
             onClick={handleAdd}
-            className="flex-1 min-h-[48px] bg-terracotta-600 text-white py-3 px-4 rounded-lg text-xs sm:text-sm font-bold hover:bg-terracotta-700 active:scale-[0.98] transition-all flex items-center justify-between"
+            className="flex-1 min-h-[48px] bg-brand-600 text-white py-3 px-4 rounded-lg text-xs sm:text-sm font-bold hover:bg-brand-700 active:scale-[0.98] transition-all flex items-center justify-between"
           >
             <span>Tambah ke Pesanan</span>
             <span className="font-extrabold">Rp{totalPrice.toLocaleString('id-ID')}</span>
