@@ -8,7 +8,7 @@ export const MENU_ITEMS: MenuItem[] = [
     tagline: 'Aci ngambay kenyal berbalut kulit lumpia renyah',
     description:
       'Jajanan khas Sunda dengan isian aci gurih lumer berbumbu ayam & daun bawang, dibungkus kulit lumpia garing digoreng fresh saat pemesanan. Disajikan dengan taburan bumbu cabai pedas gurih!',
-    image: 'https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?w=600&auto=format&fit=crop&q=80',
+    image: '/menu/cibay-lumer.png',
     spicyLevel: 2,
     isPopular: true,
     options: [
@@ -23,7 +23,7 @@ export const MENU_ITEMS: MenuItem[] = [
     tagline: 'Sensasi Ramyeon Korea digulung Rice Paper viral',
     description:
       'Perpaduan mie instan pedas Korea racikan gurih dibungkus lembaran rice paper kenyal transparan. Tekstur kenyal luar, meledak pedas gurih di dalam! Cocok disantap hangat.',
-    image: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80',
+    image: '/menu/spicy-ramyeon-roll.png',
     spicyLevel: 3,
     isPopular: true,
     options: [
@@ -38,7 +38,7 @@ export const MENU_ITEMS: MenuItem[] = [
     tagline: 'Dessert cup segar pelepas dahaga & pereda pedas',
     description:
       'Puding susu sutra lembut dengan siraman saus karamel legit ditambah potongan buah segar (mangga / stroberi) dingin. Menjaga mood kuliah tetap segar setelah cemil yang pedas!',
-    image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&auto=format&fit=crop&q=80',
+    image: '/menu/puding.png',
     spicyLevel: 0,
     isPopular: true,
     options: [
@@ -53,7 +53,7 @@ export const MENU_ITEMS: MenuItem[] = [
     tagline: '2 Cibay + 2 Spicy Ramyeon Roll hemat Rp1.000',
     description:
       'Pilihan terbaik buat nongkrong bareng bestie! Langsung dapat 2 Cibay Lumer + 2 Spicy Ramyeon Roll. Lebih hemat dibanding beli satuan!',
-    image: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80',
+    image: '/menu/paket-combo.png',
     spicyLevel: 2,
     isBestValue: true,
     options: [
@@ -79,5 +79,5 @@ export const ADMIN_CONTACT = {
   phone: '6285717600986', // WhatsApp number from group chat
   qrisName: 'LARIS MANIS KWU TELKOM',
   qrisNmid: 'ID1020423000201',
-  pickupPoint: 'Lantai 3 Gedung B / Gazebo Kampus Telkom University Jakarta',
+  pickupPoint: 'Lantai 3 Gedung C / Gazebo Kampus Telkom University Jakarta',
 }
