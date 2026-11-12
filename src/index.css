@@ -36,6 +36,28 @@
   background-size: 16px 16px;
 }
 
+/* Animasi titik tiga chatbot: pilih versi warna sesuai tema.
+   Sengaja memakai selector biasa (bukan `dark:` / :is()) agar jalan di browser HP lama. */
+.typing-dots-dark,
+.typing-dots-static {
+  display: none;
+}
+.dark .typing-dots-light {
+  display: none;
+}
+.dark .typing-dots-dark {
+  display: block;
+}
+@media (prefers-reduced-motion: reduce) {
+  .typing-dots,
+  .dark .typing-dots {
+    display: none;
+  }
+  .typing-dots-static {
+    display: inline;
+  }
+}
+
 /* Custom scrollbar & clean utility */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

@@ -23,18 +23,21 @@ const FAQ_KNOWLEDGE: Record<string, string> = {
     'Level pedas berada di kisaran sedang-ke-pedas (level 2-3). Jika tidak tahan pedas, tulis di catatan "Bumbu cabai dipisah/sedikit".',
   combo:
     'Paket Combo Juara berisi 1 porsi Cibay (isi 3) + 2 Spicy Ramyeon Roll seharga Rp14.000 (hemat Rp1.000 dari normal Rp15.000).',
+  perkenalan:
+    'Aku Lami, asisten virtual Laris Manis! Namaku dari LAris MAnis. Aku bisa bantu kasih rekomendasi menu, info harga, lokasi ambil, dan cara bayar QRIS.',
   rekomendasi:
     'Baru pertama coba? Ambil Paket Combo Juara (1 porsi Cibay isi 3 + 2 Spicy Ramyeon Roll) cuma Rp14.000, hemat Rp1.000 dan bisa cicip dua menu gurih sekaligus. Kurang tahan pedas? Tambah Puding Karamel & Buah Dingin 240 ml (Rp15.000) buat penyegar. Mau ngemil hemat sendiri? Spicy Ramyeon Roll Rp5.000 isi 2 paling pas.',
 }
 
 const REKOMENDASI_KEYWORDS = ['rekomen', 'best', 'laris', 'favorit', 'bingung', 'paling enak', 'pilih apa', 'saran']
+const PERKENALAN_KEYWORDS = ['lami', 'siapa kamu', 'kamu siapa', 'nama kamu', 'namamu']
 
 export const AiChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'bot',
-      text: 'Halo! Ada yang bisa dibantu seputar menu PO, rekomendasi menu, lokasi ambil, atau cara bayar QRIS?',
+      text: 'Halo, aku Lami! 👋 Mau tanya menu PO, rekomendasi menu, lokasi ambil, atau cara bayar QRIS?',
     },
   ])
   const [input, setInput] = useState('')
@@ -65,7 +68,7 @@ export const AiChatbot: React.FC = () => {
               {
                 role: 'system',
                 content:
-                  'Kamu adalah customer service ramah anak kuliahan untuk Laris Manis KWU Telkom University. Jual Cibay (1 porsi isi 3 pcs Rp10rb), Spicy Ramyeon Roll (isi 2 pcs Rp5rb), Puding Karamel & Buah 240 ml (Rp15rb), Paket Combo Juara 1 porsi Cibay + 2 Roll Rp14rb (hemat Rp1rb). Kalau pembeli bingung atau minta rekomendasi, sarankan Paket Combo Juara untuk pembeli baru dan Puding Karamel sebagai penyegar setelah makan pedas. Jawab singkat, ramah, dan solutif.',
+                  'Kamu adalah Lami (singkatan LAris MAnis), asisten virtual yang ramah ala anak kuliahan untuk Laris Manis KWU Telkom University. Jual Cibay (1 porsi isi 3 pcs Rp10rb), Spicy Ramyeon Roll (isi 2 pcs Rp5rb), Puding Karamel & Buah 240 ml (Rp15rb), Paket Combo Juara 1 porsi Cibay + 2 Roll Rp14rb (hemat Rp1rb). Kalau pembeli bingung atau minta rekomendasi, sarankan Paket Combo Juara untuk pembeli baru dan Puding Karamel sebagai penyegar setelah makan pedas. Jawab singkat, ramah, dan solutif.',
               },
               ...newMsgs.map((m) => ({
                 role: m.sender === 'bot' ? 'assistant' : 'user',
@@ -92,8 +95,10 @@ export const AiChatbot: React.FC = () => {
       let reply =
         'Pertanyaan kamu bisa langsung ditanyakan ke admin via WhatsApp atau silakan pilih menu di atas ya.'
 
-      // Dicek paling awal: "Laris Manis" mengandung "manis" yang memicu jawaban puding
-      if (REKOMENDASI_KEYWORDS.some((kw) => lower.includes(kw))) {
+      // Perkenalan & rekomendasi dicek lebih dulu: "Laris Manis" mengandung "manis" yang memicu jawaban puding
+      if (PERKENALAN_KEYWORDS.some((kw) => lower.includes(kw))) {
+        reply = FAQ_KNOWLEDGE.perkenalan
+      } else if (REKOMENDASI_KEYWORDS.some((kw) => lower.includes(kw))) {
         reply = FAQ_KNOWLEDGE.rekomendasi
       } else if (lower.includes('cibay') || lower.includes('aci')) {
         reply = FAQ_KNOWLEDGE.cibay
@@ -122,14 +127,11 @@ export const AiChatbot: React.FC = () => {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-20 sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-surface pl-1.5 pr-3 py-1.5 rounded-full shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800"
-          title="Tanya Info Menu (Draft)"
-          aria-label="Tanya Menu: buka asisten virtual Laris Manis"
+          title="Tanya Lami, asisten virtual Laris Manis"
+          aria-label="Tanya Lami, asisten virtual Laris Manis"
         >
           <ChatbotMascot className="w-9 h-9" />
-          <span className="text-xs font-bold hidden sm:inline">Tanya Menu</span>
-          <span className="text-xs bg-brand-700 text-white px-1.5 py-0.5 rounded font-bold uppercase">
-            Draft
-          </span>
+          <span className="text-xs font-bold">Tanya Lami</span>
         </button>
       )}
 
@@ -137,20 +139,15 @@ export const AiChatbot: React.FC = () => {
         <div
           role="dialog"
           aria-modal="false"
-          aria-label="Asisten Virtual Laris Manis"
+          aria-label="Lami, asisten virtual Laris Manis"
           className="fixed bottom-20 sm:bottom-5 right-5 z-40 w-full max-w-[340px] sm:max-w-sm bg-surface rounded-xl shadow-2xl border border-paper-200 overflow-hidden flex flex-col h-[480px]"
         >
           <div className="bg-inverse text-white p-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ChatbotMascot className="w-9 h-9" />
               <div>
-                <div className="flex items-center gap-1.5">
-                  <h3 className="font-extrabold text-xs">Asisten Virtual Laris Manis</h3>
-                  <span className="text-xs bg-white/15 text-stone-200 font-bold px-1 rounded">
-                    DRAFT
-                  </span>
-                </div>
-                <p className="text-xs text-stone-300">Tanya seputar menu & PO</p>
+                <h3 className="font-extrabold text-sm leading-tight">Lami</h3>
+                <p className="text-xs text-stone-300">Asisten Laris Manis</p>
               </div>
             </div>
 
