@@ -3,19 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
-    <link rel="preload" as="image" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#d81616" />
     <meta name="description" content="Laris Manis - Jajanan Sunda Korea & Puding Buah Segar Telkom University Jakarta" />
     <title>Laris Manis | Pre-Order & Jajanan Kampus</title>
-    <!-- Google Fonts Inter & Plus Jakarta Sans -->
+    <!-- Google Fonts: Plus Jakarta Sans (aplikasi) + Fredoka (tulisan logo di loading screen) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Splash screen: CSS inline agar tampil seketika, sebelum bundle JS/CSS selesai dimuat -->
+    <!--
+      Loading screen: logo SVG beranimasi + progress bar.
+      CSS & script ditulis inline (bukan Tailwind) agar tampil seketika, sebelum bundle aplikasi dimuat.
+      src/main.tsx memanggil window.__splashReady() saat aplikasi siap; splash lalu menuntaskan
+      progress ke 100%, memudar, dan menghapus dirinya sendiri.
+    -->
     <style>
       #splash {
+        --brand-gold: #fbb02d;
+        --brand-red: #d32f2f;
+        --brand-dark: #232323;
         position: fixed;
         inset: 0;
         z-index: 9999;
@@ -23,89 +30,292 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 18px;
+        padding: 0 24px;
         background: #ffffff;
+        color: var(--brand-dark);
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-        transition: opacity 0.45s ease, visibility 0.45s ease;
+        transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.45s;
+        -webkit-user-select: none;
+        user-select: none;
       }
-      #splash.is-hidden {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
+      #splash.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+      #splash.is-hidden .splash-stage { transform: translateY(-8px); }
+
+      #splash .splash-stage {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 420px;
+        transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
       }
-      #splash .splash-logo {
-        width: 76px;
-        height: 76px;
-        border-radius: 20px;
-        object-fit: contain;
-        background: #ffffff;
-        box-shadow: 0 10px 30px -12px rgba(216, 22, 22, 0.35);
-        animation:
-          splash-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both,
-          splash-breathe 2.4s ease-in-out 0.6s infinite;
-      }
-      #splash.is-hidden .splash-logo {
-        transform: scale(1.08);
-        transition: transform 0.45s ease;
-      }
-      #splash .splash-name {
-        margin: 0;
-        font-size: 18px;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-        color: #1c1917;
-        animation: splash-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.12s both;
-      }
-      #splash .splash-tagline {
-        margin: -14px 0 0;
-        font-size: 12px;
-        font-weight: 500;
-        color: #78716c;
-        animation: splash-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
-      }
-      #splash .splash-bar {
+      #splash .splash-logo-wrap {
         position: relative;
-        width: 136px;
-        height: 4px;
-        border-radius: 999px;
-        background: #f1ede6;
-        overflow: hidden;
-        animation: splash-enter 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.28s both;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 28px;
       }
-      #splash .splash-bar::after {
+      #splash .brand-aura {
+        position: absolute;
+        width: 288px;
+        height: 288px;
+        border-radius: 50%;
+        pointer-events: none;
+        background: radial-gradient(circle, rgba(251, 176, 45, 0.22) 0%, rgba(211, 47, 47, 0.08) 48%, rgba(255, 255, 255, 0) 72%);
+        animation: auraPulse 3.2s ease-in-out infinite;
+      }
+      #splash .splash-logo { position: relative; width: min(72vw, 300px); }
+      #splash .splash-logo svg { display: block; width: 100%; height: auto; overflow: visible; }
+      #splash .brand-text-fill { fill: var(--brand-dark); }
+
+      /* Cangkir: masuk lalu memantul (squash & stretch) */
+      #splash .pot-group {
+        transform-origin: 82px 136px;
+        animation:
+          potEnter 0.65s cubic-bezier(0.22, 1, 0.36, 1) both,
+          potBounce 2.4s cubic-bezier(0.45, 0, 0.55, 1) 0.65s infinite;
+      }
+      #splash .swirl-group { transform-origin: 80px 58px; animation: swirlPulse 2.4s ease-in-out 0.65s infinite; }
+      #splash .spark-1 { transform-origin: 118px 26px; animation: sparkOne 1.8s ease-in-out infinite; }
+      #splash .spark-2 { transform-origin: 132px 35px; animation: sparkTwo 1.8s ease-in-out 0.22s infinite; }
+
+      /* Tulisan: tunggu font Fredoka siap (kelas .fonts-ready) agar tidak berganti bentuk di tengah animasi */
+      #splash .word-laris, #splash .word-manis { opacity: 0; }
+      #splash.fonts-ready .word-laris {
+        animation: wordEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both, wordWave 2.4s ease-in-out 0.75s infinite;
+      }
+      #splash.fonts-ready .word-manis {
+        animation: wordEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both, wordWave 2.4s ease-in-out 0.95s infinite;
+      }
+
+      /* Titik huruf i: disembunyikan sampai posisinya dihitung dari bentuk huruf yang sebenarnya */
+      #splash .i-dot { opacity: 0; transform-box: fill-box; transform-origin: 50% 100%; }
+      #splash.dots-aligned .i-dot { opacity: 1; transition: opacity 0.2s ease; }
+      /* Easing tanpa overshoot: titik tidak pernah turun melewati posisinya (tidak menabrak batang i) */
+      #splash.dots-aligned .dot-laris { animation: dotJump 1.9s cubic-bezier(0.45, 0, 0.55, 1) 0.5s infinite; }
+      #splash.dots-aligned .dot-manis { animation: dotJump 1.9s cubic-bezier(0.45, 0, 0.55, 1) 0.85s infinite; }
+
+      /* Progress bar + status */
+      #splash .splash-progress { width: 100%; max-width: 260px; }
+      #splash .progress-track {
+        position: relative;
+        height: 6px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(229, 229, 229, 0.8);
+      }
+      #splash .progress-fill {
+        position: relative;
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        overflow: hidden;
+        background: linear-gradient(90deg, #fbb02d 0%, #f58220 55%, #d32f2f 100%);
+        transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      #splash .progress-fill::after {
         content: '';
         position: absolute;
         inset: 0;
-        width: 40%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, #d81616, #fdb41d);
-        animation: splash-slide 1.15s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+        width: 45%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+        animation: shimmerSweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
       }
-      @keyframes splash-enter {
-        from { opacity: 0; transform: translateY(8px) scale(0.94); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+      #splash .progress-meta {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
       }
-      @keyframes splash-breathe {
+      #splash .status-text { opacity: 0.75; transition: opacity 0.2s ease; text-align: left; }
+      #splash .percent-text { font-weight: 700; color: var(--brand-red); font-variant-numeric: tabular-nums; }
+
+      @keyframes potEnter {
+        0% { opacity: 0; transform: translateY(20px) scale(0.85); }
+        65% { opacity: 1; transform: translateY(-4px) scale(1.03); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes potBounce {
+        0%, 100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+        20% { transform: translateY(2px) scale(1.04, 0.96) rotate(-1deg); }
+        45% { transform: translateY(-8px) scale(0.97, 1.04) rotate(1.2deg); }
+        70% { transform: translateY(1px) scale(1.02, 0.98) rotate(-0.5deg); }
+      }
+      @keyframes swirlPulse {
         0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.045); }
+        50% { transform: scale(1.035) translateY(-1px); }
       }
-      @keyframes splash-slide {
-        from { transform: translateX(-100%); }
-        to { transform: translateX(250%); }
+      @keyframes sparkOne {
+        0%, 100% { transform: translate(0, 0) scale(0.9) rotate(0deg); opacity: 0.7; }
+        45% { transform: translate(-2px, -4px) scale(1.12) rotate(-6deg); opacity: 1; }
+      }
+      @keyframes sparkTwo {
+        0%, 100% { transform: translate(0, 0) scale(0.9) rotate(0deg); opacity: 0.7; }
+        55% { transform: translate(3px, -3px) scale(1.12) rotate(6deg); opacity: 1; }
+      }
+      @keyframes wordEnter {
+        0% { opacity: 0; transform: translateX(-12px) translateY(6px); }
+        100% { opacity: 1; transform: none; }
+      }
+      @keyframes wordWave {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+      }
+      /* Lompat lalu mendarat dengan "gepeng" sedikit; titik pangkal di bawah titik (transform-origin 50% 100%)
+         sehingga saat gepeng, sisi bawah titik tetap di tempat */
+      @keyframes dotJump {
+        0%, 60%, 100% { transform: translateY(0) scale(1); }
+        22% { transform: translateY(-9px) scale(1); }
+        40% { transform: translateY(0) scale(1.18, 0.82); }
+        50% { transform: translateY(-1.5px) scale(0.96, 1.04); }
+      }
+      @keyframes auraPulse {
+        0%, 100% { transform: scale(0.95); opacity: 0.45; }
+        50% { transform: scale(1.08); opacity: 0.8; }
+      }
+      @keyframes shimmerSweep {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(220%); }
       }
       @media (prefers-reduced-motion: reduce) {
         #splash *, #splash *::after { animation: none !important; }
-        #splash .splash-bar::after { width: 100%; opacity: 0.5; }
+        #splash.fonts-ready .word-laris, #splash.fonts-ready .word-manis { opacity: 1; }
       }
     </style>
   </head>
   <body>
-    <div id="splash" role="status" aria-label="Memuat Laris Manis">
-      <img class="splash-logo" src="/logo.png" alt="" width="76" height="76" />
-      <p class="splash-name">Laris Manis</p>
-      <p class="splash-tagline">Jajanan Kampus Tel-U Jakarta</p>
-      <div class="splash-bar" aria-hidden="true"></div>
+    <div id="splash" role="status" aria-live="polite" aria-label="Memuat Laris Manis">
+      <div class="splash-stage">
+        <div class="splash-logo-wrap">
+          <div class="brand-aura"></div>
+          <div class="splash-logo">
+            <svg viewBox="0 0 420 156" aria-hidden="true">
+              <!-- Cangkir -->
+              <g class="pot-group">
+                <path class="spark-1" d="M114 30 L118 11 C119 8 125 9 124 13 L120 31 C119 34 113 33 114 30 Z" fill="#D32F2F" />
+                <path class="spark-2" d="M126 39 L139 26 C142 23 147 28 144 31 L130 43 C127 45 123 41 126 39 Z" fill="#D32F2F" />
+                <g class="swirl-group">
+                  <path d="M35 81 C24 75 26 57 38 51 C42 32 62 22 81 26 C100 26 116 40 119 58 C129 63 129 77 119 83 Z" fill="#FBB02D" />
+                  <path d="M42 74 C36 62 45 45 64 38 C84 31 105 40 111 56 C115 66 108 75 97 75" fill="none" stroke="#FFF9EB" stroke-width="4.2" stroke-linecap="round" />
+                  <path d="M55 72 C49 60 57 48 72 45 C86 43 97 51 96 61 C95 69 84 72 75 67 C68 63 68 55 75 53" fill="none" stroke="#FFF9EB" stroke-width="4" stroke-linecap="round" />
+                </g>
+                <path d="M27 77 Q77 92 126 78 C130 77 132 84 127 87 Q77 102 26 86 C22 84 23 76 27 77 Z" fill="#FFF6E0" />
+                <path d="M24 85 Q77 101 128 86 C133 85 135 93 128 96 L118 130 C114 141 96 146 77 146 C58 146 40 141 36 130 L26 95 C19 92 20 84 24 85 Z" fill="#D32F2F" />
+                <path d="M42 92 Q74 99 105 94 L105 109 C105 117 95 117 95 109 L95 105 C95 102 89 102 89 106 L89 124 C89 133 76 133 76 124 L76 112 C76 108 69 108 69 112 L69 119 C69 127 57 127 57 119 L57 105 C57 101 51 101 51 105 L51 111 C51 117 42 117 42 111 Z" fill="#FBB02D" />
+                <ellipse cx="82.5" cy="121" rx="3" ry="4.5" fill="#FFF6E0" />
+              </g>
+
+              <!-- Tulisan: huruf i tanpa titik (ı) agar titiknya bisa dianimasikan terpisah -->
+              <g class="word-laris">
+                <text id="textLaris" x="154" y="76" font-family="'Fredoka', sans-serif" font-weight="700" font-size="64" letter-spacing="-1.5" class="brand-text-fill">lar&#x0131;s</text>
+                <circle id="dotLaris" class="i-dot dot-laris" cx="0" cy="0" r="7" fill="#FBB02D" />
+              </g>
+              <g class="word-manis">
+                <text id="textManis" x="154" y="135" font-family="'Fredoka', sans-serif" font-weight="700" font-size="64" letter-spacing="-1.5" class="brand-text-fill">man&#x0131;s</text>
+                <circle id="dotManis" class="i-dot dot-manis" cx="0" cy="0" r="7" fill="#D32F2F" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="splash-progress">
+          <div class="progress-track"><div class="progress-fill" id="splashProgress"></div></div>
+          <div class="progress-meta">
+            <span class="status-text" id="splashStatus">Menyiapkan pengalaman terbaik...</span>
+            <span class="percent-text" id="splashPercent">0%</span>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <script>
+      ;(function () {
+        var splash = document.getElementById('splash')
+        if (!splash) return
+        var bar = document.getElementById('splashProgress')
+        var statusEl = document.getElementById('splashStatus')
+        var percentEl = document.getElementById('splashPercent')
+        var MESSAGES = ['Menyiapkan pengalaman terbaik...', 'Memuat menu favorit Anda...', 'Meracik tampilan...', 'Hampir siap...']
+
+        // Animasi penuh ditahan minimal 2,6 dtk pada kunjungan pertama di sesi ini; berikutnya cukup singkat
+        var firstVisit = true
+        try {
+          firstVisit = sessionStorage.getItem('lm_splash_seen') !== '1'
+          sessionStorage.setItem('lm_splash_seen', '1')
+        } catch (e) {}
+        var MIN_VISIBLE_MS = firstVisit ? 2600 : 800
+        var shownAt = Date.now()
+
+        // ---- Titik huruf i: ukur batang huruf i yang SEBENARNYA (bukan kotak hurufnya) ----
+        var FONT = '700 64px Fredoka'
+        function alignDot(textId, dotId, charIndex) {
+          var text = document.getElementById(textId)
+          var dot = document.getElementById(dotId)
+          if (!text || !dot || !text.getStartPositionOfChar) return false
+          var ctx = document.createElement('canvas').getContext('2d')
+          ctx.font = FONT
+          var m = ctx.measureText('ı') // huruf i tanpa titik
+          if (!m.actualBoundingBoxAscent) return false
+          var start = text.getStartPositionOfChar(charIndex) // titik awal huruf, pada garis dasar
+          var stemLeft = start.x - m.actualBoundingBoxLeft
+          var stemRight = start.x + m.actualBoundingBoxRight
+          var stemWidth = stemRight - stemLeft
+          var stemTop = start.y - m.actualBoundingBoxAscent
+          var r = stemWidth * 0.56 // titik sedikit lebih lebar dari batang, seperti logo aslinya
+          var gap = stemWidth * 0.32 // jarak titik ke ujung batang
+          dot.setAttribute('cx', ((stemLeft + stemRight) / 2).toFixed(2))
+          dot.setAttribute('cy', (stemTop - gap - r).toFixed(2))
+          dot.setAttribute('r', r.toFixed(2))
+          return true
+        }
+        function onFontsReady() {
+          splash.classList.add('fonts-ready')
+          var ok = alignDot('textLaris', 'dotLaris', 3) && alignDot('textManis', 'dotManis', 3)
+          if (ok) splash.classList.add('dots-aligned')
+        }
+        var fontPromise = document.fonts && document.fonts.load ? document.fonts.load(FONT, 'ı') : Promise.resolve()
+        var fontsDone = false
+        function fontsOnce() { if (!fontsDone) { fontsDone = true; onFontsReady() } }
+        fontPromise.then(fontsOnce, fontsOnce)
+        setTimeout(fontsOnce, 1500) // jangan menunggu font terlalu lama di internet lambat
+
+        // ---- Progress: naik bertahap sampai 90% selama memuat, tuntas 100% saat aplikasi siap ----
+        var progress = 0
+        var ready = false
+        function render() {
+          var pct = Math.round(progress)
+          bar.style.width = pct + '%'
+          percentEl.textContent = pct + '%'
+          var idx = pct >= 78 ? 3 : pct >= 50 ? 2 : pct >= 24 ? 1 : 0
+          if (statusEl.textContent !== MESSAGES[idx]) statusEl.textContent = MESSAGES[idx]
+        }
+        var timer = setInterval(function () {
+          var cap = ready ? 100 : 90
+          progress = Math.min(cap, progress + Math.max(0.6, (cap - progress) * 0.07))
+          render()
+          if (ready && progress >= 100) {
+            clearInterval(timer)
+            finish()
+          }
+        }, 70)
+
+        function finish() {
+          var wait = Math.max(0, MIN_VISIBLE_MS - (Date.now() - shownAt))
+          setTimeout(function () {
+            splash.classList.add('is-hidden')
+            setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash) }, 500)
+          }, wait + 200)
+        }
+
+        // Dipanggil oleh src/main.tsx setelah aplikasi tampil
+        window.__splashReady = function () { ready = true }
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
