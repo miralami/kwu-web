@@ -6,6 +6,33 @@ export default {
   ],
   theme: {
     extend: {
+      keyframes: {
+        bob: {
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+          '25%': { transform: 'translateY(-2px) rotate(-8deg)' },
+          '75%': { transform: 'translateY(-2px) rotate(8deg)' },
+        },
+        'pop-in': {
+          '0%': { transform: 'scale(0.4)', opacity: '0' },
+          '60%': { transform: 'scale(1.15)', opacity: '1' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'status-in': {
+          '0%': { transform: 'translateY(8px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        stripes: {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '16px 0' },
+        },
+      },
+      animation: {
+        bob: 'bob 1.2s ease-in-out infinite',
+        'spin-slow': 'spin 3s linear infinite',
+        'pop-in': 'pop-in 0.45s ease-out both',
+        'status-in': 'status-in 0.4s ease-out both',
+        stripes: 'stripes 0.6s linear infinite',
+      },
       colors: {
         paper: {
           50: '#ffffff',

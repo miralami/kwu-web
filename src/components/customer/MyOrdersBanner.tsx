@@ -1,7 +1,7 @@
 import React from 'react'
 import { ChevronRight, ReceiptText } from 'lucide-react'
 import { Order } from '../../types'
-import { getCustomerStatus, STATUS_TONE_CLASS } from '../../data/orderStatus'
+import { getCustomerStatus, isOrderActive, STATUS_TONE_CLASS } from '../../data/orderStatus'
 
 interface MyOrdersBannerProps {
   orders: Order[]
@@ -35,8 +35,16 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
                 </span>
               </div>
               <span
-                className={`inline-block mt-1 text-xs font-bold px-2 py-0.5 rounded border ${STATUS_TONE_CLASS[status.tone]}`}
+                key={status.label}
+                className={`inline-flex items-center gap-1.5 mt-1 text-xs font-bold px-2 py-0.5 rounded border motion-safe:animate-status-in ${STATUS_TONE_CLASS[status.tone]}`}
               >
+                {isOrderActive(order) && status.tone !== 'problem' && (
+                  // Titik berdenyut: tanda pesanan masih berjalan
+                  <span className="relative flex w-2 h-2" aria-hidden="true">
+                    <span className="absolute inset-0 rounded-full bg-current opacity-50 motion-safe:animate-ping" />
+                    <span className="relative w-2 h-2 rounded-full bg-current" />
+                  </span>
+                )}
                 {status.label}
               </span>
             </div>

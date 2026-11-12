@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Order } from '../../types'
 import { ADMIN_CONTACT } from '../../data/menu'
 import { getCustomerStatus, isOrderActive, STATUS_TONE_CLASS } from '../../data/orderStatus'
+import { OrderStatusStepper } from './OrderStatusStepper'
 import {
   X,
   Download,
@@ -9,8 +10,6 @@ import {
   CheckCircle2,
   Clock,
   Send,
-  ChefHat,
-  PackageCheck,
 } from 'lucide-react'
 
 interface OrderReceiptModalProps {
@@ -97,70 +96,12 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
           {/* Order Status Progress */}
           <div className="bg-paper-50 p-4 rounded-lg border border-paper-200">
             <div className="text-xs font-bold text-ink-600 mb-2">Status Pesanan:</div>
-            <div className="flex items-center justify-between text-center gap-1">
-              <div className="flex-1 flex flex-col items-center">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    order.paymentStatus === 'verified' || order.paymentMethod === 'tunai'
-                      ? 'bg-green-700 text-white'
-                      : 'bg-accent-500 text-ink-900'
-                  }`}
-                >
-                  <Clock className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-bold mt-1 text-ink-800">Verifikasi</span>
-              </div>
-
-              <div
-                className={`h-0.5 flex-1 ${
-                  order.orderStatus === 'sedang_diproses' ||
-                  order.orderStatus === 'siap_diambil' ||
-                  order.orderStatus === 'selesai'
-                    ? 'bg-green-700'
-                    : 'bg-paper-300'
-                }`}
-              />
-
-              <div className="flex-1 flex flex-col items-center">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    order.orderStatus === 'sedang_diproses' ||
-                    order.orderStatus === 'siap_diambil' ||
-                    order.orderStatus === 'selesai'
-                      ? 'bg-brand-600 text-white'
-                      : 'bg-paper-200 text-ink-400'
-                  }`}
-                >
-                  <ChefHat className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-bold mt-1 text-ink-800">Dimasak</span>
-              </div>
-
-              <div
-                className={`h-0.5 flex-1 ${
-                  order.orderStatus === 'siap_diambil' || order.orderStatus === 'selesai'
-                    ? 'bg-green-700'
-                    : 'bg-paper-300'
-                }`}
-              />
-
-              <div className="flex-1 flex flex-col items-center">
-                <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    order.orderStatus === 'siap_diambil' || order.orderStatus === 'selesai'
-                      ? 'bg-green-700 text-white'
-                      : 'bg-paper-200 text-ink-400'
-                  }`}
-                >
-                  <PackageCheck className="w-4 h-4" />
-                </div>
-                <span className="text-xs font-bold mt-1 text-ink-800">Siap Ambil</span>
-              </div>
-            </div>
+            <OrderStatusStepper order={order} />
 
             <div
+              key={status.label} // diputar ulang animasinya setiap status berganti
               role="status"
-              className={`mt-3 p-2.5 rounded-lg border text-xs ${STATUS_TONE_CLASS[status.tone]}`}
+              className={`mt-4 p-2.5 rounded-lg border text-xs motion-safe:animate-status-in ${STATUS_TONE_CLASS[status.tone]}`}
             >
               <div className="font-extrabold">{status.label}</div>
               <p className="mt-0.5 font-medium">{status.message}</p>
