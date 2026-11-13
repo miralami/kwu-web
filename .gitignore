@@ -32,3 +32,5 @@ Thumbs.db
 # Project context & raw docs
 KWU CONTEXT/
 "KWU CONTEXT"/
+# catatan kerja agent (plan draft), bukan bagian aplikasi
+.hermes/
