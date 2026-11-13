@@ -349,7 +349,7 @@ export function App() {
       />
 
       {/* Floating AI Chatbot */}
-      <AiChatbot />
+      <AiChatbot liftAboveCartBar={totalCartCount > 0 && !isCartOpen && !activeReceiptOrder} />
     </div>
   )
 }

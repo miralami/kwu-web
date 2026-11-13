@@ -32,7 +32,12 @@ const FAQ_KNOWLEDGE: Record<string, string> = {
 const REKOMENDASI_KEYWORDS = ['rekomen', 'best', 'laris', 'favorit', 'bingung', 'paling enak', 'pilih apa', 'saran']
 const PERKENALAN_KEYWORDS = ['lami', 'siapa kamu', 'kamu siapa', 'nama kamu', 'namamu']
 
-export const AiChatbot: React.FC = () => {
+interface AiChatbotProps {
+  // true saat bar keranjang menempel di bawah layar (mobile), supaya tombol Lami naik di atasnya
+  liftAboveCartBar?: boolean
+}
+
+export const AiChatbot: React.FC<AiChatbotProps> = ({ liftAboveCartBar = false }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -88,7 +93,7 @@ export const AiChatbot: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-surface pl-1.5 pr-3 py-1.5 rounded-full shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800"
+          className={`fixed ${liftAboveCartBar ? 'bottom-20' : 'bottom-5'} sm:bottom-5 right-5 z-30 min-h-[44px] bg-ink-900 text-surface pl-1.5 pr-3 py-1.5 rounded-full shadow-lg hover:bg-ink-800 transition-all flex items-center gap-2 border border-ink-800`}
           title="Tanya Lami, asisten virtual Laris Manis"
           aria-label="Tanya Lami, asisten virtual Laris Manis"
         >
@@ -102,7 +107,7 @@ export const AiChatbot: React.FC = () => {
           role="dialog"
           aria-modal="false"
           aria-label="Lami, asisten virtual Laris Manis"
-          className="fixed bottom-20 sm:bottom-5 right-5 z-40 w-full max-w-[340px] sm:max-w-sm bg-surface rounded-xl shadow-2xl border border-paper-200 overflow-hidden flex flex-col h-[480px]"
+          className="fixed bottom-5 right-5 z-40 w-[calc(100%-2.5rem)] max-w-[340px] sm:max-w-sm bg-surface rounded-xl shadow-2xl border border-paper-200 overflow-hidden flex flex-col h-[480px] max-h-[calc(100dvh-2.5rem)]"
         >
           <div className="bg-inverse text-white p-3.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
