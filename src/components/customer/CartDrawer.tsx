@@ -116,8 +116,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         onClick={onClose}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-        <div className="w-screen max-w-md bg-surface shadow-2xl flex flex-col border-l border-paper-200">
+      <div className="fixed inset-y-0 right-0 flex w-full max-w-md pl-3 sm:pl-0">
+        <div className="w-full min-w-0 bg-surface shadow-2xl flex flex-col border-l border-paper-200">
           {/* Header */}
           <div className="p-4 border-b border-paper-200 flex items-center justify-between bg-paper-50">
             <div>
@@ -148,7 +148,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </button>
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto p-4 space-y-5">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-5">
               {/* Items List */}
               <div className="space-y-3">
                 <label className="text-xs font-bold uppercase tracking-wider text-ink-600">
@@ -175,7 +175,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
 
                     {/* Stepper with >= 44px hit targets */}
-                    <div className="flex items-center border border-paper-200 rounded-lg bg-surface">
+                    <div className="shrink-0 flex items-center border border-paper-200 rounded-lg bg-surface">
                       <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
                         className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-600 hover:text-ink-900"
@@ -195,7 +195,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                     <button
                       onClick={() => onRemoveItem(item.id)}
-                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-400 hover:text-red-700"
+                      className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-400 hover:text-red-700"
                       aria-label="Hapus item"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -229,12 +229,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       placeholder="RAWONSETO / LARISMANIS"
                       value={referralInput}
                       onChange={(e) => setReferralInput(e.target.value)}
-                      className="flex-1 min-h-[44px] text-xs px-3 bg-surface border border-paper-200 rounded-lg uppercase font-bold tracking-wider"
+                      className="flex-1 min-w-0 min-h-[44px] text-xs px-3 bg-surface border border-paper-200 rounded-lg uppercase font-bold tracking-wider"
                     />
                     <button
                       type="button"
                       onClick={handleApplyPromo}
-                      className="min-h-[44px] bg-ink-900 text-surface text-xs font-bold px-4 rounded-lg hover:bg-ink-800"
+                      className="shrink-0 min-h-[44px] bg-ink-900 text-surface text-xs font-bold px-4 rounded-lg hover:bg-ink-800"
                     >
                       Terapkan
                     </button>

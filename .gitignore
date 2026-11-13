@@ -34,3 +34,4 @@ KWU CONTEXT/
 "KWU CONTEXT"/
 # catatan kerja agent (plan draft), bukan bagian aplikasi
 .hermes/
+.vercel
