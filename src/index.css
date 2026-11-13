@@ -16,7 +16,7 @@
 
   /* Browser surface styling */
   ::selection {
-    background-color: #d81616;
+    background-color: #c42802;
     color: #ffffff;
   }
 }
@@ -65,4 +65,21 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Semua tombol berbentuk pil (rounded-full) */
+button,
+.btn-pill {
+  border-radius: 9999px !important;
+}
+
+/* Grid garis tipis di belakang hero; warnanya ikut tema, memudar ke tepi */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgb(var(--c-paper-200) / 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(var(--c-paper-200) / 0.5) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-position: center top;
+  -webkit-mask-image: radial-gradient(ellipse 70% 75% at 60% 40%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 75% at 60% 40%, #000 30%, transparent 100%);
 }

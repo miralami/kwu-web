@@ -16,6 +16,7 @@ import {
 } from './services/storage'
 import { MyOrdersBanner } from './components/customer/MyOrdersBanner'
 import { Navbar } from './components/Navbar'
+import { SectionDivider } from './components/SectionDivider'
 import { MenuCatalog } from './components/customer/MenuCatalog'
 import { OptionModal } from './components/customer/OptionModal'
 import { CartDrawer } from './components/customer/CartDrawer'
@@ -204,6 +205,20 @@ export function App() {
     }
   }
 
+  // Kunci scroll halaman utama selama modal (menu, keranjang, bukti pesanan) terbuka
+  const isAnyModalOpen = isCartOpen || !!activeItemForOption || !!activeReceiptOrder
+  useEffect(() => {
+    if (!isAnyModalOpen) return
+    const html = document.documentElement
+    const prev = [html.style.overflow, document.body.style.overflow]
+    html.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden'
+    return () => {
+      html.style.overflow = prev[0]
+      document.body.style.overflow = prev[1]
+    }
+  }, [isAnyModalOpen])
+
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
   const cartSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
@@ -288,8 +303,8 @@ export function App() {
         <div className="fixed bottom-0 inset-x-0 z-30 p-3 bg-surface/95 backdrop-blur-md border-t border-paper-200 shadow-lg">
           <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
             <div>
-              <div className="text-xs text-ink-500 font-bold uppercase tracking-wider">
-                Total ({totalCartCount} Item)
+              <div className="text-xs text-ink-500 font-bold">
+                Total ({totalCartCount} item)
               </div>
               <div className="text-base font-extrabold text-ink-900">
                 Rp{cartSubtotal.toLocaleString('id-ID')}
@@ -308,16 +323,9 @@ export function App() {
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="bg-surface border-t border-paper-200 mt-12 py-8 text-center text-xs text-ink-500 space-y-2">
-        <div className="flex items-center justify-center gap-1.5 font-bold text-ink-800">
-          <span>Laris Manis</span>
-          <span>•</span>
-          <span>Kelompok 1 Kewirausahaan Telkom University Jakarta</span>
-        </div>
-        <p className="max-w-md mx-auto px-4 text-ink-400">
-          Cibay Gurih Lumer, Spicy Ramyeon Roll Rice Paper, & Puding Karamel Dingin.
-        </p>
+      <footer className="mt-12 px-4 pb-6 text-center text-xs text-ink-400 max-w-3xl mx-auto w-full space-y-6">
+        <SectionDivider />
+        <p>Laris Manis · Tel-U Jakarta</p>
       </footer>
 
       {/* Option Picker Modal */}

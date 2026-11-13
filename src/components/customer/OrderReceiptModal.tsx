@@ -76,8 +76,8 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
         <div className="bg-inverse text-white p-5">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-[#ffc4c4] uppercase tracking-wider">
-                Bukti Pemesanan PO
+              <span className="text-xs font-bold text-accent-500">
+                Bukti pre-order
               </span>
               <h2 id="receipt-modal-title" className="text-xl font-extrabold mt-0.5">Pesanan #{order.id}</h2>
               <p className="text-xs text-stone-300">{order.customerName} • {order.customerClass}</p>
@@ -120,10 +120,10 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               {/* 3-Step Manual QRIS Guide */}
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-left space-y-1.5 text-xs text-amber-950">
                 <div className="font-extrabold text-amber-900 flex items-center gap-1.5">
-                  <span>3 Langkah Pembayaran QRIS:</span>
+                  <span>Cara bayar Qris</span>
                 </div>
                 <ol className="list-decimal list-inside space-y-1 text-amber-900/90 font-medium">
-                  <li>Scan QRIS di bawah dengan m-Banking / e-Wallet apa saja.</li>
+                  <li>Scan Qris di bawah dengan m-Banking / e-Wallet apa saja.</li>
                   <li>Masukkan nominal tepat atau gunakan tombol <strong>Salin</strong>.</li>
                   <li>Klik tombol hijau <strong>Kirim Bukti Bayar ke WhatsApp</strong> di bawah.</li>
                 </ol>
@@ -165,7 +165,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               {/* Exact Amount */}
               <div className="bg-surface p-3 rounded-lg border border-paper-200 flex items-center justify-between">
                 <div className="text-left">
-                  <div className="text-xs text-ink-500 uppercase font-bold">
+                  <div className="text-xs text-ink-500 font-bold">
                     Nominal Transfer Tepat
                   </div>
                   <div className="text-lg font-black text-brand-600">
@@ -186,7 +186,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                 className="w-full min-h-[44px] bg-ink-900 text-surface py-2.5 px-4 rounded-lg text-xs font-bold hover:bg-ink-800 flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                <span>Simpan Gambar QRIS ke Galeri HP</span>
+                <span>Simpan gambar Qris</span>
               </button>
             </div>
           )}
@@ -207,7 +207,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
 
           {/* Menu Items Breakdown */}
           <div className="border border-paper-200 rounded-lg p-4 bg-paper-50 space-y-2">
-            <div className="text-xs font-bold text-ink-700 uppercase tracking-wider">
+            <div className="text-xs font-bold text-ink-700">
               Rincian Menu ({order.totalItems} Item • {order.totalPieces} Pcs)
             </div>
             <div className="space-y-1.5 text-xs divide-y divide-paper-200">
@@ -243,7 +243,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full min-h-[48px] bg-green-700 hover:bg-green-800 text-white py-3 px-4 rounded-lg text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+            className="btn-pill w-full min-h-[48px] bg-green-700 hover:bg-green-800 text-white py-3 px-4 rounded-lg text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
           >
             <Send className="w-4 h-4" />
             <span>Kirim Bukti Bayar ke WhatsApp Admin</span>

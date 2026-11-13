@@ -386,7 +386,7 @@ export const MenuRevenueBars: React.FC<{ items: { name: string; pieces: number; 
 export const PaymentSplitBar: React.FC<{ orders: Order[] }> = ({ orders }) => {
   const counted = orders.filter(isCountedOrder)
   const parts = [
-    { key: 'qris', name: 'QRIS', fill: 'bg-chart-blue', swatch: 'bg-chart-blue' },
+    { key: 'qris', name: 'Qris', fill: 'bg-chart-blue', swatch: 'bg-chart-blue' },
     { key: 'tunai', name: 'Tunai', fill: 'bg-brand-600', swatch: 'bg-brand-600' },
   ].map((p) => {
     const list = counted.filter((o) => o.paymentMethod === p.key)

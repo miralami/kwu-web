@@ -114,7 +114,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       id: generateOrderId(),
       customerName: posCustomerName.trim() || 'Offline Customer',
       customerPhone: '080000000000',
-      customerClass: 'Kampus Tel-U (Kasir POS)',
+      customerClass: 'Kampus Tel-U (Kasir)',
       items,
       totalItems: items.length,
       totalPieces,
@@ -215,7 +215,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
       <div className="bg-surface border-b border-paper-200 px-4 flex gap-1 overflow-x-auto no-scrollbar">
         {[
           { id: 'orders', label: 'Pesanan Masuk', count: orders.length },
-          { id: 'pos', label: 'Kasir Walk-in POS' },
+          { id: 'pos', label: 'Kasir walk-in' },
           { id: 'report', label: 'Rekap Finansial & Target' },
           { id: 'team', label: 'Struktur Tim (11)' },
         ].map((tab) => {
@@ -261,7 +261,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
                 {[
                   { id: 'all', label: 'Semua' },
-                  { id: 'pending', label: 'Cek QRIS' },
+                  { id: 'pending', label: 'Cek Qris' },
                   { id: 'cash', label: 'Tunai Belum Lunas' },
                   { id: 'processing', label: 'Dimasak' },
                   { id: 'ready', label: 'Siap Ambil' },
@@ -313,7 +313,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                         <div className="flex items-center gap-2">
                           <span className="font-extrabold text-ink-900 text-sm">#{order.id}</span>
                           <span
-                            className={`text-xs font-bold px-2 py-0.5 rounded uppercase ${
+                            className={`text-xs font-bold px-2 py-0.5 rounded ${
                               order.paymentStatus === 'verified'
                                 ? 'bg-green-100 text-green-800'
                                 : order.paymentMethod === 'tunai'
@@ -324,10 +324,10 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                             {order.paymentStatus === 'verified'
                               ? order.paymentMethod === 'tunai'
                                 ? 'Tunai Lunas'
-                                : 'QRIS Terverifikasi'
+                                : 'Qris terverifikasi'
                               : order.paymentMethod === 'tunai'
                               ? 'Tunai Belum Lunas'
-                              : 'Menunggu Bukti QRIS'}
+                              : 'Menunggu bukti Qris'}
                           </span>
                         </div>
 
@@ -535,7 +535,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                           : 'bg-surface border-paper-200 text-ink-700'
                       }`}
                     >
-                      QRIS Statis
+                      Qris
                     </button>
                   </div>
                 </div>
@@ -613,7 +613,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
           <div className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="bg-surface p-4 rounded-lg border border-paper-200">
-                <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold uppercase">
+                <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold">
                   <DollarSign className="w-3.5 h-3.5 text-green-700" />
                   <span>Total Omzet Masuk</span>
                 </div>
@@ -626,7 +626,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               </div>
 
               <div className="bg-surface p-4 rounded-lg border border-paper-200">
-                <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold uppercase">
+                <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold">
                   <Package className="w-3.5 h-3.5 text-ink-700" />
                   <span>Pcs Terjual</span>
                 </div>
@@ -640,7 +640,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               </div>
 
               <div className="bg-surface p-4 rounded-lg border border-paper-200">
-                <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold uppercase">
+                <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold">
                   <TrendingUp className="w-3.5 h-3.5 text-brand-600" />
                   <span>Estimasi Laba</span>
                 </div>
@@ -651,7 +651,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               </div>
 
               <div className="bg-surface p-4 rounded-lg border border-paper-200">
-                <div className="text-xs text-ink-500 font-bold uppercase">Target Omzet Akhir</div>
+                <div className="text-xs text-ink-500 font-bold">Target Omzet Akhir</div>
                 <div className="text-lg sm:text-xl font-black text-ink-700 mt-1">
                   Rp{report.targetRevenue.toLocaleString('id-ID')}
                 </div>
@@ -700,7 +700,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 className="flex-1 min-h-[48px] bg-ink-900 hover:bg-ink-800 text-surface px-4 rounded-lg text-xs font-bold flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                <span>Export Data CSV (Google Sheets)</span>
+                <span>Export data (Google Sheets)</span>
               </button>
             </div>
           </div>
@@ -714,50 +714,50 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 Struktur Tim Kelompok 1 - Laris Manis
               </h2>
               <p className="text-xs text-ink-500">
-                Mata Kuliah Kewirausahaan • Telkom University Jakarta • Dosen: DIS
+                Mata Kuliah Kewirausahaan • Telkom University Jakarta • Dosen: Dis
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="p-3 bg-brand-50 rounded-lg border border-brand-200">
-                <span className="text-xs font-bold uppercase text-brand-700">Ketua Tim</span>
+                <span className="text-xs font-bold text-brand-700">Ketua Tim</span>
                 <div className="font-black text-ink-900 mt-0.5">Muhammad Rayfan Pashya</div>
-                <div className="text-ink-500 text-xs">NIM: 102042300174</div>
+                <div className="text-ink-500 text-xs">Nim: 102042300174</div>
               </div>
 
               <div className="p-3 bg-paper-50 rounded-lg border border-paper-200">
-                <span className="text-xs font-bold uppercase text-ink-500">
+                <span className="text-xs font-bold text-ink-500">
                   Produksi & R&D
                 </span>
                 <div className="font-bold text-ink-900 mt-0.5">
                   Afif Nur Sena, Qalam Raydathul Sabani, Fajar Maulana, Rachmat Akbar
                 </div>
-                <div className="text-ink-500 text-xs">Resep SOP, Uji Rasa, Packaging</div>
+                <div className="text-ink-500 text-xs">Resep Sop, Uji Rasa, Packaging</div>
               </div>
 
               <div className="p-3 bg-paper-50 rounded-lg border border-paper-200">
-                <span className="text-xs font-bold uppercase text-ink-500">
+                <span className="text-xs font-bold text-ink-500">
                   Marketing & Medsos
                 </span>
                 <div className="font-bold text-ink-900 mt-0.5">Vio Salman Kafiyan, Rayfan</div>
-                <div className="text-ink-500 text-xs">Story IG, Poster PO, Desain Promo</div>
+                <div className="text-ink-500 text-xs">Story Instagram, poster pre-order, Desain Promo</div>
               </div>
 
               <div className="p-3 bg-paper-50 rounded-lg border border-paper-200">
-                <span className="text-xs font-bold uppercase text-ink-500">Keuangan</span>
+                <span className="text-xs font-bold text-ink-500">Keuangan</span>
                 <div className="font-bold text-ink-900 mt-0.5">Rayhan Arya Ardani, Adam Priyatna</div>
-                <div className="text-ink-500 text-xs">Pencatatan Kas, Cashflow, Nota HPP</div>
+                <div className="text-ink-500 text-xs">Pencatatan Kas, Cashflow, Nota Hpp</div>
               </div>
 
               <div className="p-3 bg-paper-50 rounded-lg border border-paper-200 sm:col-span-2">
-                <span className="text-xs font-bold uppercase text-ink-500">
-                  Penjualan & Operasional PO
+                <span className="text-xs font-bold text-ink-500">
+                  Penjualan & Operasional Pre-order
                 </span>
                 <div className="font-bold text-ink-900 mt-0.5">
                   Yudi Hokiana, Willyansyah, Muhammad Fahmi Yusuf
                 </div>
                 <div className="text-ink-500 text-xs">
-                  Verifikasi QRIS, Delivery Kampus, Pelayanan Konsumen
+                  Verifikasi Qris, Delivery Kampus, Pelayanan Konsumen
                 </div>
               </div>
             </div>

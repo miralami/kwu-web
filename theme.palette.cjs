@@ -6,7 +6,7 @@ module.exports = {
   // Latar halaman & kartu (gantikan bg-white). Teks putih di atas tombol tetap pakai text-white.
   surface: { DEFAULT: ['#ffffff', '#171514'] },
   // Header gelap (bukti pesanan, chatbot, dashboard admin): tetap gelap di kedua mode
-  inverse: { DEFAULT: ['#1c1917', '#26221f'] },
+  inverse: { DEFAULT: ['#1c1917', '#241e1b'] },
   paper: {
     50: ['#ffffff', '#1f1c1a'],
     100: ['#f7f5f0', '#282422'],
@@ -22,16 +22,17 @@ module.exports = {
     500: ['#78716c', '#968e86'],
     400: ['#a8a29e', '#7a726b'],
   },
-  // Merah utama #d81616. Di mode gelap sedikit diterangkan agar teks merah tetap terbaca.
+  // Merah utama #c42802 (berpasangan dengan kuning #fdb41d). Di mode gelap sedikit diterangkan
+  // agar teks merah tetap terbaca dan tombol merah tetap kontras dengan teks putih.
   brand: {
-    50: ['#fff1f1', '#2b1414'],
-    100: ['#ffdfdf', '#3d1919'],
-    200: ['#ffc4c4', '#5e2222'],
-    500: ['#ee3434', '#f05252'],
-    600: ['#d81616', '#e83a3a'],
-    700: ['#b31111', '#ef4444'],
-    800: ['#941212', '#fca5a5'],
-    900: ['#7a1515', '#fecaca'],
+    50: ['#fff4ef', '#2a150f'],
+    100: ['#ffe4d8', '#3b1b11'],
+    200: ['#fcc5ad', '#5c2715'],
+    500: ['#e0410f', '#f0612f'],
+    600: ['#c42802', '#d9370c'],
+    700: ['#a32103', '#f0703f'],
+    800: ['#851c06', '#fdae8f'],
+    900: ['#6b1a09', '#fecab5'],
   },
   // Kuning aksen #fdb41d: selalu pakai teks gelap tetap (text-stone-900) di atas accent-500
   accent: {

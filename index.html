@@ -2,9 +2,9 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#d81616" />
+    <meta name="theme-color" content="#c42802" />
     <meta name="description" content="Laris Manis - Jajanan Sunda Korea & Puding Buah Segar Telkom University Jakarta" />
     <title>Laris Manis | Pre-Order & Jajanan Kampus</title>
     <!-- Google Fonts: Plus Jakarta Sans (aplikasi) + Fredoka (tulisan logo di loading screen) -->
@@ -33,8 +33,8 @@
     -->
     <style>
       #splash {
-        --brand-gold: #fbb02d;
-        --brand-red: #d32f2f;
+        --brand-gold: #fdb41d;
+        --brand-red: #c42802;
         --brand-dark: #232323;
         position: fixed;
         inset: 0;
@@ -47,7 +47,7 @@
         background: #ffffff;
         color: var(--brand-dark);
         font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-        transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1), visibility 0.45s;
+        transition: opacity 0.25s ease-out, visibility 0.25s;
         -webkit-user-select: none;
         user-select: none;
       }
@@ -75,7 +75,7 @@
         height: 288px;
         border-radius: 50%;
         pointer-events: none;
-        background: radial-gradient(circle, rgba(251, 176, 45, 0.22) 0%, rgba(211, 47, 47, 0.08) 48%, rgba(255, 255, 255, 0) 72%);
+        background: radial-gradient(circle, rgba(253, 180, 29, 0.22) 0%, rgba(196, 40, 2, 0.08) 48%, rgba(255, 255, 255, 0) 72%);
         animation: auraPulse 3.2s ease-in-out infinite;
       }
       #splash .splash-logo { position: relative; width: min(72vw, 300px); }
@@ -124,7 +124,7 @@
         width: 0%;
         border-radius: 999px;
         overflow: hidden;
-        background: linear-gradient(90deg, #fbb02d 0%, #f58220 55%, #d32f2f 100%);
+        background: linear-gradient(90deg, #fdb41d 0%, #e66e10 55%, #c42802 100%);
         transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
       }
       #splash .progress-fill::after {
@@ -152,9 +152,9 @@
       .dark #splash { background: #171514; color: #f5f2ee; }
       .dark #splash .brand-text-fill { fill: #f5f2ee; }
       .dark #splash .progress-track { background: rgba(74, 68, 64, 0.8); }
-      .dark #splash .percent-text { color: #f05252; }
+      .dark #splash .percent-text { color: #f0703f; }
       .dark #splash .brand-aura {
-        background: radial-gradient(circle, rgba(251, 176, 45, 0.2) 0%, rgba(211, 47, 47, 0.12) 50%, rgba(23, 21, 20, 0) 75%);
+        background: radial-gradient(circle, rgba(253, 180, 29, 0.2) 0%, rgba(196, 40, 2, 0.12) 50%, rgba(23, 21, 20, 0) 75%);
       }
 
       @keyframes potEnter {
@@ -219,27 +219,27 @@
             <svg viewBox="0 0 420 156" aria-hidden="true">
               <!-- Cangkir -->
               <g class="pot-group">
-                <path class="spark-1" d="M114 30 L118 11 C119 8 125 9 124 13 L120 31 C119 34 113 33 114 30 Z" fill="#D32F2F" />
-                <path class="spark-2" d="M126 39 L139 26 C142 23 147 28 144 31 L130 43 C127 45 123 41 126 39 Z" fill="#D32F2F" />
+                <path class="spark-1" d="M114 30 L118 11 C119 8 125 9 124 13 L120 31 C119 34 113 33 114 30 Z" fill="#C42802" />
+                <path class="spark-2" d="M126 39 L139 26 C142 23 147 28 144 31 L130 43 C127 45 123 41 126 39 Z" fill="#C42802" />
                 <g class="swirl-group">
-                  <path d="M35 81 C24 75 26 57 38 51 C42 32 62 22 81 26 C100 26 116 40 119 58 C129 63 129 77 119 83 Z" fill="#FBB02D" />
+                  <path d="M35 81 C24 75 26 57 38 51 C42 32 62 22 81 26 C100 26 116 40 119 58 C129 63 129 77 119 83 Z" fill="#FDB41D" />
                   <path d="M42 74 C36 62 45 45 64 38 C84 31 105 40 111 56 C115 66 108 75 97 75" fill="none" stroke="#FFF9EB" stroke-width="4.2" stroke-linecap="round" />
                   <path d="M55 72 C49 60 57 48 72 45 C86 43 97 51 96 61 C95 69 84 72 75 67 C68 63 68 55 75 53" fill="none" stroke="#FFF9EB" stroke-width="4" stroke-linecap="round" />
                 </g>
                 <path d="M27 77 Q77 92 126 78 C130 77 132 84 127 87 Q77 102 26 86 C22 84 23 76 27 77 Z" fill="#FFF6E0" />
-                <path d="M24 85 Q77 101 128 86 C133 85 135 93 128 96 L118 130 C114 141 96 146 77 146 C58 146 40 141 36 130 L26 95 C19 92 20 84 24 85 Z" fill="#D32F2F" />
-                <path d="M42 92 Q74 99 105 94 L105 109 C105 117 95 117 95 109 L95 105 C95 102 89 102 89 106 L89 124 C89 133 76 133 76 124 L76 112 C76 108 69 108 69 112 L69 119 C69 127 57 127 57 119 L57 105 C57 101 51 101 51 105 L51 111 C51 117 42 117 42 111 Z" fill="#FBB02D" />
+                <path d="M24 85 Q77 101 128 86 C133 85 135 93 128 96 L118 130 C114 141 96 146 77 146 C58 146 40 141 36 130 L26 95 C19 92 20 84 24 85 Z" fill="#C42802" />
+                <path d="M42 92 Q74 99 105 94 L105 109 C105 117 95 117 95 109 L95 105 C95 102 89 102 89 106 L89 124 C89 133 76 133 76 124 L76 112 C76 108 69 108 69 112 L69 119 C69 127 57 127 57 119 L57 105 C57 101 51 101 51 105 L51 111 C51 117 42 117 42 111 Z" fill="#FDB41D" />
                 <ellipse cx="82.5" cy="121" rx="3" ry="4.5" fill="#FFF6E0" />
               </g>
 
               <!-- Tulisan: huruf i tanpa titik (ı) agar titiknya bisa dianimasikan terpisah -->
               <g class="word-laris">
                 <text id="textLaris" x="154" y="76" font-family="'Fredoka', sans-serif" font-weight="700" font-size="64" letter-spacing="-1.5" class="brand-text-fill">lar&#x0131;s</text>
-                <circle id="dotLaris" class="i-dot dot-laris" cx="0" cy="0" r="7" fill="#FBB02D" />
+                <circle id="dotLaris" class="i-dot dot-laris" cx="0" cy="0" r="7" fill="#FDB41D" />
               </g>
               <g class="word-manis">
                 <text id="textManis" x="154" y="135" font-family="'Fredoka', sans-serif" font-weight="700" font-size="64" letter-spacing="-1.5" class="brand-text-fill">man&#x0131;s</text>
-                <circle id="dotManis" class="i-dot dot-manis" cx="0" cy="0" r="7" fill="#D32F2F" />
+                <circle id="dotManis" class="i-dot dot-manis" cx="0" cy="0" r="7" fill="#C42802" />
               </g>
             </svg>
           </div>
@@ -248,7 +248,7 @@
         <div class="splash-progress">
           <div class="progress-track"><div class="progress-fill" id="splashProgress"></div></div>
           <div class="progress-meta">
-            <span class="status-text" id="splashStatus">Menyiapkan pengalaman terbaik...</span>
+            <span class="status-text" id="splashStatus">Memuat...</span>
             <span class="percent-text" id="splashPercent">0%</span>
           </div>
         </div>
@@ -262,15 +262,15 @@
         var bar = document.getElementById('splashProgress')
         var statusEl = document.getElementById('splashStatus')
         var percentEl = document.getElementById('splashPercent')
-        var MESSAGES = ['Menyiapkan pengalaman terbaik...', 'Memuat menu favorit Anda...', 'Meracik tampilan...', 'Hampir siap...']
+        var MESSAGES = ['Memuat...', 'Memuat menu...', 'Menyiapkan...', 'Hampir siap...']
 
-        // Animasi penuh ditahan minimal 2,6 dtk pada kunjungan pertama di sesi ini; berikutnya cukup singkat
+        // Tampil minimal 0,5 dtk pada kunjungan pertama (agar tidak sekadar berkedip); berikutnya langsung hilang
         var firstVisit = true
         try {
           firstVisit = sessionStorage.getItem('lm_splash_seen') !== '1'
           sessionStorage.setItem('lm_splash_seen', '1')
         } catch (e) {}
-        var MIN_VISIBLE_MS = firstVisit ? 2600 : 800
+        var MIN_VISIBLE_MS = firstVisit ? 500 : 0
         var shownAt = Date.now()
 
         // ---- Titik huruf i: ukur batang huruf i yang SEBENARNYA (bukan kotak hurufnya) ----
@@ -304,7 +304,7 @@
         var fontsDone = false
         function fontsOnce() { if (!fontsDone) { fontsDone = true; onFontsReady() } }
         fontPromise.then(fontsOnce, fontsOnce)
-        setTimeout(fontsOnce, 1500) // jangan menunggu font terlalu lama di internet lambat
+        setTimeout(fontsOnce, 600) // jangan menunggu font terlalu lama di internet lambat
 
         // ---- Progress: naik bertahap sampai 90% selama memuat, tuntas 100% saat aplikasi siap ----
         var progress = 0
@@ -318,20 +318,20 @@
         }
         var timer = setInterval(function () {
           var cap = ready ? 100 : 90
-          progress = Math.min(cap, progress + Math.max(0.6, (cap - progress) * 0.07))
+          progress = Math.min(cap, progress + Math.max(ready ? 12 : 2, (cap - progress) * (ready ? 0.5 : 0.12)))
           render()
           if (ready && progress >= 100) {
             clearInterval(timer)
             finish()
           }
-        }, 70)
+        }, 40)
 
         function finish() {
           var wait = Math.max(0, MIN_VISIBLE_MS - (Date.now() - shownAt))
           setTimeout(function () {
             splash.classList.add('is-hidden')
-            setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash) }, 500)
-          }, wait + 200)
+            setTimeout(function () { if (splash.parentNode) splash.parentNode.removeChild(splash) }, 260)
+          }, wait)
         }
 
         // Dipanggil oleh src/main.tsx setelah aplikasi tampil

@@ -15,7 +15,7 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
     <section aria-labelledby="my-orders-title" className="mb-5 space-y-2">
       <h2
         id="my-orders-title"
-        className="text-xs font-extrabold text-ink-600 uppercase tracking-wider flex items-center gap-1.5"
+        className="text-xs font-extrabold text-ink-600 flex items-center gap-1.5"
       >
         <ReceiptText className="w-3.5 h-3.5" /> Pesanan Saya
       </h2>

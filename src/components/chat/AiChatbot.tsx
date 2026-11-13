@@ -17,14 +17,14 @@ const FAQ_KNOWLEDGE: Record<string, string> = {
   puding:
     'Puding Karamel & Buah Dingin adalah dessert cup 240 ml yang lembut dengan saus karamel dan potongan buah segar, penyejuk rasa pedas. Harganya Rp15.000 per cup.',
   qris:
-    'Saat checkout, kamu mendapatkan tampilan QRIS Statis dengan batas bayar 15 menit. Simpan gambar QRIS, scan via m-Banking/e-Wallet, lalu klik tombol konfirmasi WhatsApp ya!',
+    'Saat checkout, kamu mendapatkan tampilan Qris dengan batas bayar 15 menit. Simpan gambar Qris, scan via m-Banking/e-Wallet, lalu klik tombol konfirmasi WhatsApp ya!',
   lokasi: `Lokasi pengambilan pesanan di ${ADMIN_CONTACT.pickupPoint}. Bisa juga titip di kelas jika kamu sebutkan di catatan pemesanan.`,
   pedas:
     'Level pedas berada di kisaran sedang-ke-pedas (level 2-3). Jika tidak tahan pedas, tulis di catatan "Bumbu cabai dipisah/sedikit".',
   combo:
     'Paket Combo Juara berisi 1 porsi Cibay (isi 3) + 2 Spicy Ramyeon Roll seharga Rp14.000 (hemat Rp1.000 dari normal Rp15.000).',
   perkenalan:
-    'Aku Lami, asisten virtual Laris Manis! Namaku dari LAris MAnis. Aku bisa bantu kasih rekomendasi menu, info harga, lokasi ambil, dan cara bayar QRIS.',
+    'Aku Lami, asisten virtual Laris Manis! Namaku dari Laris Manis. Aku bisa bantu kasih rekomendasi menu, info harga, lokasi ambil, dan cara bayar Qris.',
   rekomendasi:
     'Baru pertama coba? Ambil Paket Combo Juara (1 porsi Cibay isi 3 + 2 Spicy Ramyeon Roll) cuma Rp14.000, hemat Rp1.000 dan bisa cicip dua menu gurih sekaligus. Kurang tahan pedas? Tambah Puding Karamel & Buah Dingin 240 ml (Rp15.000) buat penyegar. Mau ngemil hemat sendiri? Spicy Ramyeon Roll Rp5.000 isi 2 paling pas.',
 }
@@ -37,7 +37,7 @@ export const AiChatbot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'bot',
-      text: 'Halo, aku Lami! 👋 Mau tanya menu PO, rekomendasi menu, lokasi ambil, atau cara bayar QRIS?',
+      text: 'Halo, aku Lami! 👋 Mau tanya menu pre-order, rekomendasi menu, lokasi ambil, atau cara bayar Qris?',
     },
   ])
   const [input, setInput] = useState('')
@@ -212,7 +212,7 @@ export const AiChatbot: React.FC = () => {
               'Apa itu Cibay?',
               'Spicy Ramyeon Roll?',
               'Puding Karamel?',
-              'Cara Bayar QRIS?',
+              'Cara bayar Qris?',
               'Lokasi Ambil?',
             ].map((chip) => (
               <button

@@ -17,8 +17,8 @@ declare global {
 
 // Beri tahu loading screen (index.html) bahwa aplikasi sudah tampil. Loading screen yang mengatur
 // sisanya: menuntaskan progress ke 100%, durasi minimal tampil, lalu memudar.
-// Tunggu font aplikasi siap (maks. 1,5 detik) agar teks tidak "loncat" saat loading screen hilang.
-const FONT_TIMEOUT_MS = 1500
+// Tunggu font aplikasi siap (maks. 0,4 detik) agar teks tidak "loncat" saat loading screen hilang.
+const FONT_TIMEOUT_MS = 400
 Promise.race([
   document.fonts?.ready ?? Promise.resolve(),
   new Promise((resolve) => setTimeout(resolve, FONT_TIMEOUT_MS)),

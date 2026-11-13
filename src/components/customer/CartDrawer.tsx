@@ -116,13 +116,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         onClick={onClose}
       />
 
-      <div className="fixed inset-y-0 right-0 flex w-full max-w-md pl-3 sm:pl-0">
-        <div className="w-full min-w-0 bg-surface shadow-2xl flex flex-col border-l border-paper-200">
+      <div className="fixed inset-0 sm:inset-y-0 sm:left-auto sm:right-0 flex w-full sm:max-w-md">
+        <div className="w-full h-[100dvh] min-w-0 bg-surface shadow-2xl flex flex-col sm:border-l border-paper-200">
           {/* Header */}
           <div className="p-4 border-b border-paper-200 flex items-center justify-between bg-paper-50">
             <div>
               <h2 id="cart-drawer-title" className="font-extrabold text-base text-ink-900">Keranjang Pesanan</h2>
-              <p className="text-xs text-ink-500">{items.length} Menu • {totalPieces} Pcs Camilan</p>
+              <p className="text-xs text-ink-500">{items.length} menu • {totalPieces} pcs</p>
             </div>
             <button
               onClick={onClose}
@@ -148,10 +148,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </button>
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-5">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-4 space-y-5">
               {/* Items List */}
               <div className="space-y-3">
-                <label className="text-xs font-bold uppercase tracking-wider text-ink-600">
+                <label className="text-xs font-bold text-ink-600">
                   Daftar Pilihan Menu
                 </label>
                 {items.map((item) => (
@@ -175,7 +175,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
 
                     {/* Stepper with >= 44px hit targets */}
-                    <div className="shrink-0 flex items-center border border-paper-200 rounded-lg bg-surface">
+                    <div className="shrink-0 flex items-center border border-paper-200 rounded-full bg-surface">
                       <button
                         onClick={() => onUpdateQuantity(item.id, -1)}
                         className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-600 hover:text-ink-900"
@@ -213,7 +213,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 {appliedPromo ? (
                   <div className="flex items-center justify-between bg-surface px-3 py-2 rounded-lg border border-green-300 text-xs">
                     <span className="font-bold text-green-800 flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> {appliedPromo.code} - {appliedPromo.label}
+                      <Check className="w-3.5 h-3.5" /> {appliedPromo.label}
                     </span>
                     <button
                       onClick={() => setAppliedPromo(null)}
@@ -226,10 +226,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="RAWONSETO / LARISMANIS"
+                      placeholder="Kode promo"
                       value={referralInput}
                       onChange={(e) => setReferralInput(e.target.value)}
-                      className="flex-1 min-w-0 min-h-[44px] text-xs px-3 bg-surface border border-paper-200 rounded-lg uppercase font-bold tracking-wider"
+                      className="flex-1 min-w-0 min-h-[44px] text-xs px-3 bg-surface border border-paper-200 rounded-full font-bold"
                     />
                     <button
                       type="button"
@@ -245,7 +245,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
               {/* Form Input */}
               <form id="checkout-form" onSubmit={handleSubmit} className="space-y-3">
-                <label className="text-xs font-bold uppercase tracking-wider text-ink-600">
+                <label className="text-xs font-bold text-ink-600">
                   Data Pemesan
                 </label>
 
@@ -338,7 +338,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       }`}
                     >
                       <CreditCard className="w-4 h-4 text-brand-600" />
-                      <span>QRIS Statis</span>
+                      <span>Qris</span>
                     </button>
                     <button
                       type="button"

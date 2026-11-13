@@ -26,52 +26,53 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
       aria-modal="true"
       aria-labelledby="option-modal-title"
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4"
+      onClick={onClose}
     >
       <div
         className="w-full sm:max-w-md bg-surface rounded-t-2xl sm:rounded-xl overflow-hidden shadow-xl max-h-[90vh] flex flex-col border border-paper-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header Photo */}
-        <div className="relative h-44 sm:h-48 w-full bg-paper-100 overflow-hidden">
+        {/* Foto 1:1 bersih (tanpa teks/overlay), ikut bergulir bersama isi; tombol bawah tetap terlihat */}
+        <div className="flex-1 overflow-y-auto overscroll-contain">
+        <div className="aspect-square w-full bg-paper-100 overflow-hidden">
           <img
             src={item.image}
             alt={item.name}
-            width={448}
-            height={192}
+            width={720}
+            height={720}
             className="w-full h-full object-cover"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        </div>
 
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 min-h-[44px] min-w-[44px] flex items-center justify-center bg-black/70 text-white rounded-full hover:bg-black"
-            aria-label="Tutup"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <div className="absolute bottom-3 left-4 right-4 text-white">
-            <div className="flex items-center gap-2 mb-1">
+        <div className="p-4 space-y-4 bg-surface">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 space-y-1">
+              <h2 id="option-modal-title" className="text-lg font-bold leading-tight text-ink-900">
+                {item.name}
+              </h2>
+              <p className="text-xs text-ink-600">{item.tagline}</p>
               {item.spicyLevel && item.spicyLevel > 0 ? (
-                <span className="flex items-center gap-1 text-xs bg-red-700 text-white font-bold px-2 py-0.5 rounded">
+                <span className="inline-flex items-center gap-1 text-xs bg-red-700 text-white font-bold px-2 py-0.5 rounded-full">
                   <Flame className="w-3 h-3" /> Pedas Lv {item.spicyLevel}
                 </span>
               ) : null}
             </div>
-            <h2 id="option-modal-title" className="text-lg font-bold leading-tight">{item.name}</h2>
-            <p className="text-xs text-stone-200 line-clamp-1">{item.tagline}</p>
+            <button
+              onClick={onClose}
+              className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center bg-paper-100 text-ink-700 hover:bg-paper-200"
+              aria-label="Tutup"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-        </div>
 
-        {/* Option Selection Form */}
-        <div className="p-4 overflow-y-auto space-y-4 flex-1 bg-surface">
           <p className="text-xs text-ink-600 leading-relaxed bg-paper-50 p-3 rounded-lg border border-paper-200">
             {item.description}
           </p>
 
           <div>
-            <label className="block text-xs font-bold text-ink-800 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-ink-800 mb-2">
               Pilih Porsi
             </label>
             <div className="space-y-2">
@@ -117,7 +118,7 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-ink-800 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-ink-800 mb-1">
               Catatan Khusus (Opsional)
             </label>
             <input
@@ -131,9 +132,11 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
           </div>
         </div>
 
+        </div>
+
         {/* Footer Actions (Compliant Touch Targets >= 44px) */}
         <div className="p-4 border-t border-paper-200 bg-paper-50 flex items-center gap-3">
-          <div className="flex items-center border border-paper-200 rounded-lg bg-surface">
+          <div className="flex items-center border border-paper-200 rounded-full bg-surface">
             <button
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-600 hover:text-ink-900 disabled:opacity-30"

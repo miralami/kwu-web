@@ -8,7 +8,7 @@ export const MENU_ITEMS: MenuItem[] = [
     tagline: 'Aci ngambay kenyal berbalut kulit lumpia renyah',
     description:
       'Jajanan khas Sunda dengan isian aci gurih lumer berbumbu ayam & daun bawang, dibungkus kulit lumpia garing digoreng fresh saat pemesanan. Disajikan dengan taburan bumbu cabai pedas gurih!',
-    image: '/menu/cibay-lumer.png',
+    image: '/menu/cibay.webp',
     spicyLevel: 2,
     isPopular: true,
     options: [
@@ -22,7 +22,7 @@ export const MENU_ITEMS: MenuItem[] = [
     tagline: 'Sensasi Ramyeon Korea digulung Rice Paper viral',
     description:
       'Perpaduan mie instan pedas Korea racikan gurih dibungkus lembaran rice paper kenyal transparan. Tekstur kenyal luar, meledak pedas gurih di dalam! Cocok disantap hangat.',
-    image: '/menu/spicy-ramyeon-roll.png',
+    image: '/menu/samyang.webp',
     spicyLevel: 3,
     isPopular: true,
     options: [
@@ -36,7 +36,7 @@ export const MENU_ITEMS: MenuItem[] = [
     tagline: 'Dessert cup segar pelepas dahaga & pereda pedas',
     description:
       'Puding susu sutra lembut 240 ml dengan siraman saus karamel legit ditambah potongan buah segar (mangga / stroberi) dingin. Menjaga mood kuliah tetap segar setelah cemil yang pedas!',
-    image: '/menu/puding.png',
+    image: '/menu/jelly.webp',
     spicyLevel: 0,
     isPopular: true,
     options: [
@@ -50,7 +50,7 @@ export const MENU_ITEMS: MenuItem[] = [
     tagline: '1 Porsi Cibay + 2 Spicy Ramyeon Roll hemat Rp1.000',
     description:
       'Pilihan terbaik buat nongkrong bareng bestie! Langsung dapat 1 porsi Cibay Lumer (isi 3) + 2 Spicy Ramyeon Roll. Lebih hemat dibanding beli satuan!',
-    image: '/menu/paket-combo.png',
+    image: '/menu/paket-combo.webp',
     spicyLevel: 2,
     isBestValue: true,
     options: [
