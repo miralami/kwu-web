@@ -52,7 +52,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
     .join('\n')
 
   const waMessage = encodeURIComponent(
-    `Halo Admin Laris Manis! 🙌\nSaya mau konfirmasi pesanan PO:\n\n*ID Pesanan: #${order.id}*\nNama: ${order.customerName}\nKelas/Lokasi: ${order.customerClass}\nMetode: ${order.paymentMethod.toUpperCase()}\nTotal: *Rp${order.total.toLocaleString('id-ID')}*\n\n*Detail Menu:*\n${itemsText}\n\nCatatan: ${order.customerNotes || '-'}\n\nMohon dicek ya min, terima kasih!`
+    `Halo Admin Laris Manis! 🙌\nSaya mau konfirmasi pesanan PO:\n\n*ID Pesanan: #${order.id}*\nNama: ${order.customerName}\n${order.customerClass ? `Kelas/Lokasi: ${order.customerClass}\n` : ''}Metode: ${order.paymentMethod.toUpperCase()}\nTotal: *Rp${order.total.toLocaleString('id-ID')}*\n\n*Detail Menu:*\n${itemsText}\n\nCatatan: ${order.customerNotes || '-'}\n\nMohon dicek ya min, terima kasih!`
   )
 
   const waLink = `https://wa.me/${ADMIN_CONTACT.phone}?text=${waMessage}`
@@ -69,18 +69,22 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
       role="dialog"
       aria-modal="true"
       aria-labelledby="receipt-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm sm:flex sm:items-center sm:justify-center sm:p-4 sm:overflow-y-auto"
     >
-      <div className="relative w-full max-w-lg bg-surface rounded-xl shadow-2xl overflow-hidden my-6 border border-paper-200">
+      {/* Mobile: layar penuh. Layar lebar (sm+): kartu di tengah seperti sebelumnya */}
+      <div className="relative w-full h-full sm:h-auto sm:max-w-lg flex flex-col bg-surface sm:rounded-xl shadow-2xl overflow-hidden sm:my-6 sm:border border-paper-200">
         {/* Receipt Header */}
-        <div className="bg-inverse text-white p-5">
+        <div className="shrink-0 bg-inverse text-white p-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-bold text-accent-500">
                 Bukti pre-order
               </span>
               <h2 id="receipt-modal-title" className="text-xl font-extrabold mt-0.5">Pesanan #{order.id}</h2>
-              <p className="text-xs text-stone-300">{order.customerName} • {order.customerClass}</p>
+              <p className="text-xs text-stone-300">
+                {order.customerName}
+                {order.customerClass ? ` • ${order.customerClass}` : ''}
+              </p>
             </div>
             <button
               onClick={onClose}
@@ -92,7 +96,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
           </div>
         </div>
 
-        <div className="p-5 space-y-5 max-h-[75vh] overflow-y-auto bg-surface">
+        <div className="p-5 space-y-5 flex-1 min-h-0 sm:flex-none sm:max-h-[75vh] overflow-y-auto overscroll-contain bg-surface">
           {/* Order Status Progress */}
           <div className="bg-paper-50 p-4 rounded-lg border border-paper-200">
             <div className="text-xs font-bold text-ink-600 mb-2">Status Pesanan:</div>
@@ -238,7 +242,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-paper-200 bg-paper-50 space-y-2">
+        <div className="shrink-0 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-paper-200 bg-paper-50 space-y-2">
           <a
             href={waLink}
             target="_blank"

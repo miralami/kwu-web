@@ -342,7 +342,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
                           <div className="font-bold text-ink-900">{order.customerName}</div>
-                          <div className="text-ink-600">{order.customerClass}</div>
+                          {order.customerClass && <div className="text-ink-600">{order.customerClass}</div>}
                           <div className="mt-1">
                             <a
                               href={`https://wa.me/${order.customerPhone.replace(/^0/, '62')}`}

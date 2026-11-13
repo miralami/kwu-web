@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { X, Send, Key } from 'lucide-react'
+import { X, Send } from 'lucide-react'
 import { ChatbotMascot } from './ChatbotMascot'
 import { TypingIndicator } from './TypingIndicator'
 import { ADMIN_CONTACT } from '../../data/menu'
@@ -41,11 +41,9 @@ export const AiChatbot: React.FC = () => {
     },
   ])
   const [input, setInput] = useState('')
-  const [openRouterKey, setOpenRouterKey] = useState('')
-  const [showKeyInput, setShowKeyInput] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSend = async (customText?: string) => {
+  const handleSend = (customText?: string) => {
     const textToSend = customText || input
     if (!textToSend.trim()) return
 
@@ -53,42 +51,6 @@ export const AiChatbot: React.FC = () => {
     setMessages(newMsgs)
     setInput('')
     setIsLoading(true)
-
-    if (openRouterKey.trim()) {
-      try {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${openRouterKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'meta-llama/llama-3.2-3b-instruct:free',
-            messages: [
-              {
-                role: 'system',
-                content:
-                  'Kamu adalah Lami (singkatan LAris MAnis), asisten virtual yang ramah ala anak kuliahan untuk Laris Manis KWU Telkom University. Jual Cibay (1 porsi isi 3 pcs Rp10rb), Spicy Ramyeon Roll (isi 2 pcs Rp5rb), Puding Karamel & Buah 240 ml (Rp15rb), Paket Combo Juara 1 porsi Cibay + 2 Roll Rp14rb (hemat Rp1rb). Kalau pembeli bingung atau minta rekomendasi, sarankan Paket Combo Juara untuk pembeli baru dan Puding Karamel sebagai penyegar setelah makan pedas. Jawab singkat, ramah, dan solutif.',
-              },
-              ...newMsgs.map((m) => ({
-                role: m.sender === 'bot' ? 'assistant' : 'user',
-                content: m.text,
-              })),
-            ],
-          }),
-        })
-
-        const data = await response.json()
-        const botReply = data.choices?.[0]?.message?.content
-        if (botReply) {
-          setMessages((prev) => [...prev, { sender: 'bot', text: botReply }])
-          setIsLoading(false)
-          return
-        }
-      } catch (e) {
-        console.warn('OpenRouter request failed, fallback to local KB:', e)
-      }
-    }
 
     setTimeout(() => {
       const lower = textToSend.toLowerCase()
@@ -151,37 +113,14 @@ export const AiChatbot: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setShowKeyInput(!showKeyInput)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-stone-300 hover:text-white rounded"
-                title="Input OpenRouter API Key (Opsional)"
-                aria-label="Input API Key"
-              >
-                <Key className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center text-stone-300 hover:text-white rounded"
-                aria-label="Tutup Chatbot"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center text-stone-300 hover:text-white rounded"
+              aria-label="Tutup Chatbot"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-
-          {showKeyInput && (
-            <div className="p-2 bg-paper-100 border-b border-paper-200 text-xs space-y-1">
-              <label className="text-xs font-bold text-ink-600">OpenRouter API Key (Opsional):</label>
-              <input
-                type="password"
-                placeholder="sk-or-v1-..."
-                value={openRouterKey}
-                onChange={(e) => setOpenRouterKey(e.target.value)}
-                className="w-full text-xs p-1.5 border border-paper-200 rounded bg-surface"
-              />
-            </div>
-          )}
 
           <div
             className="flex-1 overflow-y-auto p-3 space-y-2.5 bg-paper-50 text-xs"

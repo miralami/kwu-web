@@ -93,7 +93,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
       </nav>
 
       {/* Product List Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {filteredItems.map((item) => {
           const minPrice = Math.min(...item.options.map((o) => o.price))
           const firstOption = item.options[0]
@@ -125,14 +125,14 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
                   />
 
                   {/* High-contrast accessible badges */}
-                  <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                  <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-wrap gap-1 sm:gap-1.5">
                     {item.spicyLevel && item.spicyLevel > 0 ? (
-                      <span className="flex items-center gap-1 text-xs bg-red-700 text-white font-bold px-2 py-0.5 rounded-full shadow-sm">
+                      <span className="flex items-center gap-1 text-[11px] sm:text-xs bg-red-700 text-white font-bold px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm">
                         <Flame className="w-3 h-3" /> Pedas Lv {item.spicyLevel}
                       </span>
                     ) : null}
                     {item.isBestValue && (
-                      <span className="text-xs bg-accent-500 text-stone-900 font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                      <span className="text-[11px] sm:text-xs bg-accent-500 text-stone-900 font-bold px-1.5 sm:px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
                         <Sparkles className="w-3 h-3" /> Hemat Rp1.000
                       </span>
                     )}
@@ -140,13 +140,13 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
 
                 </div>
 
-                {/* Content Details */}
-                <div className="p-4 space-y-1.5">
-                  <div className="flex items-start justify-between gap-3">
-                    <h2 className="font-bold text-base text-ink-900 tracking-tight">
+                {/* Content Details: di mobile nama dan harga bertumpuk karena kartu sempit */}
+                <div className="p-3 sm:p-4 space-y-1.5">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 sm:gap-3">
+                    <h2 className="font-bold text-sm sm:text-base leading-snug text-ink-900 tracking-tight">
                       {item.name}
                     </h2>
-                    <div className="shrink-0 text-right text-lg leading-tight font-extrabold text-brand-600 tracking-tight">
+                    <div className="shrink-0 sm:text-right text-base sm:text-lg leading-tight font-extrabold text-brand-600 tracking-tight">
                       {item.options.length > 1 && <span className="block text-xs font-semibold text-ink-500">Mulai</span>}
                       Rp{minPrice.toLocaleString('id-ID')}
                     </div>
@@ -160,7 +160,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
                 </div>
               </div>
 
-              <div className="p-4 pt-0">
+              <div className="p-3 pt-0 sm:p-4 sm:pt-0">
                 <button
                   type="button"
                   onClick={(e) => {

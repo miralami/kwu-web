@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { CartItem, PaymentMethod } from '../../types'
-import { REFERRAL_CODES } from '../../data/menu'
-import { X, Trash2, Plus, Minus, Tag, Check, CreditCard, Banknote, ArrowRight } from 'lucide-react'
+import { X, Trash2, Plus, Minus, CreditCard, Banknote, ArrowRight } from 'lucide-react'
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -12,11 +11,8 @@ interface CartDrawerProps {
   onCheckout: (formData: {
     customerName: string
     customerPhone: string
-    customerClass: string
     customerNotes: string
     paymentMethod: PaymentMethod
-    referralCode?: string
-    discountAmount: number
   }) => Promise<void> | void
 }
 
@@ -30,12 +26,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 }) => {
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
-  const [customerClass, setCustomerClass] = useState('S1SI-02')
   const [customerNotes, setCustomerNotes] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('qris')
-  const [referralInput, setReferralInput] = useState('')
-  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number; label: string } | null>(null)
-  const [promoError, setPromoError] = useState('')
+  const [showConfirm, setShowConfirm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string }>({})
@@ -44,28 +37,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalPieces = items.reduce((sum, item) => sum + item.pieces * item.quantity, 0)
-  const discountAmount = appliedPromo ? Math.min(appliedPromo.discount, subtotal) : 0
-  const total = Math.max(0, subtotal - discountAmount)
+  const total = subtotal
 
-  const handleApplyPromo = () => {
-    setPromoError('')
-    const cleanCode = referralInput.trim().toUpperCase()
-    if (!cleanCode) return
-
-    const promo = REFERRAL_CODES[cleanCode]
-    if (promo) {
-      setAppliedPromo({
-        code: cleanCode,
-        discount: promo.discount,
-        label: promo.label,
-      })
-      setReferralInput('')
-    } else {
-      setPromoError('Kode voucher tidak ditemukan')
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Tombol "Konfirmasi Pre-Order": validasi form lalu minta konfirmasi dulu sebelum pesanan dikirim
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (isSubmitting) return
 
@@ -83,23 +58,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       return
     }
     setFormErrors({})
+    setSubmitError('')
+    setShowConfirm(true)
+  }
 
+  const handleConfirmedCheckout = async () => {
+    if (isSubmitting) return
     try {
       setIsSubmitting(true)
       setSubmitError('')
       await onCheckout({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
-        customerClass: customerClass.trim(),
         customerNotes: customerNotes.trim(),
         paymentMethod,
-        referralCode: appliedPromo?.code,
-        discountAmount,
       })
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Pesanan gagal dikirim. Coba lagi.')
     } finally {
       setIsSubmitting(false)
+      setShowConfirm(false)
     }
   }
 
@@ -204,45 +182,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 ))}
               </div>
 
-              {/* Promo Section */}
-              <div className="bg-paper-50 p-3.5 rounded-lg border border-paper-200 space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-ink-800">
-                  <Tag className="w-3.5 h-3.5 text-brand-600" />
-                  <span>Kode Voucher / Promo</span>
-                </div>
-                {appliedPromo ? (
-                  <div className="flex items-center justify-between bg-surface px-3 py-2 rounded-lg border border-green-300 text-xs">
-                    <span className="font-bold text-green-800 flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> {appliedPromo.label}
-                    </span>
-                    <button
-                      onClick={() => setAppliedPromo(null)}
-                      className="text-ink-500 hover:text-ink-900 font-bold ml-2 text-xs min-h-[44px] min-w-[44px] px-2 flex items-center justify-center"
-                    >
-                      Batal
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="Kode promo"
-                      value={referralInput}
-                      onChange={(e) => setReferralInput(e.target.value)}
-                      className="flex-1 min-w-0 min-h-[44px] text-xs px-3 bg-surface border border-paper-200 rounded-full font-bold"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleApplyPromo}
-                      className="shrink-0 min-h-[44px] bg-ink-900 text-surface text-xs font-bold px-4 rounded-lg hover:bg-ink-800"
-                    >
-                      Terapkan
-                    </button>
-                  </div>
-                )}
-                {promoError && <p className="text-xs text-red-600 font-medium">{promoError}</p>}
-              </div>
-
               {/* Form Input */}
               <form id="checkout-form" onSubmit={handleSubmit} className="space-y-3">
                 <label className="text-xs font-bold text-ink-600">
@@ -291,36 +230,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   {formErrors.phone && (
                     <p className="text-xs text-red-600 font-medium mt-1">{formErrors.phone}</p>
                   )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-ink-800 mb-1">
-                    Kelas / Lokasi Kampus Tel-U <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Contoh: S1SI-02 / Lantai 3 Gedung B"
-                    value={customerClass}
-                    onChange={(e) => setCustomerClass(e.target.value)}
-                    className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg focus:outline-none focus:border-brand-600 bg-paper-50"
-                  />
-                  <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                    {['S1SI-02', 'Lantai 3 Gedung B', 'Selasar Kelas', 'Gazebo'].map((loc) => (
-                      <button
-                        key={loc}
-                        type="button"
-                        onClick={() => setCustomerClass(loc)}
-                        className={`text-xs px-2 py-1 rounded border font-medium transition-colors ${
-                          customerClass === loc
-                            ? 'bg-ink-900 text-surface border-ink-900'
-                            : 'bg-surface text-ink-600 border-paper-200 hover:bg-paper-100'
-                        }`}
-                      >
-                        {loc}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
                 <div>
@@ -379,12 +288,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span>Subtotal</span>
                   <span>Rp{subtotal.toLocaleString('id-ID')}</span>
                 </div>
-                {discountAmount > 0 && (
-                  <div className="flex justify-between text-green-700 font-semibold">
-                    <span>Diskon Promo</span>
-                    <span>-Rp{discountAmount.toLocaleString('id-ID')}</span>
-                  </div>
-                )}
                 <div className="flex justify-between text-base font-extrabold text-ink-900 pt-1 border-t border-paper-200">
                   <span>Total Tagihan</span>
                   <span className="text-brand-600">Rp{total.toLocaleString('id-ID')}</span>
@@ -410,6 +313,79 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           )}
         </div>
       </div>
+
+      {/* Konfirmasi sebelum pesanan dikirim */}
+      {showConfirm && (
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="confirm-checkout-title"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => !isSubmitting && setShowConfirm(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-surface rounded-2xl shadow-2xl border border-paper-200 p-5 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-1">
+              <h3 id="confirm-checkout-title" className="text-base font-extrabold text-ink-900">
+                Kirim pesanan sekarang?
+              </h3>
+              <p className="text-xs text-ink-600">
+                Pastikan data di bawah sudah benar. Pesanan yang sudah dikirim tidak bisa diubah dari sini.
+              </p>
+            </div>
+
+            <dl className="bg-paper-50 border border-paper-200 rounded-lg p-3 space-y-1.5 text-xs">
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-500">Nama</dt>
+                <dd className="font-bold text-ink-900 text-right break-words min-w-0">{customerName.trim()}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-500">WhatsApp</dt>
+                <dd className="font-bold text-ink-900">{customerPhone.trim()}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-500">Pesanan</dt>
+                <dd className="font-bold text-ink-900">{items.length} menu • {totalPieces} pcs</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-500">Pembayaran</dt>
+                <dd className="font-bold text-ink-900">{paymentMethod === 'qris' ? 'QRIS' : 'Tunai di tempat'}</dd>
+              </div>
+              <div className="flex justify-between gap-3 pt-1.5 border-t border-paper-200 text-sm">
+                <dt className="font-extrabold text-ink-900">Total</dt>
+                <dd className="font-extrabold text-brand-600">Rp{total.toLocaleString('id-ID')}</dd>
+              </div>
+            </dl>
+
+            {paymentMethod === 'qris' && (
+              <p className="text-xs text-ink-600">
+                Setelah dikirim, QRIS akan muncul dan harus dibayar dalam 15 menit.
+              </p>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                disabled={isSubmitting}
+                className="min-h-[48px] rounded-lg border border-paper-200 bg-surface text-ink-800 text-xs font-bold hover:bg-paper-100 disabled:opacity-50"
+              >
+                Periksa Lagi
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmedCheckout}
+                disabled={isSubmitting}
+                className="min-h-[48px] rounded-lg bg-brand-600 text-white text-xs font-extrabold hover:bg-brand-700 active:scale-[0.98] transition-all disabled:opacity-50"
+              >
+                {isSubmitting ? 'Mengirim...' : 'Ya, Pesan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

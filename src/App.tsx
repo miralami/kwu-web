@@ -145,28 +145,23 @@ export function App() {
   const handleCheckout = async (formData: {
     customerName: string
     customerPhone: string
-    customerClass: string
     customerNotes: string
     paymentMethod: 'qris' | 'tunai'
-    referralCode?: string
-    discountAmount: number
   }) => {
     const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const totalPieces = cartItems.reduce((sum, item) => sum + item.pieces * item.quantity, 0)
-    const total = Math.max(0, subtotal - formData.discountAmount)
 
     const newOrder: Order = {
       id: generateOrderId(),
       customerName: formData.customerName,
       customerPhone: formData.customerPhone,
-      customerClass: formData.customerClass,
+      customerClass: '', // form lokasi dihapus; kolom tetap ada di database (default kosong)
       items: [...cartItems],
       totalItems: cartItems.length,
       totalPieces,
       subtotal,
-      discountAmount: formData.discountAmount,
-      referralCode: formData.referralCode,
-      total,
+      discountAmount: 0,
+      total: subtotal,
       paymentMethod: formData.paymentMethod,
       paymentStatus: 'pending', // tunai pun belum lunas sampai admin terima uangnya di booth
       orderStatus: 'menunggu_pembayaran',

@@ -25,7 +25,7 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
           <button
             key={order.id}
             onClick={() => onOpenOrder(order.id)}
-            className="w-full min-h-[56px] bg-surface border border-paper-200 rounded-lg p-3 flex items-center justify-between gap-3 text-left hover:border-ink-500 transition-colors shadow-sm"
+            className="w-full min-h-[56px] bg-surface border border-paper-200 rounded-xl p-3.5 flex items-center justify-between gap-3 text-left hover:border-ink-500 transition-colors shadow-sm"
           >
             <div className="min-w-0">
               <div className="text-sm font-extrabold text-ink-900">
@@ -36,7 +36,7 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
               </div>
               <span
                 key={status.label}
-                className={`inline-flex items-center gap-1.5 mt-1 text-xs font-bold px-2 py-0.5 rounded border motion-safe:animate-status-in ${STATUS_TONE_CLASS[status.tone]}`}
+                className={`inline-flex items-center gap-1.5 mt-1 text-xs font-bold px-2.5 py-0.5 rounded-full border motion-safe:animate-status-in ${STATUS_TONE_CLASS[status.tone]}`}
               >
                 {isOrderActive(order) && status.tone !== 'problem' && (
                   // Titik berdenyut: tanda pesanan masih berjalan

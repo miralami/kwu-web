@@ -29,9 +29,18 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-md bg-surface rounded-t-2xl sm:rounded-xl overflow-hidden shadow-xl max-h-[90vh] flex flex-col border border-paper-200"
+        className="relative w-full sm:max-w-md bg-surface rounded-t-2xl sm:rounded-xl overflow-hidden shadow-xl max-h-[90vh] flex flex-col border border-paper-200"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Tombol tutup di pojok kanan atas foto; tetap terlihat saat isi digulir */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/70 backdrop-blur-sm"
+          aria-label="Tutup"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         {/* Foto 1:1 bersih (tanpa teks/overlay), ikut bergulir bersama isi; tombol bawah tetap terlihat */}
         <div className="flex-1 overflow-y-auto overscroll-contain">
         <div className="aspect-square w-full bg-paper-100 overflow-hidden">
@@ -46,25 +55,16 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
         </div>
 
         <div className="p-4 space-y-4 bg-surface">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 space-y-1">
-              <h2 id="option-modal-title" className="text-lg font-bold leading-tight text-ink-900">
-                {item.name}
-              </h2>
-              <p className="text-xs text-ink-600">{item.tagline}</p>
-              {item.spicyLevel && item.spicyLevel > 0 ? (
-                <span className="inline-flex items-center gap-1 text-xs bg-red-700 text-white font-bold px-2 py-0.5 rounded-full">
-                  <Flame className="w-3 h-3" /> Pedas Lv {item.spicyLevel}
-                </span>
-              ) : null}
-            </div>
-            <button
-              onClick={onClose}
-              className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center bg-paper-100 text-ink-700 hover:bg-paper-200"
-              aria-label="Tutup"
-            >
-              <X className="w-5 h-5" />
-            </button>
+          <div className="min-w-0 space-y-1">
+            <h2 id="option-modal-title" className="text-lg font-bold leading-tight text-ink-900">
+              {item.name}
+            </h2>
+            <p className="text-xs text-ink-600">{item.tagline}</p>
+            {item.spicyLevel && item.spicyLevel > 0 ? (
+              <span className="inline-flex items-center gap-1 text-xs bg-red-700 text-white font-bold px-2 py-0.5 rounded-full">
+                <Flame className="w-3 h-3" /> Pedas Lv {item.spicyLevel}
+              </span>
+            ) : null}
           </div>
 
           <p className="text-xs text-ink-600 leading-relaxed bg-paper-50 p-3 rounded-lg border border-paper-200">
