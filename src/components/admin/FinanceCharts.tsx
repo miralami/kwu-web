@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Order } from '../../types'
-import { isCountedOrder } from '../../services/storage'
+import { isCountedOrder, type DailySeries } from '../../services/analytics'
 
 /*
   Grafik rekap finansial untuk investor. Digambar dengan SVG/HTML biasa (tanpa library).
@@ -19,6 +19,21 @@ const rpShort = (n: number) => {
   return `Rp${n}`
 }
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0)
+
+// Persentase bulat yang jumlahnya selalu tepat 100 (sisa terbesar), supaya daftar
+// porsi tidak pernah tampak 99% atau 101%.
+function pctShares(values: number[], whole?: number): number[] {
+  const total = whole ?? values.reduce((s, v) => s + v, 0)
+  if (total <= 0) return values.map(() => 0)
+  const raw = values.map((v) => (v / total) * 100)
+  const out = raw.map(Math.floor)
+  let left = 100 - out.reduce((s, v) => s + v, 0)
+  const order = raw
+    .map((r, i) => ({ i, f: r - Math.floor(r) }))
+    .sort((a, b) => b.f - a.f || a.i - b.i)
+  for (let k = 0; k < order.length && left > 0; k++, left--) out[order[k].i] += 1
+  return out
+}
 
 // Kelipatan "rapi" untuk sumbu Y (1, 2, 2.5, 5 × 10^n)
 function niceStep(raw: number) {
@@ -41,54 +56,8 @@ function useElementWidth<T extends HTMLElement>() {
 }
 
 // ---------- Data ----------
-export interface DailyPoint {
-  key: string // YYYY-MM-DD (waktu lokal)
-  label: string // "12 Nov"
-  revenue: number
-  orders: number
-  pieces: number
-}
-
-const dayKey = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-
-// Omzet per hari dari hari transaksi pertama sampai hari ini (maks. 21 hari terakhir);
-// hari tanpa penjualan tetap ditampilkan sebagai 0 agar trennya jujur.
-export function buildDailySeries(orders: Order[], maxDays = 21): DailyPoint[] {
-  const counted = orders.filter(isCountedOrder)
-  if (counted.length === 0) return []
-  const byDay = new Map<string, { revenue: number; orders: number; pieces: number }>()
-  let first = new Date(counted[0].createdAt)
-  for (const o of counted) {
-    const d = new Date(o.createdAt)
-    if (d < first) first = d
-    const k = dayKey(d)
-    const cur = byDay.get(k) ?? { revenue: 0, orders: 0, pieces: 0 }
-    cur.revenue += o.total
-    cur.orders += 1
-    cur.pieces += o.totalPieces
-    byDay.set(k, cur)
-  }
-  const end = new Date()
-  end.setHours(0, 0, 0, 0)
-  const start = new Date(first)
-  start.setHours(0, 0, 0, 0)
-  const earliest = new Date(end)
-  earliest.setDate(end.getDate() - (maxDays - 1))
-  if (start < earliest) start.setTime(earliest.getTime())
-
-  const out: DailyPoint[] = []
-  for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const k = dayKey(d)
-    const v = byDay.get(k) ?? { revenue: 0, orders: 0, pieces: 0 }
-    out.push({
-      key: k,
-      label: d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-      ...v,
-    })
-  }
-  return out
-}
+// DailyPoint, DailySeries, dan buildDailySeries ada di services/analytics.ts
+// (pengelompokan hari memakai kalender Asia/Jakarta, bukan zona waktu perangkat).
 
 // ---------- Kartu pembungkus ----------
 const ChartCard: React.FC<{ title: string; subtitle?: string; children: React.ReactNode }> = ({
@@ -155,26 +124,29 @@ export const TargetMeters: React.FC<{
 }
 
 // ---------- 2. Omzet harian (batang vertikal + tooltip) ----------
-export const DailyRevenueChart: React.FC<{ data: DailyPoint[] }> = ({ data }) => {
+export const DailyRevenueChart: React.FC<{ data: DailySeries }> = ({ data }) => {
+  const points = data.points
   const { ref, width } = useElementWidth<HTMLDivElement>()
   const [active, setActive] = useState<number | null>(null)
   const [showTable, setShowTable] = useState(false)
 
-  const total = data.reduce((s, d) => s + d.revenue, 0)
-  const activeDays = data.filter((d) => d.revenue > 0).length
+  const total = data.totalRevenue
+  const activeDays = points.filter((d) => d.revenue > 0).length
   const avg = activeDays ? total / activeDays : 0
-  const bestIdx = data.reduce((bi, d, i, arr) => (d.revenue > arr[bi].revenue ? i : bi), 0)
+  const bestIdx = points.length
+    ? points.reduce((bi, d, i, arr) => (d.revenue > arr[bi].revenue ? i : bi), 0)
+    : -1
 
   // Tata letak
   const H = 200
   const pad = { top: 22, right: 4, bottom: 24, left: 52 }
   const innerW = Math.max(0, width - pad.left - pad.right)
   const innerH = H - pad.top - pad.bottom
-  const maxVal = Math.max(...data.map((d) => d.revenue), 1)
+  const maxVal = Math.max(...points.map((d) => d.revenue), 1)
   const step = niceStep(maxVal / 3)
   const yMax = Math.ceil(maxVal / step) * step
   const ticks = Array.from({ length: Math.round(yMax / step) + 1 }, (_, i) => i * step)
-  const band = data.length ? innerW / data.length : 0
+  const band = points.length ? innerW / points.length : 0
   const barW = Math.max(4, Math.min(28, band - 2)) // jarak antarbatang minimal 2px
   const y = (v: number) => pad.top + innerH - (v / yMax) * innerH
   const labelEvery = Math.max(1, Math.ceil(46 / Math.max(band, 1))) // label tanggal tidak bertabrakan
@@ -186,26 +158,37 @@ export const DailyRevenueChart: React.FC<{ data: DailyPoint[] }> = ({ data }) =>
     return `M${x},${base} V${top + r} Q${x},${top} ${x + r},${top} H${x + w - r} Q${x + w},${top} ${x + w},${top + r} V${base} Z`
   }
 
-  const activePoint = active !== null ? data[active] : null
+  const activePoint = active !== null ? points[active] : null
   const tooltipLeft =
-    active !== null ? Math.min(Math.max(pad.left + band * active + band / 2, 80), Math.max(80, width - 80)) : 0
+    active !== null
+      ? Math.min(Math.max(pad.left + band * active + band / 2, 80), Math.max(80, width - 80))
+      : 0
+  // Tooltip menempel di puncak batang aktif (atau di bawahnya bila batang terlalu tinggi),
+  // bukan di langit-langit grafik, supaya label "hari terbaik" tidak pernah tertimpa.
+  const tooltipTop = activePoint ? y(activePoint.revenue) : 0
+  const tooltipAbove = tooltipTop > pad.top + 48
 
   return (
     <ChartCard
       title="Omzet Harian"
       subtitle={
-        data.length
-          ? `Total ${rp(total)} • rata-rata ${rp(avg)} per hari berjualan`
+        points.length
+          ? `${data.rangeLabel} • total ${rp(total)} • rata-rata ${rp(avg)} per hari berjualan`
           : undefined
       }
     >
-      {data.length === 0 ? (
+      {points.length === 0 ? (
         <EmptyState text="Belum ada transaksi yang terverifikasi untuk digambarkan." />
       ) : (
         <>
           <div ref={ref} className="relative select-none" onMouseLeave={() => setActive(null)}>
             {width > 0 && (
-              <svg width={width} height={H} role="img" aria-label={`Grafik omzet harian, ${data.length} hari`}>
+              <svg
+                width={width}
+                height={H}
+                role="img"
+                aria-label={`Grafik omzet harian, ${points.length} hari`}
+              >
                 {/* Garis bantu & label sumbu Y */}
                 {ticks.map((t) => (
                   <g key={t}>
@@ -217,34 +200,59 @@ export const DailyRevenueChart: React.FC<{ data: DailyPoint[] }> = ({ data }) =>
                       className={t === 0 ? 'stroke-paper-300' : 'stroke-paper-200'}
                       strokeWidth={1}
                     />
-                    <text x={pad.left - 8} y={y(t)} dy="0.32em" textAnchor="end" className="fill-ink-500 text-[10px]">
+                    <text
+                      x={pad.left - 8}
+                      y={y(t)}
+                      dy="0.32em"
+                      textAnchor="end"
+                      className="fill-ink-500 text-[10px]"
+                    >
                       {rpShort(t)}
                     </text>
                   </g>
                 ))}
 
-                {data.map((d, i) => {
+                {points.map((d, i) => {
                   const x = pad.left + band * i + (band - barW) / 2
                   const isActive = active === i
                   return (
                     <g key={d.key}>
                       <path
                         d={barPath(x, y(d.revenue), barW, y(0))}
-                        className={`fill-brand-600 transition-opacity ${active !== null && !isActive ? 'opacity-40' : ''}`}
+                        className={`fill-brand-600 transition-opacity ${
+                          active !== null && !isActive ? 'opacity-40' : ''
+                        }`}
                       />
                       {/* Label langsung hanya untuk hari terbaik */}
                       {i === bestIdx && d.revenue > 0 && (
                         <text
-                          x={x + barW / 2 > width - 34 ? x + barW : x + barW / 2 < pad.left + 34 ? x : x + barW / 2}
+                          x={
+                            x + barW / 2 > width - 34
+                              ? x + barW
+                              : x + barW / 2 < pad.left + 34
+                                ? x
+                                : x + barW / 2
+                          }
                           y={y(d.revenue) - 6}
-                          textAnchor={x + barW / 2 > width - 34 ? 'end' : x + barW / 2 < pad.left + 34 ? 'start' : 'middle'}
+                          textAnchor={
+                            x + barW / 2 > width - 34
+                              ? 'end'
+                              : x + barW / 2 < pad.left + 34
+                                ? 'start'
+                                : 'middle'
+                          }
                           className="fill-ink-800 text-[10px] font-bold"
                         >
                           {rpShort(d.revenue)}
                         </text>
                       )}
                       {i % labelEvery === 0 && (
-                        <text x={x + barW / 2} y={H - 6} textAnchor="middle" className="fill-ink-500 text-[10px]">
+                        <text
+                          x={x + barW / 2}
+                          y={H - 6}
+                          textAnchor="middle"
+                          className="fill-ink-500 text-[10px]"
+                        >
                           {d.label}
                         </text>
                       )}
@@ -271,8 +279,12 @@ export const DailyRevenueChart: React.FC<{ data: DailyPoint[] }> = ({ data }) =>
 
             {activePoint && (
               <div
-                className="pointer-events-none absolute top-0 -translate-x-1/2 bg-inverse text-white rounded-lg shadow-lg ring-1 ring-white/10 px-3 py-2 text-xs whitespace-nowrap"
-                style={{ left: tooltipLeft }}
+                className="pointer-events-none absolute bg-inverse text-white rounded-lg shadow-lg ring-1 ring-white/10 px-3 py-2 text-xs whitespace-nowrap"
+                style={{
+                  left: tooltipLeft,
+                  top: tooltipAbove ? tooltipTop - 8 : tooltipTop + 8,
+                  transform: `translate(-50%, ${tooltipAbove ? '-100%' : '0'})`,
+                }}
               >
                 <div className="font-bold">{activePoint.label}</div>
                 <div className="flex items-center gap-1.5 mt-0.5">
@@ -285,6 +297,13 @@ export const DailyRevenueChart: React.FC<{ data: DailyPoint[] }> = ({ data }) =>
               </div>
             )}
           </div>
+
+          {data.truncated && (
+            <p className="text-xs text-ink-500">
+              Grafik menampilkan {data.windowDays} hari terakhir. {data.omittedDays} hari transaksi
+              sebelumnya tidak digambarkan; kartu omzet di atas tetap menghitung semua waktu.
+            </p>
+          )}
 
           <button
             onClick={() => setShowTable((v) => !v)}
@@ -305,7 +324,7 @@ export const DailyRevenueChart: React.FC<{ data: DailyPoint[] }> = ({ data }) =>
                   </tr>
                 </thead>
                 <tbody className="tabular-nums">
-                  {data.map((d) => (
+                  {points.map((d) => (
                     <tr key={d.key} className="border-b border-paper-100 text-ink-800">
                       <td className="py-1.5">{d.label}</td>
                       <td className="py-1.5 text-right">{d.orders}</td>
@@ -323,25 +342,29 @@ export const DailyRevenueChart: React.FC<{ data: DailyPoint[] }> = ({ data }) =>
   )
 }
 
+
 // ---------- 3. Omzet per menu (batang horizontal berurutan) ----------
 export const MenuRevenueBars: React.FC<{ items: { name: string; pieces: number; revenue: number }[] }> = ({
   items,
 }) => {
   const sorted = useMemo(() => [...items].sort((a, b) => b.revenue - a.revenue), [items])
-  const total = sorted.reduce((s, i) => s + i.revenue, 0)
+  const shares = pctShares(sorted.map((i) => i.revenue))
   const max = sorted[0]?.revenue ?? 0
   return (
-    <ChartCard title="Kontribusi Omzet per Menu" subtitle="Diurutkan dari penyumbang omzet terbesar">
+    <ChartCard
+      title="Kontribusi Omzet per Menu"
+      subtitle="Setelah diskon/promo, diurutkan dari penyumbang omzet terbesar"
+    >
       {sorted.length === 0 ? (
         <EmptyState text="Belum ada menu yang terjual." />
       ) : (
         <ul className="space-y-3">
-          {sorted.map((item) => (
+          {sorted.map((item, idx) => (
             <li key={item.name}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-xs">
                 <span className="font-bold text-ink-800">{item.name}</span>
                 <span className="text-ink-600 tabular-nums">
-                  <span className="font-extrabold text-ink-900">{rp(item.revenue)}</span> • {pct(item.revenue, total)}% •{' '}
+                  <span className="font-extrabold text-ink-900">{rp(item.revenue)}</span> • {shares[idx]}% •{' '}
                   {item.pieces} pcs
                 </span>
               </div>
@@ -370,20 +393,22 @@ export const PaymentSplitBar: React.FC<{ orders: Order[] }> = ({ orders }) => {
     return { ...p, revenue: list.reduce((s, o) => s + o.total, 0), orders: list.length }
   })
   const total = parts.reduce((s, p) => s + p.revenue, 0)
+  const shares = pctShares(parts.map((p) => p.revenue))
+  const shareOf = (key: string) => shares[parts.findIndex((p) => p.key === key)] ?? 0
 
   return (
-    <ChartCard title="Metode Pembayaran" subtitle="Porsi omzet berdasarkan cara bayar">
+    <ChartCard title="Metode Pembayaran" subtitle="Porsi omzet lunas berdasarkan cara bayar">
       {total === 0 ? (
         <EmptyState text="Belum ada pembayaran yang tercatat." />
       ) : (
         <>
           {/* Celah 2px antarsegmen (gap) agar batas tetap jelas */}
           <div className="flex gap-0.5 h-9 rounded-md overflow-hidden" role="img"
-            aria-label={parts.map((p) => `${p.name} ${pct(p.revenue, total)}%`).join(', ')}>
+            aria-label={parts.map((p) => `${p.name} ${shareOf(p.key)}%`).join(', ')}>
             {parts
               .filter((p) => p.revenue > 0)
               .map((p) => {
-                const share = pct(p.revenue, total)
+                const share = shareOf(p.key)
                 return (
                   <div
                     key={p.key}

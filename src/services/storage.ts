@@ -1,4 +1,4 @@
-import { Order, SalesReport } from '../types'
+import { Order } from '../types'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const STORAGE_KEY = 'laris_manis_orders_v1'
@@ -230,53 +230,9 @@ export async function deleteOrder(orderId: string): Promise<void> {
   }
 }
 
-// Pesanan yang dihitung sebagai penjualan: tidak dibatalkan dan sudah dibayar (atau tunai/selesai)
-export function isCountedOrder(o: Order): boolean {
-  return (
-    o.orderStatus !== 'dibatalkan' &&
-    (o.paymentStatus === 'verified' || o.paymentMethod === 'tunai' || o.orderStatus === 'selesai')
-  )
-}
-
-export function calculateSalesReport(orders: Order[]): SalesReport {
-  // Only count verified payments or completed orders
-  const validOrders = orders.filter(isCountedOrder)
-
-  let totalRevenue = 0
-  let totalPiecesSold = 0
-  const breakdown: SalesReport['itemsBreakdown'] = {}
-
-  for (const order of validOrders) {
-    totalRevenue += order.total
-    for (const item of order.items) {
-      const pieces = item.pieces * item.quantity
-      totalPiecesSold += pieces
-
-      if (!breakdown[item.menuItemId]) {
-        breakdown[item.menuItemId] = {
-          name: item.name,
-          pieces: 0,
-          revenue: 0,
-        }
-      }
-      breakdown[item.menuItemId].pieces += pieces
-      breakdown[item.menuItemId].revenue += item.price * item.quantity
-    }
-  }
-
-  // Estimated gross margin is ~40.5% as per Business Plan
-  const estimatedProfit = Math.round(totalRevenue * 0.405)
-
-  return {
-    totalRevenue,
-    totalOrders: validOrders.length,
-    totalPiecesSold,
-    targetPieces: 738, // Target from Business Plan page 5
-    targetRevenue: 4786000, // Proyeksi omzet Minggu 10-12 (Business Plan)
-    estimatedProfit,
-    itemsBreakdown: breakdown,
-  }
-}
+// Definisi "penjualan sah", rekap, dan seri harian tinggal di services/analytics.ts
+// (fungsi murni + teruji). Diekspor ulang di sini agar import lama tetap jalan.
+export { isCountedOrder, calculateSalesReport } from './analytics'
 
 // --- Pelacakan pesanan milik pelanggan di perangkat ini ---
 

@@ -1,14 +1,9 @@
 import React, { useState } from 'react'
 import { Order, OrderStatus, PaymentStatus } from '../../types'
 import { MENU_ITEMS } from '../../data/menu'
-import { calculateSalesReport, saveOrder, generateOrderId } from '../../services/storage'
-import {
-  TargetMeters,
-  DailyRevenueChart,
-  MenuRevenueBars,
-  PaymentSplitBar,
-  buildDailySeries,
-} from './FinanceCharts'
+import { saveOrder, generateOrderId } from '../../services/storage'
+import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../services/analytics'
+import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
 import {
   ShieldAlert,
   CheckCircle,
@@ -63,6 +58,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     if (orderFilter === 'pending') {
       return order.paymentStatus === 'pending' && order.paymentMethod === 'qris'
+    }
+    if (orderFilter === 'cash') {
+      return isAwaitingCash(order)
     }
     if (orderFilter === 'processing') {
       return order.orderStatus === 'sedang_diproses'
@@ -150,13 +148,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 Kelompok 1 - S1SI-KJ-23-002 (Tel-U Jakarta)
 Tanggal: ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}
 
-Ringkasan Finansial:
+Ringkasan Finansial (semua waktu, hanya pesanan lunas):
 • Total Omzet Masuk: Rp${report.totalRevenue.toLocaleString('id-ID')}
 • Total Transaksi: ${report.totalOrders} pesanan
-• Total Pcs Terjual: ${report.totalPiecesSold} / 738 pcs target (${Math.round((report.totalPiecesSold / 738) * 100)}%)
+• Total Pcs Terjual: ${report.totalPiecesSold} / ${report.targetPieces} pcs target (${Math.round((report.totalPiecesSold / report.targetPieces) * 100)}%)
+• Diskon Referral Diberikan: Rp${report.totalDiscount.toLocaleString('id-ID')}
 • Estimasi Laba Kotor (40.5%): Rp${report.estimatedProfit.toLocaleString('id-ID')}
-
-Rincian Penjualan per Menu:
+${report.awaitingCashCount > 0 ? `• Catatan: ${report.awaitingCashCount} pesanan tunai belum ditandai lunas, belum dihitung di atas.\n` : ''}
+Rincian Penjualan per Menu (nilai setelah diskon):
 ${Object.values(report.itemsBreakdown)
   .map((i) => `• ${i.name}: ${i.pieces} pcs (Rp${i.revenue.toLocaleString('id-ID')})`)
   .join('\n')}
@@ -169,11 +168,12 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
   }
 
   const handleDownloadCsv = () => {
-    const headers = 'ID,Tanggal,Nama,Kelas/Lokasi,No WA,Metode,Status Bayar,Status Pesanan,Total Pcs,Total Tagihan\n'
+    const headers =
+      'ID,Tanggal,Nama,Kelas/Lokasi,No WA,Metode,Status Bayar,Status Pesanan,Total Pcs,Subtotal,Diskon,Total Tagihan\n'
     const rows = orders
       .map(
         (o) =>
-          `"${o.id}","${new Date(o.createdAt).toLocaleString('id-ID')}","${o.customerName}","${o.customerClass}","${o.customerPhone}","${o.paymentMethod}","${o.paymentStatus}","${o.orderStatus}",${o.totalPieces},${o.total}`
+          `"${o.id}","${new Date(o.createdAt).toLocaleString('id-ID')}","${o.customerName}","${o.customerClass}","${o.customerPhone}","${o.paymentMethod}","${o.paymentStatus}","${o.orderStatus}",${o.totalPieces},${o.subtotal},${o.discountAmount},${o.total}`
       )
       .join('\n')
 
@@ -262,6 +262,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 {[
                   { id: 'all', label: 'Semua' },
                   { id: 'pending', label: 'Cek QRIS' },
+                  { id: 'cash', label: 'Tunai Belum Lunas' },
                   { id: 'processing', label: 'Dimasak' },
                   { id: 'ready', label: 'Siap Ambil' },
                   { id: 'completed', label: 'Selesai' },
@@ -280,6 +281,20 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 ))}
               </div>
             </div>
+
+            {report.awaitingCashCount > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-3 text-xs">
+                <span className="font-bold">
+                  {report.awaitingCashCount} pesanan tunai belum ditandai lunas — belum masuk omzet.
+                </span>
+                <button
+                  onClick={() => setOrderFilter('cash')}
+                  className="min-h-[44px] px-3 rounded-lg bg-amber-900 text-white font-bold"
+                >
+                  Lihat daftarnya
+                </button>
+              </div>
+            )}
 
             {/* Orders Feed */}
             {filteredOrders.length === 0 ? (
@@ -306,10 +321,12 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                                 : 'bg-amber-100 text-amber-900'
                             }`}
                           >
-                            {order.paymentMethod === 'tunai'
-                              ? 'Tunai di Tempat'
-                              : order.paymentStatus === 'verified'
-                              ? 'QRIS Terverifikasi'
+                            {order.paymentStatus === 'verified'
+                              ? order.paymentMethod === 'tunai'
+                                ? 'Tunai Lunas'
+                                : 'QRIS Terverifikasi'
+                              : order.paymentMethod === 'tunai'
+                              ? 'Tunai Belum Lunas'
                               : 'Menunggu Bukti QRIS'}
                           </span>
                         </div>
@@ -376,6 +393,16 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                             </button>
                           )}
 
+                          {order.paymentMethod === 'tunai' && order.paymentStatus !== 'verified' && (
+                            <button
+                              onClick={() => onUpdateStatus(order.id, order.orderStatus, 'verified')}
+                              className="min-h-[44px] bg-green-700 hover:bg-green-800 text-white text-xs font-bold px-3 rounded-lg flex items-center gap-1"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              <span>Uang Tunai Diterima</span>
+                            </button>
+                          )}
+
                           <button
                             onClick={() => onUpdateStatus(order.id, 'sedang_diproses')}
                             className={`min-h-[44px] text-xs font-bold px-3 rounded-lg flex items-center gap-1 border ${
@@ -401,7 +428,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                           </button>
 
                           <button
-                            onClick={() => onUpdateStatus(order.id, 'selesai', 'verified')}
+                            onClick={() => onUpdateStatus(order.id, 'selesai')}
                             className={`min-h-[44px] text-xs font-bold px-3 rounded-lg flex items-center gap-1 border ${
                               order.orderStatus === 'selesai'
                                 ? 'bg-green-700 text-white border-green-700'
@@ -588,12 +615,14 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               <div className="bg-surface p-4 rounded-lg border border-paper-200">
                 <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold uppercase">
                   <DollarSign className="w-3.5 h-3.5 text-green-700" />
-                  <span>Total Omzet</span>
+                  <span>Total Omzet Masuk</span>
                 </div>
                 <div className="text-lg sm:text-xl font-black text-green-700 mt-1">
                   Rp{report.totalRevenue.toLocaleString('id-ID')}
                 </div>
-                <div className="text-xs text-ink-400 mt-0.5">{report.totalOrders} Transaksi Sukses</div>
+                <div className="text-xs text-ink-400 mt-0.5">
+                  {report.totalOrders} transaksi lunas · semua waktu
+                </div>
               </div>
 
               <div className="bg-surface p-4 rounded-lg border border-paper-200">
@@ -605,7 +634,8 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   {report.totalPiecesSold} <span className="text-xs font-medium text-ink-400">/ {report.targetPieces} pcs</span>
                 </div>
                 <div className="text-xs text-brand-600 font-bold mt-0.5">
-                  {Math.round((report.totalPiecesSold / report.targetPieces) * 100)}% Target Tercapai
+                  {Math.round((report.totalPiecesSold / report.targetPieces) * 100)}% target · semua
+                  waktu
                 </div>
               </div>
 
@@ -617,7 +647,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 <div className="text-lg sm:text-xl font-black text-brand-600 mt-1">
                   Rp{report.estimatedProfit.toLocaleString('id-ID')}
                 </div>
-                <div className="text-xs text-ink-400 mt-0.5">Margin ~40.5% (BP)</div>
+                <div className="text-xs text-ink-400 mt-0.5">Margin ~40.5% × omzet lunas</div>
               </div>
 
               <div className="bg-surface p-4 rounded-lg border border-paper-200">
@@ -628,6 +658,20 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 <div className="text-xs text-ink-400 mt-0.5">Proyeksi Minggu 10-12</div>
               </div>
             </div>
+
+            {(report.totalDiscount > 0 || report.awaitingCashCount > 0) && (
+              <p className="text-xs text-ink-500">
+                {report.totalDiscount > 0 && (
+                  <>Diskon referral yang sudah diberikan: Rp{report.totalDiscount.toLocaleString('id-ID')}. </>
+                )}
+                {report.awaitingCashCount > 0 && (
+                  <>
+                    {report.awaitingCashCount} pesanan tunai belum ditandai lunas dan belum dihitung di
+                    kartu mana pun.
+                  </>
+                )}
+              </p>
+            )}
 
             {/* Grafik untuk investor */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

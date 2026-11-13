@@ -157,7 +157,7 @@ export function App() {
       referralCode: formData.referralCode,
       total,
       paymentMethod: formData.paymentMethod,
-      paymentStatus: formData.paymentMethod === 'tunai' ? 'verified' : 'pending',
+      paymentStatus: 'pending', // tunai pun belum lunas sampai admin terima uangnya di booth
       orderStatus: 'menunggu_pembayaran',
       customerNotes: formData.customerNotes,
       createdAt: new Date().toISOString(),

@@ -71,9 +71,11 @@ export interface SalesReport {
   totalRevenue: number
   totalOrders: number
   totalPiecesSold: number
+  totalDiscount: number
   targetPieces: number
   targetRevenue: number
   estimatedProfit: number
+  awaitingCashCount: number
   itemsBreakdown: {
     [key: string]: {
       name: string
