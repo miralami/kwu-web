@@ -26,9 +26,9 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
   return (
     <div className="space-y-6">
       {/* Hero dengan grid garis tipis yang memudar ke tepi */}
-      <section className="relative isolate pt-2 pb-1 flex flex-col-reverse sm:flex-row sm:items-center gap-4 sm:gap-8">
-        <div aria-hidden="true" className="hero-grid pointer-events-none absolute -inset-x-4 -top-6 -bottom-4 -z-10" />
-        <div className="flex-1 space-y-3">
+      <section className="relative isolate overflow-hidden rounded-2xl border border-paper-200 p-5 sm:p-8 flex flex-col-reverse sm:flex-row sm:items-center gap-4 sm:gap-8">
+        <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0 -z-10" />
+        <div className="flex-1 min-w-0 space-y-3">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-ink-900 tracking-tight leading-tight">
             Jajanan Sunda
             {/* Tanda silang: dua goresan melengkung warna brand (merah + kuning) */}
@@ -60,7 +60,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
           alt=""
           width={226}
           height={226}
-          className="w-28 sm:w-56 h-auto shrink-0 self-center"
+          className="w-44 sm:w-56 h-auto shrink-0 self-center"
         />
       </section>
 
