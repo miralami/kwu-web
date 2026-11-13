@@ -24,6 +24,16 @@ import { AdminDashboard } from './components/admin/AdminDashboard'
 import { AiChatbot } from './components/chat/AiChatbot'
 import { Lock, ShoppingBag, ArrowRight } from 'lucide-react'
 
+// Kata sandi tim. Bukan rahasia yang aman (ikut ter-bundle); cukup untuk menutup pintu dashboard.
+const ADMIN_PASSWORDS = ['1234', '002', '2026']
+
+function isAdminPathNow() {
+  // Vercel mengarahkan /admin ke index.html lewat rewrite, jadi path dibaca dari location.
+  return window.location.pathname.replace(/\/+$/, '').startsWith('/admin')
+}
+
+const isAdminPath = isAdminPathNow()
+
 export function App() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [orders, setOrders] = useState<Order[]>([])
@@ -34,11 +44,11 @@ export function App() {
   const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null)
   const activeReceiptOrder = myOrders.find((o) => o.id === trackedOrderId) ?? null
 
-  // Admin PIN Auth
-  const [isAdminOpen, setIsAdminOpen] = useState(false)
-  const [isPinModalOpen, setIsPinModalOpen] = useState(false)
-  const [pinInput, setPinInput] = useState('')
-  const [pinError, setPinError] = useState(false)
+  // Gerbang tim: halaman /admin hanya minta kata sandi. Bukan keamanan sungguhan —
+  // nilainya ada di bundle — hanya penjaga pintu supaya pembeli tidak menyasar dashboard.
+  const [isTeamed, setIsTeamed] = useState(false)
+  const [passInput, setPassInput] = useState('')
+  const [passError, setPassError] = useState(false)
 
   useEffect(() => {
     getOrders().then(setOrders)
@@ -183,38 +193,81 @@ export function App() {
     setTrackedOrderId(newOrder.id)
   }
 
-  const handleVerifyPin = (e: React.FormEvent) => {
+  const handleVerifyPass = (e: React.FormEvent) => {
     e.preventDefault()
-    if (pinInput === '1234' || pinInput === '002' || pinInput === '2026') {
-      setIsPinModalOpen(false)
-      setIsAdminOpen(true)
-      setPinInput('')
-      setPinError(false)
+    if (ADMIN_PASSWORDS.includes(passInput)) {
+      setIsTeamed(true)
+      setPassInput('')
+      setPassError(false)
     } else {
-      setPinError(true)
-    }
-  }
-
-  const handleAdminToggle = () => {
-    if (isAdminOpen) {
-      setIsAdminOpen(false)
-    } else {
-      setIsPinModalOpen(true)
+      setPassError(true)
     }
   }
 
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0)
   const cartSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
+  // Halaman tim: /admin. Dashboard hanya dirender setelah kata sandi benar, sehingga
+  // daftar pesanan tidak pernah terunduh sebelum gerbang lolos.
+  if (isAdminPath) {
+    if (!isTeamed) {
+      return (
+        <div className="min-h-screen bg-surface text-ink-900 flex items-center justify-center p-4">
+          <div className="bg-surface rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-paper-200">
+            <div className="w-12 h-12 bg-paper-100 text-ink-900 rounded-full flex items-center justify-center mx-auto border border-paper-200">
+              <Lock className="w-6 h-6" />
+            </div>
+            <h1 className="font-extrabold text-base text-ink-900">Akses Tim</h1>
+
+            <form onSubmit={handleVerifyPass} className="space-y-3">
+              <input
+                type="password"
+                autoFocus
+                aria-label="Kata sandi"
+                value={passInput}
+                onChange={(e) => {
+                  setPassInput(e.target.value)
+                  setPassError(false)
+                }}
+                className="w-full min-h-[48px] text-center text-lg tracking-widest font-extrabold border border-paper-200 rounded-lg focus:outline-none focus:border-brand-600 bg-paper-50"
+              />
+              {passError && <p className="text-xs text-red-600 font-bold">Salah. Coba lagi.</p>}
+
+              <button
+                type="submit"
+                className="w-full min-h-[44px] rounded-lg text-xs font-bold text-surface bg-ink-900 hover:bg-ink-800"
+              >
+                Masuk
+              </button>
+            </form>
+
+            <a href="/" className="block text-xs text-ink-500 underline">
+              Kembali ke halaman pemesanan
+            </a>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="min-h-screen bg-surface text-ink-900">
+        <AdminDashboard
+          orders={orders}
+          onUpdateStatus={(id, oStatus, pStatus) => updateOrderStatus(id, oStatus, pStatus)}
+          onDeleteOrder={(id) => deleteOrder(id)}
+          onClose={() => {
+            setIsTeamed(false)
+            window.location.href = '/'
+          }}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-surface text-ink-900 flex flex-col justify-between pb-24 sm:pb-12">
       <div>
-        <Navbar
-          cartCount={totalCartCount}
-          onOpenCart={() => setIsCartOpen(true)}
-          onOpenAdmin={handleAdminToggle}
-          isAdmin={isAdminOpen}
-        />
+        <Navbar cartCount={totalCartCount} onOpenCart={() => setIsCartOpen(true)} />
 
         <main className="max-w-3xl mx-auto px-4 py-6">
           <MyOrdersBanner orders={visibleMyOrders} onOpenOrder={setTrackedOrderId} />
@@ -291,70 +344,6 @@ export function App() {
         order={activeReceiptOrder}
         onClose={() => setTrackedOrderId(null)}
       />
-
-      {/* Admin Dashboard */}
-      {isAdminOpen && (
-        <AdminDashboard
-          orders={orders}
-          onUpdateStatus={(id, oStatus, pStatus) => updateOrderStatus(id, oStatus, pStatus)}
-          onDeleteOrder={(id) => deleteOrder(id)}
-          onClose={() => setIsAdminOpen(false)}
-        />
-      )}
-
-      {/* Admin PIN Prompt Modal */}
-      {isPinModalOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="pin-modal-title"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-        >
-          <div className="bg-surface rounded-xl p-6 max-w-xs w-full shadow-2xl space-y-4 text-center border border-paper-200">
-            <div className="w-12 h-12 bg-paper-100 text-ink-900 rounded-full flex items-center justify-center mx-auto border border-paper-200">
-              <Lock className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 id="pin-modal-title" className="font-extrabold text-base text-ink-900">Akses Tim Laris Manis</h3>
-              <p className="text-xs text-ink-500 mt-1">
-                Masukkan PIN anggota tim KWU (Default: <span className="font-bold text-ink-900">1234</span>)
-              </p>
-            </div>
-
-            <form onSubmit={handleVerifyPin} className="space-y-3">
-              <input
-                type="password"
-                autoFocus
-                maxLength={6}
-                placeholder="PIN"
-                value={pinInput}
-                onChange={(e) => {
-                  setPinInput(e.target.value)
-                  setPinError(false)
-                }}
-                className="w-full min-h-[48px] text-center text-lg tracking-widest font-extrabold border border-paper-200 rounded-lg focus:outline-none focus:border-brand-600 bg-paper-50"
-              />
-              {pinError && <p className="text-xs text-red-600 font-bold">PIN Salah! Coba 1234</p>}
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsPinModalOpen(false)}
-                  className="flex-1 min-h-[44px] rounded-lg text-xs font-bold text-ink-700 bg-paper-100 hover:bg-paper-200"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 min-h-[44px] rounded-lg text-xs font-bold text-surface bg-ink-900 hover:bg-ink-800"
-                >
-                  Masuk
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Floating AI Chatbot */}
       <AiChatbot />

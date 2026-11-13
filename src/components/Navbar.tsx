@@ -1,20 +1,13 @@
 import React from 'react'
-import { ShoppingBag, ShieldCheck, Moon, Sun } from 'lucide-react'
+import { ShoppingBag, Moon, Sun } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
 
 interface NavbarProps {
   cartCount: number
   onOpenCart: () => void
-  onOpenAdmin: () => void
-  isAdmin: boolean
 }
 
-export const Navbar: React.FC<NavbarProps> = ({
-  cartCount,
-  onOpenCart,
-  onOpenAdmin,
-  isAdmin,
-}) => {
+export const Navbar: React.FC<NavbarProps> = ({ cartCount, onOpenCart }) => {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
 
@@ -65,20 +58,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span key={theme} className="motion-safe:animate-pop-in">
               {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </span>
-          </button>
-
-          {/* Admin Toggle */}
-          <button
-            onClick={onOpenAdmin}
-            className={`min-h-[44px] px-3 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
-              isAdmin
-                ? 'bg-ink-900 text-surface'
-                : 'bg-paper-100 text-ink-700 hover:bg-paper-200 border border-paper-200'
-            }`}
-            aria-label="Panel Admin Tim"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span className="hidden sm:inline">{isAdmin ? 'Mode Tim' : 'Kasir Tim'}</span>
           </button>
 
           {/* Cart Trigger */}
