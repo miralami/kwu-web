@@ -35,3 +35,6 @@ KWU CONTEXT/
 # catatan kerja agent (plan draft), bukan bagian aplikasi
 .hermes/
 .vercel
+
+# file kerja alat desain (sketsa pilihan), bukan bagian aplikasi
+.impeccable/

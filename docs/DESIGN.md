@@ -108,7 +108,7 @@ Laris Manis is a mobile-first campus food ordering and point-of-sale interface. 
 
 - **Menu Item Card:** High-contrast layout with real food photography, inline portion selectors, and prominent pricing.
 - **Portion Selector:** Direct radio-style pills with clear savings badges (`Hemat Rp1.000`).
-- **Invoice & QRIS Sheet:** Structured like a clean printed cashier receipt, featuring a 15-minute countdown, 1-click amount copy, and direct WhatsApp sync.
+- **Invoice & QRIS Sheet:** Structured like a clean printed cashier receipt, featuring the exact amount first, 1-click amount copy, save-QRIS-to-gallery, and direct WhatsApp sync.
 - **Admin & POS Drawer:** High-density, high-contrast operational console for 11 team members with quick status toggles and instant walk-in entry.
 
 ## Do's and Don'ts

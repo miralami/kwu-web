@@ -7,7 +7,7 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
 ## 1. Identitas & Konteks Proyek
 
 - **Nama Usaha:** Laris Manis
-- **Tagline:** Jajanan Sunda ✕ Korea & Dessert Segar Kampus
+- **Tagline:** Jajanan & Dessert Segar Kampus
 - **Kelompok:** Kelompok 1, Kelas S1SI-KJ-23-002, Telkom University Jakarta
 - **Mata Kuliah:** Kewirausahaan (Dosen: Pak Ardi / DIS)
 - **Target Penjualan (Minggu 10–12):** 738 pcs (Target Omzet: Rp4.786.000, Margin Kotor: ~40.5%)
@@ -20,11 +20,11 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
 
 | Divisi | Anggota | Tanggung Jawab Utama |
 |---|---|---|
-| **Ketua Tim** | Muhammad Rayfan Pashya (102042300174) | Koordinasi tim, jadwal jualan, presentasi pitching |
-| **Produksi & R&D** | Afif Nur Sena, Qalam Raydathul Sabani, Fajar Maulana, Rachmat Akbar | SOP resep, uji rasa, persiapan bahan baku Cibay & Roll |
+| **Ketua Tim** | Muhammad Rayfan Pashya | Koordinasi tim, jadwal jualan, presentasi pitching |
+| **Produksi & R&D** | Afif Nur Sena, Qalam Raydathul Sabani, Fajar Maulana | SOP resep, uji rasa, persiapan bahan baku Mozarela Sunda & Roll |
 | **Pemasaran & Kreatif** | Vio Salman Kafiyan, Rayfan | Instagram Stories, poster PO, kampanye promo kampus |
 | **Keuangan** | Rayhan Arya Ardani, Adam Priyatna | HPP, pencatatan kas, invoice bahan, laporan laba rugi |
-| **Penjualan & POS** | Yudi Hokiana, Willyansyah, Muhammad Fahmi Yusuf | Kasir booth, verifikasi mutasi QRIS, delivery kampus |
+| **Penjualan & POS** | Yudi Hokiana, Willyansyah, Muhammad Fahmi Yusuf, Rachmat Akbar | Kasir booth, verifikasi mutasi QRIS, delivery kampus |
 
 ---
 
@@ -32,13 +32,9 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
 
 | Menu | Kategori | Varian / Porsi | Harga | Keterangan / HPP |
 |---|---|---|---|---|
-| **Cibay Gurih Lumer** | Gurih & Pedas | 1 Pcs (Isi 1) | Rp3.000 | Camilan aci ayam daun bawang kulit lumpia renyah |
-| | | 2 Pcs (Isi 2) | Rp5.000 | Hemat Rp1.000 (Best Value) |
-| **Spicy Ramyeon Roll** | Gurih & Pedas | 1 Pcs (Isi 1) | Rp5.000 | Ramyeon Korea pedas dibalut Rice Paper kenyal |
-| | | 2 Pcs (Isi 2) | Rp9.000 | Hemat Rp1.000 (Best Value) |
-| **Puding Karamel & Buah** | Dessert Manis | Single Cup | Rp10.000 | Puding lembut saus karamel & buah segar |
-| | | Double Cup | Rp12.000 | Porsi sharing hemat Rp8.000 |
-| **Paket Combo Juara** | Paket Hemat | 2 Cibay + 2 Ramyeon Roll | Rp13.000 | Bundle terlaris (normal Rp14.000, hemat Rp1.000) |
+| **Mozarela Sunda** | Gurih | 1 Porsi (Isi 3 Pcs) | Rp10.000 | Camilan aci ayam daun bawang kulit lumpia renyah |
+| **Spicy Ramyeon Roll** | Gurih & Pedas | 1 Porsi (Isi 4 Pcs) | Rp10.000 | Ramyeon Korea pedas dibalut Rice Paper kenyal |
+| **Puding Buah** | Dessert Manis | 1 Cup | Rp15.000 | Puding lembut dengan buah segar |
 
 ### Voucher Promo Aktif
 - `RAWONSETO`: Potongan Rp1.000
@@ -53,8 +49,8 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
 2. Memilih porsi makanan langsung di kartu katalog atau melalui modal detail.
 3. Mengisi data pemesanan: Nama, Nomor WhatsApp, dan Kelas/Lokasi jemput (quick chips tersedia: `S1SI-02`, `Lantai 3 Gedung B`, dll).
 4. Memilih metode bayar:
-   - **QRIS Statis UMKM:** Menampilkan QRIS resmi, timer bayar 15 menit, tombol unduh QRIS ke galeri HP, tombol salin nominal, dan tombol konfirmasi 1-klik ke WhatsApp Admin.
-   - **Tunai (Cash):** Bayar langsung saat serah terima pesanan di booth.
+   - **QRIS Statis UMKM:** Satu-satunya cara bayar di checkout online. Menampilkan nominal tepat dengan tombol salin, tombol unduh QRIS ke galeri HP, gambar QRIS resmi, dan tombol konfirmasi 1-klik ke WhatsApp Admin. Tidak ada batas waktu bayar: pesanan baru dimasak dan dihitung omzet setelah admin memverifikasi. Pembeli bisa membatalkan sendiri selama belum bayar.
+   - **Tunai (Cash):** Hanya lewat Kasir Walk-in di dashboard tim, dicatat saat uang diterima di booth.
 
 ### B. Kasir Offline (Walk-in POS)
 - Terletak di panel Admin (Akses via PIN: `1234`, `002`, `2026`).

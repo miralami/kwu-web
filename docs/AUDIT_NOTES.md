@@ -56,7 +56,7 @@ Identifikasi pola klise AI (*AI Slop*) pada implementasi sebelumnya dan tindakan
 ## 3. Product & Design Specification (For Impeccable)
 
 - **Product Name:** Laris Manis (Kewirausahaan Telkom University Jakarta)
-- **Menu:** Cibay Gurih Lumer, Spicy Ramyeon Roll, Puding Karamel Dingin, Paket Combo Juara.
+- **Menu:** Cibay Gurih Lumer, Spicy Ramyeon Roll, Puding Buah.
 - **Audience:** Mahasiswa & Dosen Tel-U (terburu-buru, mobile, akses via WA link / QR meja).
 - **Mode:** **Operate** (pemesanan makanan cepat tanpa hambatan) berpadu **Persuade** (menggugah selera jajan).
 - **Core Aesthetic:** *Warm Campus Deli & Street Food Editorial* — bersih, percaya diri, taktil, fungsional, nol basa-basi.

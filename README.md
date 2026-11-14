@@ -22,11 +22,12 @@ Arsip pendukung lainnya di dalam folder `docs/`:
 ## 🚀 Fitur Unggulan
 
 1. **Katalog & Checkout Kilat (≤30 Detik)**
-   - Pilihan porsi hemat (1 pcs / 2 pcs) langsung di kartu menu.
+   - Tombol + langsung di tiap baris menu, jumlah bisa diketik di keranjang.
    - Quick chips lokasi kampus (`S1SI-02`, `Lantai 3 Gedung B`, dll).
    - Sticky bottom bar permanen di area jempol layar HP.
 2. **QRIS Statis & WhatsApp Handoff**
-   - Countdown bayar 15 menit dengan batas nominal presisi.
+   - Checkout online hanya QRIS; pesanan baru dihitung omzet setelah admin memverifikasi pembayaran.
+   - Pembeli bisa membatalkan sendiri pesanan yang belum dibayar.
    - Tombol unduh QRIS instan ke galeri HP.
    - Format pesan konfirmasi 1-klik terhubung langsung ke WhatsApp kasir tim.
 3. **Panel Admin & Kasir Walk-in (PIN: `1234`)**
@@ -34,8 +35,6 @@ Arsip pendukung lainnya di dalam folder `docs/`:
    - Kasir offline untuk mencatat transaksi langsung mahasiswa/dosen yang mampir di booth.
    - Pelacak target 738 pcs & estimasi laba kotor 40.5% secara real-time.
    - Salin laporan siap kirim ke WhatsApp dosen dan ekspor data CSV.
-4. **Draft AI Assistant**
-   - Widget tanya jawab seputar menu, level pedas, dan lokasi pengambilan pesanan.
 
 ---
 
