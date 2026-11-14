@@ -32,7 +32,7 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
 
 | Menu | Kategori | Varian / Porsi | Harga | Keterangan / HPP |
 |---|---|---|---|---|
-| **Mozzarella Sunda** | Gurih | 1 Porsi (Isi 3 Pcs) | Rp10.000 | Camilan aci ayam daun bawang kulit lumpia renyah |
+| **Mozzarella Sunda** | Gurih | 1 Porsi (Isi 3 Pcs) | Rp10.000 | Camilan aci berbumbu daun bawang kulit lumpia renyah |
 | **Spicy Ramyeon Roll** | Gurih & Pedas | 1 Porsi (Isi 4 Pcs) | Rp10.000 | Ramyeon Korea pedas dibalut Rice Paper kenyal |
 | **Puding Buah** | Dessert Manis | 1 Cup | Rp15.000 | Puding lembut dengan buah segar |
 

@@ -7,7 +7,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'gurih',
     tagline: 'Aci ngambay kenyal berbalut kulit lumpia renyah',
     description:
-      'Jajanan khas Sunda dengan isian aci gurih lumer berbumbu ayam & daun bawang, dibungkus kulit lumpia garing digoreng fresh saat pemesanan. Disajikan dengan taburan bumbu cabai pedas gurih!',
+      'Jajanan khas Sunda dengan isian aci gurih lumer berbumbu & daun bawang, dibungkus kulit lumpia garing digoreng fresh saat pemesanan. Disajikan dengan taburan bumbu gurih!',
     image: '/menu/cibay.webp',
     isPopular: true,
     options: [
