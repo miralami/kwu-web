@@ -30,7 +30,7 @@ Arsip pendukung lainnya di dalam folder `docs/`:
    - Pembeli bisa membatalkan sendiri pesanan yang belum dibayar.
    - Tombol unduh QRIS instan ke galeri HP.
    - Format pesan konfirmasi 1-klik terhubung langsung ke WhatsApp kasir tim.
-3. **Panel Admin & Kasir Walk-in (kata sandi tim)**
+3. **Panel Admin & Kasir Walk-in (login Supabase)**
    - Filter live antrean: *Cek QRIS*, *Dimasak*, *Siap Ambil*, *Selesai*.
    - Kasir offline untuk mencatat transaksi langsung mahasiswa/dosen yang mampir di booth.
    - Pelacak target 738 pcs & estimasi laba kotor 40.5% secara real-time.
@@ -54,3 +54,22 @@ npm run dev
 ```bash
 npm run build
 ```
+
+---
+
+## 🔐 Keamanan & Setup Supabase
+
+Tanpa env Supabase aplikasi berjalan dalam **mode demo lokal** (data hanya di browser, admin pakai kata sandi lokal). Untuk jualan sungguhan:
+
+1. Salin `.env.example` menjadi `.env` lalu isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` (kunci **anon public**, jangan pernah `service_role`). Di Vercel, isi dua variabel yang sama di Settings → Environment Variables lalu redeploy.
+2. Jalankan `supabase/schema.sql` di SQL Editor. Aman diulang.
+3. Authentication → Users → **Add user**: buat akun admin (email + kata sandi kuat).
+4. Authentication → Sign In / Providers → Email: **matikan "Allow new users to sign up"**.
+5. Daftarkan email admin: `insert into public.admins (email) values ('email-admin@contoh.com');`
+
+Model keamanannya:
+- Pembeli (kunci publik) **tidak bisa membaca, mengubah, atau menghapus** tabel pesanan. Mereka membuat dan melihat pesanan lewat fungsi database (`create_order`, `get_my_orders`, `cancel_my_order`) dengan **token rahasia per pesanan**.
+- Server menentukan kode pesanan, status awal (QRIS, belum bayar), dan total. Pembeli tidak bisa membuat pesanan yang sudah "lunas".
+- Hanya akun yang terdaftar di tabel `admins` yang boleh membaca semua pesanan, mengubah status, dan menghapus.
+
+Yang belum tertutup: harga per item masih dikirim dari aplikasi (server hanya membatasi rentangnya), dan belum ada pembatasan laju untuk pesanan spam.
