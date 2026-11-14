@@ -25,7 +25,7 @@ import { AdminDashboard } from './components/admin/AdminDashboard'
 import { Lock } from 'lucide-react'
 
 // Kata sandi tim. Bukan rahasia yang aman (ikut ter-bundle); cukup untuk menutup pintu dashboard.
-const ADMIN_PASSWORDS = ['1234', '002', '2026']
+const ADMIN_PASSWORDS = ['0202']
 
 function isAdminPathNow() {
   // Vercel mengarahkan /admin ke index.html lewat rewrite, jadi path dibaca dari location.

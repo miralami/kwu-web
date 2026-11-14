@@ -30,7 +30,7 @@ Arsip pendukung lainnya di dalam folder `docs/`:
    - Pembeli bisa membatalkan sendiri pesanan yang belum dibayar.
    - Tombol unduh QRIS instan ke galeri HP.
    - Format pesan konfirmasi 1-klik terhubung langsung ke WhatsApp kasir tim.
-3. **Panel Admin & Kasir Walk-in (PIN: `1234`)**
+3. **Panel Admin & Kasir Walk-in (kata sandi tim)**
    - Filter live antrean: *Cek QRIS*, *Dimasak*, *Siap Ambil*, *Selesai*.
    - Kasir offline untuk mencatat transaksi langsung mahasiswa/dosen yang mampir di booth.
    - Pelacak target 738 pcs & estimasi laba kotor 40.5% secara real-time.

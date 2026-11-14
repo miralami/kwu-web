@@ -35,7 +35,7 @@ Satu-satunya sistem pemesanan jajanan khas kampus Tel-U (Mozarela Sunda & Spicy 
   - Katalog menu dinamis dengan satu porsi per menu dan harga jelas.
   - Alur keranjang belanja dengan input data ringkas (Nama, WA, Kelas/Lokasi jemput).
   - Layar QRIS Statis interaktif (tanpa batas waktu bayar; pesanan dihitung setelah diverifikasi admin), fitur salin nominal presisi, unduh gambar QRIS ke galeri HP, dan tombol 1-klik kirim rekap ke WhatsApp admin.
-  - Panel Admin/Kasir offline dengan PIN keamanan tim (`1234`), filter live antrean (Perlu Cek QRIS, Dimasak, Siap Ambil, Selesai), dan input cepat walk-in.
+  - Panel Admin/Kasir offline dengan kata sandi tim, filter live antrean (Perlu Cek QRIS, Dimasak, Siap Ambil, Selesai), dan input cepat walk-in.
   - Laporan finansial otomatis: Real-time Omzet, Target Pcs (738 pcs), Estimasi Laba Kotor (40.5%), Ekspor CSV dan format teks WhatsApp siap kirim.
 - **Constraints:**
   - Menggunakan QRIS Statis UMKM (tanpa gateway berbayar) untuk melindungi margin keuntungan mahasiswa.

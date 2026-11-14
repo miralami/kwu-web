@@ -53,7 +53,7 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
    - **Tunai (Cash):** Hanya lewat Kasir Walk-in di dashboard tim, dicatat saat uang diterima di booth.
 
 ### B. Kasir Offline (Walk-in POS)
-- Terletak di panel Admin (Akses via PIN: `1234`, `002`, `2026`).
+- Terletak di panel Admin (akses lewat halaman `/admin` dengan kata sandi tim).
 - Fitur walk-in order langsung menambahkan transaksi ke pencatatan omzet dan progres 738 pcs.
 - Dilengkapi live search menu dan tombol stepper cepat `+ / -`.
 
