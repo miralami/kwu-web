@@ -25,6 +25,22 @@ export function getCustomerStatus(order: Order): CustomerStatus {
       tone: 'problem',
     }
   }
+  // Belum diverifikasi admin: apa pun isi orderStatus, belum boleh tampil sebagai dimasak/siap/selesai
+  if (order.paymentStatus !== 'verified') {
+    if (order.paymentMethod === 'tunai') {
+      return {
+        label: 'Bayar saat ambil',
+        message: 'Siapkan uang pas saat mengambil pesanan di booth.',
+        tone: 'waiting',
+      }
+    }
+    return {
+      label: 'Menunggu pembayaran',
+      message:
+        'Bayar lewat QRIS, lalu kirim buktinya ke WhatsApp admin. Pesanan mulai dimasak setelah admin mengonfirmasi.',
+      tone: 'waiting',
+    }
+  }
   if (order.orderStatus === 'selesai') {
     return {
       label: 'Selesai',

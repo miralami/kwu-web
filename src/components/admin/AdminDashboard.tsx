@@ -315,9 +315,15 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   const needsQrisCheck =
                     order.paymentMethod === 'qris' && order.paymentStatus === 'pending' && !cancelled
                   const needsCash = order.paymentMethod === 'tunai' && order.paymentStatus !== 'verified'
+                  // Status masak sampai selesai hanya boleh diubah setelah pembayaran diverifikasi
+                  const locked = order.paymentStatus !== 'verified'
                   const stepBtn = (active: boolean, activeClass: string) =>
                     `min-h-[52px] px-1 text-xs font-extrabold flex flex-col items-center justify-center gap-0.5 border-2 transition-colors ${
-                      active ? activeClass : 'bg-surface text-ink-700 border-paper-300 hover:border-royal-600'
+                      locked
+                        ? 'bg-paper-100 text-ink-500 border-paper-300 opacity-60 cursor-not-allowed'
+                        : active
+                        ? activeClass
+                        : 'bg-surface text-ink-700 border-paper-300 hover:border-royal-600'
                     }`
                   return (
                     <article
@@ -423,10 +429,16 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                           </button>
                         )}
 
+                        {!cancelled && locked && (
+                          <p className="text-xs font-bold text-ink-600">
+                            Verifikasi pembayaran dulu sebelum status bisa diubah.
+                          </p>
+                        )}
                         {!cancelled && (
                           <div className="grid grid-cols-3 gap-2">
                             <button
                               onClick={() => onUpdateStatus(order.id, 'sedang_diproses')}
+                              disabled={locked}
                               className={`btn-card ${stepBtn(order.orderStatus === 'sedang_diproses', 'bg-brand-600 text-white border-brand-600')}`}
                             >
                               <ChefHat className="w-4 h-4" />
@@ -434,6 +446,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                             </button>
                             <button
                               onClick={() => onUpdateStatus(order.id, 'siap_diambil')}
+                              disabled={locked}
                               className={`btn-card ${stepBtn(order.orderStatus === 'siap_diambil', 'bg-royal-600 text-white border-royal-600')}`}
                             >
                               <PackageCheck className="w-4 h-4" />
@@ -441,6 +454,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                             </button>
                             <button
                               onClick={() => onUpdateStatus(order.id, 'selesai')}
+                              disabled={locked}
                               className={`btn-card ${stepBtn(order.orderStatus === 'selesai', 'bg-green-700 text-white border-green-700')}`}
                             >
                               <CheckCircle className="w-4 h-4" />

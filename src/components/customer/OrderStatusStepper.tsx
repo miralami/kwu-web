@@ -37,6 +37,8 @@ const STEPS: StepDef[] = [
 
 // Langkah yang sedang berjalan (0-2), atau 3 jika semua selesai
 function getStage(order: Order): number {
+  // Belum diverifikasi admin: tetap di langkah Bayar
+  if (order.paymentStatus !== 'verified') return 0
   if (order.orderStatus === 'selesai') return 3
   if (order.orderStatus === 'siap_diambil') return 2
   if (order.orderStatus === 'sedang_diproses') return 1
