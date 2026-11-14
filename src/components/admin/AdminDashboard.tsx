@@ -51,8 +51,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerClass.toLowerCase().includes(searchQuery.toLowerCase())
+      order.id.toLowerCase().includes(searchQuery.toLowerCase())
 
     if (!matchesSearch) return false
 
@@ -255,7 +254,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 <Search className="w-5 h-5 text-royal-600 absolute left-3.5 top-3" />
                 <input
                   type="text"
-                  placeholder="Cari ID, nama pemesan, kelas..."
+                  placeholder="Cari ID atau nama pemesan..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full min-h-[48px] pl-11 pr-3 py-2 bg-surface border-2 border-royal-600 rounded-xl shadow-[0_3px_0_rgb(var(--c-royal-600))] placeholder:text-ink-500 focus:outline-none focus:border-brand-600"
