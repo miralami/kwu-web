@@ -863,8 +863,32 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 </>
               ) : (
                 <div className="space-y-3">
-                  <label htmlFor="pos-cash" className="block text-sm font-bold text-ink-800">
-                    Uang diterima (opsional, untuk kembalian)
+                  <div className="text-sm font-bold text-ink-800">Uang yang diberikan pembeli</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'Uang Pas', value: posPending.total },
+                      ...[5000, 10000, 20000, 50000, 100000]
+                        .filter((v) => v > posPending.total)
+                        .slice(0, 3)
+                        .map((v) => ({ label: `Rp${v.toLocaleString('id-ID')}`, value: v })),
+                    ].map((q) => (
+                      <button
+                        key={q.label}
+                        type="button"
+                        onClick={() => setPosCashGiven(String(q.value))}
+                        aria-pressed={Number(posCashGiven) === q.value}
+                        className={`btn-card min-h-[48px] text-sm font-extrabold border-2 tabular-nums ${
+                          Number(posCashGiven) === q.value
+                            ? 'bg-royal-600 text-white border-royal-600'
+                            : 'bg-surface text-royal-700 border-royal-600/40'
+                        }`}
+                      >
+                        {q.label}
+                      </button>
+                    ))}
+                  </div>
+                  <label htmlFor="pos-cash" className="block text-xs font-bold text-ink-700">
+                    atau ketik nominal lain
                   </label>
                   <input
                     id="pos-cash"
@@ -875,17 +899,49 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                     onChange={(e) => setPosCashGiven(e.target.value.replace(/\D/g, '').slice(0, 7))}
                     className="w-full min-h-[48px] px-3.5 text-lg font-extrabold tabular-nums border-2 border-paper-300 rounded-lg focus:outline-none focus:border-royal-600 bg-paper-50"
                   />
-                  {posCashGiven !== '' && (
-                    <p
-                      className={`text-center text-lg font-extrabold tabular-nums ${
-                        Number(posCashGiven) >= posPending.total ? 'text-green-700' : 'text-red-700'
+
+                  {/* Ringkasan tiga baris: admin tinggal membaca, tidak menghitung */}
+                  <dl className="border-2 border-royal-600 divide-y-2 divide-dashed divide-royal-600/30">
+                    <div className="flex items-baseline justify-between px-3 py-2">
+                      <dt className="text-sm font-extrabold uppercase text-royal-700">Tagihan</dt>
+                      <dd className="font-display text-xl tabular-nums text-ink-900">
+                        Rp{posPending.total.toLocaleString('id-ID')}
+                      </dd>
+                    </div>
+                    <div className="flex items-baseline justify-between px-3 py-2">
+                      <dt className="text-sm font-extrabold uppercase text-royal-700">Diterima</dt>
+                      <dd className="font-display text-xl tabular-nums text-ink-900">
+                        {posCashGiven === '' ? '-' : `Rp${Number(posCashGiven).toLocaleString('id-ID')}`}
+                      </dd>
+                    </div>
+                    <div
+                      className={`flex items-baseline justify-between px-3 py-3 ${
+                        posCashGiven === ''
+                          ? 'bg-paper-100'
+                          : Number(posCashGiven) >= posPending.total
+                          ? 'bg-green-50'
+                          : 'bg-red-50'
                       }`}
+                      role="status"
                     >
-                      {Number(posCashGiven) >= posPending.total
-                        ? `Kembalian Rp${(Number(posCashGiven) - posPending.total).toLocaleString('id-ID')}`
-                        : `Kurang Rp${(posPending.total - Number(posCashGiven)).toLocaleString('id-ID')}`}
-                    </p>
-                  )}
+                      <dt className="text-sm font-extrabold uppercase text-royal-700">
+                        {posCashGiven !== '' && Number(posCashGiven) < posPending.total ? 'Kurang' : 'Kembalian'}
+                      </dt>
+                      <dd
+                        className={`font-display text-3xl tabular-nums ${
+                          posCashGiven === ''
+                            ? 'text-ink-500'
+                            : Number(posCashGiven) >= posPending.total
+                            ? 'text-green-700'
+                            : 'text-red-700'
+                        }`}
+                      >
+                        {posCashGiven === ''
+                          ? '-'
+                          : `Rp${Math.abs(Number(posCashGiven) - posPending.total).toLocaleString('id-ID')}`}
+                      </dd>
+                    </div>
+                  </dl>
                 </div>
               )}
 
@@ -907,10 +963,15 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
           <div className="shrink-0 bg-surface border-t-[3px] border-dashed border-royal-600 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2">
             <button
               onClick={handlePosPaid}
-              className="btn-card w-full min-h-[56px] bg-green-700 hover:bg-green-800 text-white text-base font-extrabold flex items-center justify-center gap-2"
+              disabled={posPending.paymentMethod === 'tunai' && Number(posCashGiven) < posPending.total}
+              className="btn-card w-full min-h-[56px] bg-green-700 hover:bg-green-800 text-white text-base font-extrabold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {posPending.paymentMethod === 'qris' ? <CheckCircle className="w-5 h-5" /> : <Banknote className="w-5 h-5" />}
-              <span>Sudah Dibayar · Masak</span>
+              <span>
+                {posPending.paymentMethod === 'tunai' && Number(posCashGiven) < posPending.total
+                  ? 'Isi uang diterima dulu'
+                  : 'Sudah Dibayar · Masak'}
+              </span>
             </button>
             <button
               onClick={handlePosCancel}
