@@ -157,7 +157,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-3">
               <h3 className="font-bold text-base text-ink-900">Keranjang masih kosong</h3>
               <p className="text-sm text-ink-600 max-w-xs">
-                Pilih Mozarela Sunda, Spicy Ramyeon Roll, atau Puding dulu, nanti muncul di sini.
+                Pilih Mozzarella Sunda, Spicy Ramyeon Roll, atau Puding dulu, nanti muncul di sini.
               </p>
               <button
                 onClick={onClose}

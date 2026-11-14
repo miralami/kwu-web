@@ -3,7 +3,7 @@ import { MenuItem } from '../types'
 export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'cibay-pedas',
-    name: 'Mozarela Sunda', // id tetap 'cibay-pedas' agar rekap pesanan lama tetap tergabung
+    name: 'Mozzarella Sunda', // id tetap 'cibay-pedas' agar rekap pesanan lama tetap tergabung
     category: 'gurih',
     tagline: 'Aci ngambay kenyal berbalut kulit lumpia renyah',
     description:

@@ -55,7 +55,7 @@ const INITIAL_SEED_ORDERS: Order[] = [
       {
         id: 'cibay-pedas-cibay-porsi',
         menuItemId: 'cibay-pedas',
-        name: 'Mozarela Sunda',
+        name: 'Mozzarella Sunda',
         optionId: 'cibay-porsi',
         optionLabel: '1 Porsi (Isi 3 Pcs)',
         pieces: 3,

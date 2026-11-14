@@ -21,7 +21,7 @@ Platform pemesanan mandiri (Pre-Order) dan POS kasir kampus terintegrasi yang me
 
 ## Positioning
 
-Satu-satunya sistem pemesanan jajanan khas kampus Tel-U (Mozarela Sunda & Spicy Ramyeon Roll) yang dirancang khusus untuk ritme mahasiswa: mobile-first, tanpa download aplikasi, alur checkout satu layar dalam 30 detik, disertai verifikasi QRIS statis anti-fee pihak ketiga dan rekap instan ke WhatsApp dosen/kelompok.
+Satu-satunya sistem pemesanan jajanan khas kampus Tel-U (Mozzarella Sunda & Spicy Ramyeon Roll) yang dirancang khusus untuk ritme mahasiswa: mobile-first, tanpa download aplikasi, alur checkout satu layar dalam 30 detik, disertai verifikasi QRIS statis anti-fee pihak ketiga dan rekap instan ke WhatsApp dosen/kelompok.
 
 ## Operating Context
 

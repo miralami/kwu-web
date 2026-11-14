@@ -21,7 +21,7 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
 | Divisi | Anggota | Tanggung Jawab Utama |
 |---|---|---|
 | **Ketua Tim** | Muhammad Rayfan Pashya | Koordinasi tim, jadwal jualan, presentasi pitching |
-| **Produksi & R&D** | Afif Nur Sena, Qalam Raydathul Sabani, Fajar Maulana | SOP resep, uji rasa, persiapan bahan baku Mozarela Sunda & Roll |
+| **Produksi & R&D** | Afif Nur Sena, Qalam Raydathul Sabani, Fajar Maulana | SOP resep, uji rasa, persiapan bahan baku Mozzarella Sunda & Roll |
 | **Pemasaran & Kreatif** | Vio Salman Kafiyan, Rayfan | Instagram Stories, poster PO, kampanye promo kampus |
 | **Keuangan** | Rayhan Arya Ardani, Adam Priyatna | HPP, pencatatan kas, invoice bahan, laporan laba rugi |
 | **Penjualan & POS** | Yudi Hokiana, Willyansyah, Muhammad Fahmi Yusuf, Rachmat Akbar | Kasir booth, verifikasi mutasi QRIS, delivery kampus |
@@ -32,7 +32,7 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
 
 | Menu | Kategori | Varian / Porsi | Harga | Keterangan / HPP |
 |---|---|---|---|---|
-| **Mozarela Sunda** | Gurih | 1 Porsi (Isi 3 Pcs) | Rp10.000 | Camilan aci ayam daun bawang kulit lumpia renyah |
+| **Mozzarella Sunda** | Gurih | 1 Porsi (Isi 3 Pcs) | Rp10.000 | Camilan aci ayam daun bawang kulit lumpia renyah |
 | **Spicy Ramyeon Roll** | Gurih & Pedas | 1 Porsi (Isi 4 Pcs) | Rp10.000 | Ramyeon Korea pedas dibalut Rice Paper kenyal |
 | **Puding Buah** | Dessert Manis | 1 Cup | Rp15.000 | Puding lembut dengan buah segar |
 
