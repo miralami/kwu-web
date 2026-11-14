@@ -26,10 +26,13 @@ import { Lock } from 'lucide-react'
 
 // Kata sandi tim. Bukan rahasia yang aman (ikut ter-bundle); cukup untuk menutup pintu dashboard.
 const ADMIN_PASSWORDS = ['0202']
+// Alamat halaman tim sengaja acak (bukan /admin) agar tidak mudah ditebak. Ini hanya
+// penyamaran, bukan keamanan: nilainya ikut ter-bundle. Ganti di sini bila bocor.
+const ADMIN_PATH = '/tim-d93fdb2daea0'
 
 function isAdminPathNow() {
-  // Vercel mengarahkan /admin ke index.html lewat rewrite, jadi path dibaca dari location.
-  return window.location.pathname.replace(/\/+$/, '').startsWith('/admin')
+  // Vercel mengarahkan semua path ke index.html lewat rewrite, jadi path dibaca dari location.
+  return window.location.pathname.replace(/\/+$/, '') === ADMIN_PATH
 }
 
 const isAdminPath = isAdminPathNow()
@@ -49,14 +52,14 @@ export function App() {
   const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null)
   const activeReceiptOrder = myOrders.find((o) => o.id === trackedOrderId) ?? null
 
-  // Gerbang tim: halaman /admin hanya minta kata sandi. Bukan keamanan sungguhan —
+  // Gerbang tim: halaman tim hanya minta kata sandi. Bukan keamanan sungguhan —
   // nilainya ada di bundle — hanya penjaga pintu supaya pembeli tidak menyasar dashboard.
   const [isTeamed, setIsTeamed] = useState(false)
   const [passInput, setPassInput] = useState('')
   const [passError, setPassError] = useState(false)
 
   // Seluruh tabel pesanan (berisi nama & nomor WA semua pembeli) hanya dimuat dan
-  // disiarkan realtime untuk tim yang sudah lolos gerbang /admin. Pembeli cukup memuat
+  // disiarkan realtime untuk tim yang sudah lolos gerbang tim. Pembeli cukup memuat
   // pesanannya sendiri lewat refreshMyOrders di bawah.
   useEffect(() => {
     if (!isAdminPath || !isTeamed) return
@@ -241,7 +244,7 @@ export function App() {
   }, {})
   const showCartBar = totalCartCount > 0 && !isCartOpen && !activeReceiptOrder
 
-  // Halaman tim: /admin. Dashboard hanya dirender setelah kata sandi benar, sehingga
+  // Halaman tim (ADMIN_PATH). Dashboard hanya dirender setelah kata sandi benar, sehingga
   // daftar pesanan tidak pernah terunduh sebelum gerbang lolos.
   if (isAdminPath) {
     if (!isTeamed) {
