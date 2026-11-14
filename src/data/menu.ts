@@ -33,7 +33,7 @@ export const MENU_ITEMS: MenuItem[] = [
     category: 'manis',
     tagline: 'Dessert cup segar pelepas dahaga & pereda pedas',
     description:
-      'Puding susu sutra lembut dengan potongan buah segar (mangga / stroberi) dingin. Menjaga mood kuliah tetap segar setelah cemil yang pedas!',
+      'Puding susu sutra lembut dengan potongan buah segar dingin. Menjaga mood kuliah tetap segar setelah cemil yang pedas!',
     image: '/menu/jelly.webp',
     isPopular: true,
     options: [
