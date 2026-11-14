@@ -5,15 +5,18 @@ import { MENU_ITEMS } from './data/menu'
 import { isOrderActive, isAwaitingPayment } from './data/orderStatus'
 import {
   getOrders,
-  saveOrder,
   updateOrderStatus,
   deleteOrder,
   cancelUnpaidOrder,
   subscribeOrders,
-  generateOrderCode,
-  getMyOrderIds,
+  createOrder,
+  getMyOrderRefs,
   rememberMyOrder,
-  getOrdersByIds,
+  getOrdersByRefs,
+  isSupabaseConfigured,
+  adminSignIn,
+  adminHasSession,
+  adminSignOut,
 } from './services/storage'
 import { MyOrdersBanner } from './components/customer/MyOrdersBanner'
 import { Navbar } from './components/Navbar'
@@ -52,11 +55,20 @@ export function App() {
   const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null)
   const activeReceiptOrder = myOrders.find((o) => o.id === trackedOrderId) ?? null
 
-  // Gerbang tim: halaman tim hanya minta kata sandi. Bukan keamanan sungguhan —
-  // nilainya ada di bundle — hanya penjaga pintu supaya pembeli tidak menyasar dashboard.
+  // Gerbang tim. Dengan Supabase: login Supabase Auth (email + kata sandi) dan akun harus
+  // terdaftar di tabel admins; database sendiri yang menolak pembaca lain. Tanpa Supabase
+  // (mode demo lokal): kata sandi di bawah, yang hanya penjaga pintu karena ikut ter-bundle.
   const [isTeamed, setIsTeamed] = useState(false)
+  const [emailInput, setEmailInput] = useState('')
   const [passInput, setPassInput] = useState('')
-  const [passError, setPassError] = useState(false)
+  const [loginError, setLoginError] = useState('')
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+
+  // Lanjutkan sesi admin yang masih berlaku
+  useEffect(() => {
+    if (!isAdminPath || !isSupabaseConfigured) return
+    adminHasSession().then((ok) => ok && setIsTeamed(true))
+  }, [])
 
   // Seluruh tabel pesanan (berisi nama & nomor WA semua pembeli) hanya dimuat dan
   // disiarkan realtime untuk tim yang sudah lolos gerbang tim. Pembeli cukup memuat
@@ -69,7 +81,7 @@ export function App() {
   }, [isTeamed])
 
   const refreshMyOrders = useCallback(async () => {
-    const fresh = await getOrdersByIds(getMyOrderIds())
+    const fresh = await getOrdersByRefs(getMyOrderRefs())
     setMyOrders((prev) => {
       // Pertahankan pesanan yang belum terbaca dari server (mis. sinkronisasi masih tertunda)
       const freshIds = new Set(fresh.map((o) => o.id))
@@ -165,30 +177,13 @@ export function App() {
     customerPhone: string
     customerNotes: string
   }) => {
-    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const totalPieces = cartItems.reduce((sum, item) => sum + item.pieces * item.quantity, 0)
-
-    const newOrder: Order = {
-      id: await generateOrderCode(),
+    const { order: newOrder, ref } = await createOrder({
       customerName: formData.customerName,
       customerPhone: formData.customerPhone,
-      customerClass: '', // form lokasi dihapus; kolom tetap ada di database (default kosong)
-      items: [...cartItems],
-      totalItems: cartItems.length,
-      totalPieces,
-      subtotal,
-      discountAmount: 0,
-      total: subtotal,
-      paymentMethod: 'qris', // checkout online selalu QRIS; tunai hanya lewat kasir walk-in
-      paymentStatus: 'pending', // baru dihitung omzet setelah admin memverifikasi mutasi
-      orderStatus: 'menunggu_pembayaran',
       customerNotes: formData.customerNotes,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date().toISOString(), // kolom wajib di database; batas bayar sudah tidak dipakai
-    }
-
-    await saveOrder(newOrder)
-    rememberMyOrder(newOrder.id)
+      items: cartItems,
+    })
+    rememberMyOrder(ref)
     setMyOrders((prev) => [newOrder, ...prev.filter((o) => o.id !== newOrder.id)])
 
     try {
@@ -211,14 +206,23 @@ export function App() {
     await refreshMyOrders()
   }
 
-  const handleVerifyPass = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (ADMIN_PASSWORDS.includes(passInput)) {
+    if (isLoggingIn) return
+    setIsLoggingIn(true)
+    setLoginError('')
+    try {
+      if (isSupabaseConfigured) {
+        await adminSignIn(emailInput, passInput)
+      } else if (!ADMIN_PASSWORDS.includes(passInput)) {
+        throw new Error('Salah. Coba lagi.')
+      }
       setIsTeamed(true)
       setPassInput('')
-      setPassError(false)
-    } else {
-      setPassError(true)
+    } catch (err) {
+      setLoginError(err instanceof Error ? err.message : 'Gagal masuk. Coba lagi.')
+    } finally {
+      setIsLoggingIn(false)
     }
   }
 
@@ -257,25 +261,47 @@ export function App() {
             </div>
             <h1 className="font-display uppercase text-3xl leading-none text-brand-600">Akses Tim</h1>
 
-            <form onSubmit={handleVerifyPass} className="space-y-3">
+            <form onSubmit={handleLogin} className="space-y-3">
+              {isSupabaseConfigured && (
+                <input
+                  type="email"
+                  autoFocus
+                  autoComplete="username"
+                  aria-label="Email admin"
+                  placeholder="Email admin"
+                  value={emailInput}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value)
+                    setLoginError('')
+                  }}
+                  className="w-full min-h-[48px] px-3 text-center border-2 border-paper-300 rounded-lg focus:outline-none focus:border-royal-600 bg-paper-50"
+                />
+              )}
               <input
                 type="password"
-                autoFocus
+                autoFocus={!isSupabaseConfigured}
+                autoComplete="current-password"
                 aria-label="Kata sandi"
+                placeholder={isSupabaseConfigured ? 'Kata sandi' : undefined}
                 value={passInput}
                 onChange={(e) => {
                   setPassInput(e.target.value)
-                  setPassError(false)
+                  setLoginError('')
                 }}
                 className="w-full min-h-[48px] text-center text-lg tracking-widest font-extrabold border-2 border-paper-300 rounded-lg focus:outline-none focus:border-royal-600 bg-paper-50"
               />
-              {passError && <p className="text-xs text-red-600 font-bold">Salah. Coba lagi.</p>}
+              {loginError && (
+                <p role="alert" className="text-sm text-red-700 font-bold">
+                  {loginError}
+                </p>
+              )}
 
               <button
                 type="submit"
-                className="w-full min-h-[48px] text-sm font-extrabold text-white bg-brand-600 hover:bg-brand-700"
+                disabled={isLoggingIn}
+                className="w-full min-h-[48px] text-sm font-extrabold text-white bg-brand-600 hover:bg-brand-700 disabled:opacity-60"
               >
-                Masuk
+                {isLoggingIn ? 'Memeriksa...' : 'Masuk'}
               </button>
             </form>
 
@@ -293,7 +319,8 @@ export function App() {
           orders={orders}
           onUpdateStatus={(id, oStatus, pStatus) => updateOrderStatus(id, oStatus, pStatus)}
           onDeleteOrder={(id) => deleteOrder(id)}
-          onClose={() => {
+          onClose={async () => {
+            await adminSignOut()
             setIsTeamed(false)
             window.location.href = '/'
           }}
