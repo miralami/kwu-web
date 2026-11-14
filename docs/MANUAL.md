@@ -53,7 +53,7 @@ Dokumen ini berisi seluruh ringkasan teknis, arsitektur sistem, aturan desain, d
    - **Tunai (Cash):** Hanya lewat Kasir Walk-in di dashboard tim, dicatat saat uang diterima di booth.
 
 ### B. Kasir Offline (Walk-in POS)
-- Terletak di panel Admin (alamat rahasia tim, lihat `ADMIN_PATH` di `src/App.tsx`). Dengan Supabase, masuk memakai akun admin Supabase yang terdaftar di tabel `admins`; tanpa Supabase (demo lokal) memakai kata sandi lokal.
+- Terletak di panel Admin (alamat rahasia tim, lihat `ADMIN_PATH` di `src/App.tsx`). Dengan Supabase, admin cukup mengetik PIN (akun admin bersama yang terdaftar di tabel `admins`); tanpa Supabase (demo lokal) memakai kata sandi lokal.
 - Fitur walk-in order langsung menambahkan transaksi ke pencatatan omzet dan progres 738 pcs.
 - Dilengkapi live search menu dan tombol stepper cepat `+ / -`.
 

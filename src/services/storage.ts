@@ -18,16 +18,26 @@ function isMissingFunction(error: { code?: string; message?: string } | null): b
   return !!error && (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? ''))
 }
 
-// --- Login admin (Supabase Auth). Hanya akun yang terdaftar di tabel admins yang dianggap admin. ---
+// --- Login admin (Supabase Auth) ---
+// Semua admin memakai SATU akun bersama dan hanya mengetik PIN. Aplikasi hanya tahu email akun
+// itu dan awalan kata sandinya; PIN-nya sendiri hanya ada di Supabase (Authentication > Users),
+// jadi mengganti PIN cukup di sana tanpa deploy ulang. Supabase mewajibkan kata sandi minimal
+// 6 karakter, itu sebabnya ada awalan. Hanya akun yang terdaftar di tabel admins yang dianggap admin.
+// Karena akunnya bersama, keamanannya sebanding dengan kekuatan PIN: pakai PIN yang tidak mudah ditebak.
+export const ADMIN_EMAIL = (import.meta.env.VITE_ADMIN_EMAIL as string | undefined) || 'admin@laris-manis.app'
+const ADMIN_PASSWORD_PREFIX = 'larismanis-'
 
-export async function adminSignIn(email: string, password: string): Promise<void> {
+export async function adminSignIn(pin: string): Promise<void> {
   if (!supabase) throw new Error('Supabase belum terhubung.')
-  const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-  if (error) throw new Error('Email atau kata sandi salah.')
+  const { error } = await supabase.auth.signInWithPassword({
+    email: ADMIN_EMAIL,
+    password: ADMIN_PASSWORD_PREFIX + pin.trim(),
+  })
+  if (error) throw new Error('Kata sandi salah. Coba lagi.')
   const { data } = await supabase.rpc('is_admin')
   if (data !== true) {
     await supabase.auth.signOut()
-    throw new Error('Akun ini belum terdaftar sebagai admin tim.')
+    throw new Error('Akun admin belum didaftarkan di database. Hubungi pengurus Supabase.')
   }
 }
 

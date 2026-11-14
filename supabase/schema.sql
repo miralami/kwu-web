@@ -11,10 +11,14 @@
 --     Hanya admin yang boleh membaca semua pesanan, mengubah status, dan menghapus.
 --
 -- LANGKAH SETELAH MENJALANKAN FILE INI (wajib, kalau tidak admin tidak bisa masuk):
---   1. Authentication > Users > Add user: buat akun admin (email + kata sandi kuat).
+--   1. Authentication > Users > Add user: buat SATU akun admin bersama.
+--        Email    : admin@laris-manis.app
+--        Password : larismanis-<PIN>   (contoh PIN 0202  ->  larismanis-0202)
+--        Centang "Auto Confirm User". Admin hanya mengetik PIN-nya di halaman admin.
 --   2. Authentication > Sign In / Providers > Email: matikan "Allow new users to sign up".
 --   3. Daftarkan emailnya di SQL Editor:
---        insert into public.admins (email) values ('email-admin@contoh.com');
+--        insert into public.admins (email) values ('admin@laris-manis.app');
+--   Mengganti PIN nanti: ubah password akun itu menjadi larismanis-<PIN baru> (tanpa deploy ulang).
 
 create table if not exists public.orders (
   "id"             text primary key,

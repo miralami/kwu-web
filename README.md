@@ -63,13 +63,13 @@ Tanpa env Supabase aplikasi berjalan dalam **mode demo lokal** (data hanya di br
 
 1. Salin `.env.example` menjadi `.env` lalu isi `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY` (kunci **anon public**, jangan pernah `service_role`). Di Vercel, isi dua variabel yang sama di Settings → Environment Variables lalu redeploy.
 2. Jalankan `supabase/schema.sql` di SQL Editor. Aman diulang.
-3. Authentication → Users → **Add user**: buat akun admin (email + kata sandi kuat).
+3. Authentication → Users → **Add user**: buat **satu akun admin bersama** dengan email `admin@laris-manis.app` dan password `larismanis-<PIN>` (contoh PIN `0202` → `larismanis-0202`), centang *Auto Confirm User*. Admin hanya mengetik PIN di halaman admin. Mengganti PIN = mengganti password akun itu, tanpa deploy ulang.
 4. Authentication → Sign In / Providers → Email: **matikan "Allow new users to sign up"**.
-5. Daftarkan email admin: `insert into public.admins (email) values ('email-admin@contoh.com');`
+5. Daftarkan email admin: `insert into public.admins (email) values ('admin@laris-manis.app');`
 
 Model keamanannya:
 - Pembeli (kunci publik) **tidak bisa membaca, mengubah, atau menghapus** tabel pesanan. Mereka membuat dan melihat pesanan lewat fungsi database (`create_order`, `get_my_orders`, `cancel_my_order`) dengan **token rahasia per pesanan**.
 - Server menentukan kode pesanan, status awal (QRIS, belum bayar), dan total. Pembeli tidak bisa membuat pesanan yang sudah "lunas".
-- Hanya akun yang terdaftar di tabel `admins` yang boleh membaca semua pesanan, mengubah status, dan menghapus.
+- Hanya akun yang terdaftar di tabel `admins` yang boleh membaca semua pesanan, mengubah status, dan menghapus. Akunnya bersama, jadi kekuatan PIN menentukan keamanannya.
 
 Yang belum tertutup: harga per item masih dikirim dari aplikasi (server hanya membatasi rentangnya), dan belum ada pembatasan laju untuk pesanan spam.

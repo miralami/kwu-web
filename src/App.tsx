@@ -58,11 +58,10 @@ export function App() {
   const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null)
   const activeReceiptOrder = myOrders.find((o) => o.id === trackedOrderId) ?? null
 
-  // Gerbang tim. Dengan Supabase: login Supabase Auth (email + kata sandi) dan akun harus
-  // terdaftar di tabel admins; database sendiri yang menolak pembaca lain. Tanpa Supabase
+  // Gerbang tim. Dengan Supabase: login Supabase Auth memakai akun admin bersama (admin cukup
+  // mengetik PIN) dan akun harus terdaftar di tabel admins; database sendiri menolak pembaca lain. Tanpa Supabase
   // (mode demo lokal): kata sandi di bawah, yang hanya penjaga pintu karena ikut ter-bundle.
   const [isTeamed, setIsTeamed] = useState(false)
-  const [emailInput, setEmailInput] = useState('')
   const [passInput, setPassInput] = useState('')
   const [loginError, setLoginError] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
@@ -242,7 +241,7 @@ export function App() {
     setLoginError('')
     try {
       if (isSupabaseConfigured) {
-        await adminSignIn(emailInput, passInput)
+        await adminSignIn(passInput)
       } else if (!ADMIN_PASSWORDS.includes(passInput)) {
         throw new Error('Salah. Coba lagi.')
       }
@@ -291,27 +290,11 @@ export function App() {
             <h1 className="font-display uppercase text-3xl leading-none text-brand-600">Akses Tim</h1>
 
             <form onSubmit={handleLogin} className="space-y-3">
-              {isSupabaseConfigured && (
-                <input
-                  type="email"
-                  autoFocus
-                  autoComplete="username"
-                  aria-label="Email admin"
-                  placeholder="Email admin"
-                  value={emailInput}
-                  onChange={(e) => {
-                    setEmailInput(e.target.value)
-                    setLoginError('')
-                  }}
-                  className="w-full min-h-[48px] px-3 text-center border-2 border-paper-300 rounded-lg focus:outline-none focus:border-royal-600 bg-paper-50"
-                />
-              )}
               <input
                 type="password"
-                autoFocus={!isSupabaseConfigured}
+                autoFocus
                 autoComplete="current-password"
                 aria-label="Kata sandi"
-                placeholder={isSupabaseConfigured ? 'Kata sandi' : undefined}
                 value={passInput}
                 onChange={(e) => {
                   setPassInput(e.target.value)
