@@ -57,7 +57,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!matchesSearch) return false
 
     if (orderFilter === 'pending') {
-      return order.paymentStatus === 'pending' && order.paymentMethod === 'qris'
+      return (
+        order.paymentStatus === 'pending' &&
+        order.paymentMethod === 'qris' &&
+        order.orderStatus !== 'dibatalkan'
+      )
     }
     if (orderFilter === 'cash') {
       return isAwaitingCash(order)
@@ -126,7 +130,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       orderStatus: 'selesai',
       customerNotes: 'Transaksi Kasir Langsung',
       createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 15 * 60000).toISOString(),
+      expiresAt: new Date().toISOString(), // kolom wajib di database; batas bayar sudah tidak dipakai
     }
 
     try {
@@ -191,42 +195,36 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
       aria-label="Dashboard Admin Tim & Kasir"
       className="fixed inset-0 z-50 bg-paper-100 flex flex-col overflow-hidden"
     >
-      {/* Top Navbar */}
-      <div className="bg-inverse text-white px-4 py-3 flex items-center justify-between border-b border-paper-200">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5 text-brand-500" />
-          <div>
-            <h1 className="font-extrabold text-sm sm:text-base leading-tight">
-              Dashboard Tim & Kasir Laris Manis
-            </h1>
-            <p className="text-xs text-stone-300">Kelompok 1 • S1SI-KJ-23-002</p>
-          </div>
-        </div>
-
+      {/* Header: satu baris supaya layar HP tidak habis oleh judul */}
+      <div className="shrink-0 bg-inverse text-white pl-4 pr-2 flex items-center justify-between gap-2 h-14">
+        <h1 className="font-display uppercase text-lg leading-none flex items-center gap-2 min-w-0">
+          <ShieldAlert className="w-5 h-5 text-accent-500 shrink-0" />
+          <span className="truncate">Dashboard Tim</span>
+        </h1>
         <button
           onClick={onClose}
-          className="min-h-[44px] px-3 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-bold"
+          className="shrink-0 min-h-[44px] px-4 bg-white/10 hover:bg-white/20 text-white text-sm font-bold"
         >
-          Keluar Mode Tim
+          Keluar
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="bg-surface border-b border-paper-200 px-4 flex gap-1 overflow-x-auto no-scrollbar">
+      <div className="shrink-0 bg-surface border-b-[3px] border-double border-royal-600 px-2 grid grid-cols-4">
         {[
-          { id: 'orders', label: 'Pesanan Masuk', count: orders.length },
-          { id: 'pos', label: 'Kasir walk-in' },
-          { id: 'report', label: 'Rekap Finansial & Target' },
-          { id: 'team', label: 'Struktur Tim (11)' },
+          { id: 'orders', label: 'Pesanan', count: orders.length },
+          { id: 'pos', label: 'Kasir' },
+          { id: 'report', label: 'Rekap' },
+          { id: 'team', label: 'Tim' },
         ].map((tab) => {
           const isActive = activeTab === tab.id
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`min-h-[44px] py-2 px-3 sm:px-4 text-xs font-bold whitespace-nowrap border-b-2 transition-all flex items-center gap-1.5 ${
+              className={`min-h-[48px] py-2 px-1 text-sm font-extrabold whitespace-nowrap border-b-4 transition-all flex items-center justify-center gap-1.5 ${
                 isActive
-                  ? 'border-brand-600 text-brand-700 bg-brand-50'
+                  ? 'border-brand-600 text-brand-600'
                   : 'border-transparent text-ink-600 hover:text-ink-900'
               }`}
             >
@@ -242,7 +240,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-4 max-w-4xl w-full mx-auto">
+      <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 pb-10 max-w-4xl w-full mx-auto">
         {/* TAB 1: ORDERS */}
         {activeTab === 'orders' && (
           <div className="space-y-4">
@@ -262,7 +260,10 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 {[
                   { id: 'all', label: 'Semua' },
                   { id: 'pending', label: 'Cek Qris' },
-                  { id: 'cash', label: 'Tunai Belum Lunas' },
+                  // Checkout online kini selalu QRIS: chip ini hanya untuk pesanan tunai lama
+                  ...(report.awaitingCashCount > 0 || orderFilter === 'cash'
+                    ? [{ id: 'cash', label: 'Tunai Belum Lunas' }]
+                    : []),
                   { id: 'processing', label: 'Dimasak' },
                   { id: 'ready', label: 'Siap Ambil' },
                   { id: 'completed', label: 'Selesai' },
@@ -272,7 +273,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                     onClick={() => setOrderFilter(f.id)}
                     className={`min-h-[44px] px-3 rounded-lg text-xs font-bold whitespace-nowrap border ${
                       orderFilter === f.id
-                        ? 'bg-ink-900 text-surface border-ink-900'
+                        ? 'bg-royal-600 text-white border-royal-600'
                         : 'bg-surface text-ink-700 border-paper-200 hover:bg-paper-50'
                     }`}
                   >
@@ -302,174 +303,177 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 Tidak ada pesanan pada filter ini.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {filteredOrders.map((order) => {
+                  const cancelled = order.orderStatus === 'dibatalkan'
+                  const needsQrisCheck =
+                    order.paymentMethod === 'qris' && order.paymentStatus === 'pending' && !cancelled
+                  const needsCash = order.paymentMethod === 'tunai' && order.paymentStatus !== 'verified'
+                  const stepBtn = (active: boolean, activeClass: string) =>
+                    `min-h-[52px] px-1 text-xs font-extrabold flex flex-col items-center justify-center gap-0.5 border-2 transition-colors ${
+                      active ? activeClass : 'bg-surface text-ink-700 border-paper-300 hover:border-royal-600'
+                    }`
                   return (
-                    <div
+                    <article
                       key={order.id}
-                      className="bg-surface rounded-lg border border-paper-200 p-4 shadow-sm space-y-3"
+                      className={`relative bg-surface shadow-[0_8px_16px_-8px_rgb(8_16_48/0.45)] ${cancelled ? 'opacity-70' : ''}`}
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-paper-100 pb-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-ink-900 text-sm">#{order.id}</span>
-                          <span
-                            className={`text-xs font-bold px-2 py-0.5 rounded ${
-                              order.paymentStatus === 'verified'
-                                ? 'bg-green-100 text-green-800'
-                                : order.paymentMethod === 'tunai'
-                                ? 'bg-blue-100 text-blue-800'
-                                : 'bg-amber-100 text-amber-900'
-                            }`}
-                          >
-                            {order.paymentStatus === 'verified'
-                              ? order.paymentMethod === 'tunai'
-                                ? 'Tunai Lunas'
-                                : 'Qris terverifikasi'
-                              : order.paymentMethod === 'tunai'
-                              ? 'Tunai Belum Lunas'
-                              : 'Menunggu bukti Qris'}
-                          </span>
-                        </div>
-
-                        <div className="text-xs text-ink-500">
+                      {/* Kepala nota: nomor pesanan, jam, dan status bayar */}
+                      <div className="bg-royal-600 text-white px-3 py-2 flex items-center justify-between gap-2">
+                        <span className="font-display text-lg leading-none tabular-nums">#{order.id}</span>
+                        <span className="text-xs font-bold tabular-nums">
                           {new Date(order.createdAt).toLocaleTimeString('id-ID', {
                             hour: '2-digit',
                             minute: '2-digit',
                           })}
-                        </div>
+                        </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <div>
-                          <div className="font-bold text-ink-900">{order.customerName}</div>
-                          {order.customerClass && <div className="text-ink-600">{order.customerClass}</div>}
-                          <div className="mt-1">
+                      <div className="p-3 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="font-extrabold text-base text-ink-900 leading-tight break-words">
+                              {order.customerName}
+                            </div>
+                            {order.customerClass && <div className="text-xs text-ink-600">{order.customerClass}</div>}
                             <a
                               href={`https://wa.me/${order.customerPhone.replace(/^0/, '62')}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-green-700 font-bold hover:underline inline-flex items-center gap-1"
+                              className="min-h-[44px] text-sm text-green-700 font-bold hover:underline inline-flex items-center gap-1.5"
                             >
-                              <MessageCircle className="w-3.5 h-3.5" /> {order.customerPhone}
+                              <MessageCircle className="w-4 h-4" /> {order.customerPhone}
                             </a>
                           </div>
-                          {order.customerNotes && (
-                            <div className="mt-1 text-xs bg-paper-100 text-ink-800 p-2 rounded border border-paper-200">
-                              Catatan: {order.customerNotes}
-                            </div>
-                          )}
+                          <span
+                            className={`shrink-0 text-xs font-extrabold px-2.5 py-1 border-2 border-double -rotate-3 ${
+                              cancelled
+                                ? 'text-red-700 border-red-700'
+                                : order.paymentStatus === 'verified'
+                                ? 'text-green-700 border-green-700'
+                                : 'text-brand-600 border-brand-600'
+                            }`}
+                          >
+                            {cancelled
+                              ? 'DIBATALKAN'
+                              : order.paymentStatus === 'verified'
+                              ? order.paymentMethod === 'tunai'
+                                ? 'TUNAI LUNAS'
+                                : 'LUNAS'
+                              : order.paymentMethod === 'tunai'
+                              ? 'TUNAI BELUM'
+                              : 'BELUM BAYAR'}
+                          </span>
                         </div>
 
-                        <div className="bg-paper-50 p-2.5 rounded-lg border border-paper-100 space-y-1">
+                        {order.customerNotes && (
+                          <p className="text-sm bg-paper-100 text-ink-800 px-3 py-2">
+                            <span className="font-bold">Catatan:</span> {order.customerNotes}
+                          </p>
+                        )}
+
+                        {/* Rincian: baris bergaris seperti nota */}
+                        <ul className="divide-y divide-dashed divide-royal-600/30 border-y border-dashed border-royal-600/30 text-sm">
                           {order.items.map((i) => (
-                            <div key={i.id} className="flex justify-between text-xs">
-                              <span>
-                                {i.name} ({i.optionLabel}) x{i.quantity}
+                            <li key={i.id} className="py-1.5 flex justify-between gap-3">
+                              <span className="min-w-0">
+                                <span className="font-bold text-ink-900">
+                                  {i.quantity}× {i.name}
+                                </span>
+                                <span className="block text-xs text-ink-600">{i.optionLabel}</span>
                               </span>
-                              <span className="font-semibold text-ink-900">
+                              <span className="shrink-0 font-bold text-ink-900 tabular-nums">
                                 Rp{(i.price * i.quantity).toLocaleString('id-ID')}
                               </span>
-                            </div>
+                            </li>
                           ))}
-                          <div className="pt-1.5 border-t border-paper-200 flex justify-between font-extrabold text-xs text-ink-900">
-                            <span>Total ({order.totalPieces} Pcs)</span>
-                            <span className="text-brand-600">
-                              Rp{order.total.toLocaleString('id-ID')}
-                            </span>
+                        </ul>
+                        <div className="flex items-baseline justify-between">
+                          <span className="text-xs font-extrabold uppercase text-royal-700">
+                            Total · {order.totalPieces} pcs
+                          </span>
+                          <span className="font-display text-lg text-brand-600 tabular-nums">
+                            Rp{order.total.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+
+                        {/* Aksi: verifikasi dulu (bila perlu), lalu tiga langkah sejajar */}
+                        {needsQrisCheck && (
+                          <button
+                            onClick={() => onUpdateStatus(order.id, 'sedang_diproses', 'verified')}
+                            className="btn-card w-full min-h-[52px] bg-green-700 hover:bg-green-800 text-white text-sm font-extrabold flex items-center justify-center gap-2"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Verifikasi Mutasi Masuk</span>
+                          </button>
+                        )}
+                        {needsCash && (
+                          <button
+                            onClick={() => onUpdateStatus(order.id, order.orderStatus, 'verified')}
+                            className="btn-card w-full min-h-[52px] bg-green-700 hover:bg-green-800 text-white text-sm font-extrabold flex items-center justify-center gap-2"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            <span>Uang Tunai Diterima</span>
+                          </button>
+                        )}
+
+                        {!cancelled && (
+                          <div className="grid grid-cols-3 gap-2">
+                            <button
+                              onClick={() => onUpdateStatus(order.id, 'sedang_diproses')}
+                              className={`btn-card ${stepBtn(order.orderStatus === 'sedang_diproses', 'bg-brand-600 text-white border-brand-600')}`}
+                            >
+                              <ChefHat className="w-4 h-4" />
+                              <span>Dimasak</span>
+                            </button>
+                            <button
+                              onClick={() => onUpdateStatus(order.id, 'siap_diambil')}
+                              className={`btn-card ${stepBtn(order.orderStatus === 'siap_diambil', 'bg-royal-600 text-white border-royal-600')}`}
+                            >
+                              <PackageCheck className="w-4 h-4" />
+                              <span>Siap</span>
+                            </button>
+                            <button
+                              onClick={() => onUpdateStatus(order.id, 'selesai')}
+                              className={`btn-card ${stepBtn(order.orderStatus === 'selesai', 'bg-green-700 text-white border-green-700')}`}
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                              <span>Selesai</span>
+                            </button>
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Status Action Buttons with min 44px hit height */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-paper-100">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {order.paymentMethod === 'qris' && order.paymentStatus === 'pending' && (
-                            <button
-                              onClick={() => onUpdateStatus(order.id, 'sedang_diproses', 'verified')}
-                              className="min-h-[44px] bg-green-700 hover:bg-green-800 text-white text-xs font-bold px-3 rounded-lg flex items-center gap-1"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              <span>Verifikasi Mutasi Masuk</span>
-                            </button>
-                          )}
-
-                          {order.paymentMethod === 'tunai' && order.paymentStatus !== 'verified' && (
-                            <button
-                              onClick={() => onUpdateStatus(order.id, order.orderStatus, 'verified')}
-                              className="min-h-[44px] bg-green-700 hover:bg-green-800 text-white text-xs font-bold px-3 rounded-lg flex items-center gap-1"
-                            >
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              <span>Uang Tunai Diterima</span>
-                            </button>
-                          )}
-
-                          <button
-                            onClick={() => onUpdateStatus(order.id, 'sedang_diproses')}
-                            className={`min-h-[44px] text-xs font-bold px-3 rounded-lg flex items-center gap-1 border ${
-                              order.orderStatus === 'sedang_diproses'
-                                ? 'bg-brand-600 text-white border-brand-600'
-                                : 'bg-paper-100 hover:bg-paper-200 text-ink-700 border-paper-200'
-                            }`}
-                          >
-                            <ChefHat className="w-3.5 h-3.5" />
-                            <span>Dimasak</span>
-                          </button>
-
-                          <button
-                            onClick={() => onUpdateStatus(order.id, 'siap_diambil')}
-                            className={`min-h-[44px] text-xs font-bold px-3 rounded-lg flex items-center gap-1 border ${
-                              order.orderStatus === 'siap_diambil'
-                                ? 'bg-blue-700 text-white border-blue-700'
-                                : 'bg-paper-100 hover:bg-paper-200 text-ink-700 border-paper-200'
-                            }`}
-                          >
-                            <PackageCheck className="w-3.5 h-3.5" />
-                            <span>Siap Diambil</span>
-                          </button>
-
-                          <button
-                            onClick={() => onUpdateStatus(order.id, 'selesai')}
-                            className={`min-h-[44px] text-xs font-bold px-3 rounded-lg flex items-center gap-1 border ${
-                              order.orderStatus === 'selesai'
-                                ? 'bg-green-700 text-white border-green-700'
-                                : 'bg-paper-100 hover:bg-paper-200 text-ink-700 border-paper-200'
-                            }`}
-                          >
-                            <CheckCircle className="w-3.5 h-3.5" />
-                            <span>Selesai</span>
-                          </button>
-                        </div>
+                        )}
 
                         {confirmDeleteId === order.id ? (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-red-600 font-bold">Hapus?</span>
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="text-sm text-red-700 font-bold mr-auto">Hapus pesanan ini?</span>
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="min-h-[44px] px-4 bg-paper-100 text-ink-800 text-sm font-bold hover:bg-paper-200"
+                            >
+                              Batal
+                            </button>
                             <button
                               onClick={() => {
                                 onDeleteOrder(order.id)
                                 setConfirmDeleteId(null)
                               }}
-                              className="min-h-[44px] px-3 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700"
+                              className="min-h-[44px] px-4 bg-red-700 text-white text-sm font-bold hover:bg-red-800"
                             >
-                              Ya
-                            </button>
-                            <button
-                              onClick={() => setConfirmDeleteId(null)}
-                              className="min-h-[44px] px-2.5 bg-paper-100 text-ink-700 text-xs font-bold rounded-lg hover:bg-paper-200"
-                            >
-                              Batal
+                              Ya, hapus
                             </button>
                           </div>
                         ) : (
                           <button
                             onClick={() => setConfirmDeleteId(order.id)}
-                            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-400 hover:text-red-700 rounded-lg hover:bg-red-50"
-                            aria-label={`Batalkan pesanan #${order.id}`}
+                            className="min-h-[44px] flex items-center gap-1.5 text-sm font-bold text-ink-600 hover:text-red-700"
+                            aria-label={`Hapus pesanan #${order.id}`}
                           >
                             <Trash2 className="w-4 h-4" />
+                            <span>Hapus pesanan</span>
                           </button>
                         )}
                       </div>
-                    </div>
+                    </article>
                   )
                 })}
               </div>
@@ -479,7 +483,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
 
         {/* TAB 2: KASIR OFFLINE */}
         {activeTab === 'pos' && (
-          <div className="bg-surface rounded-lg border border-paper-200 p-5 space-y-5">
+          <div className="bg-surface border-t-4 border-royal-600 shadow-[0_6px_12px_-6px_rgb(8_16_48/0.4)] p-4 space-y-5">
             <div>
               <h2 className="font-extrabold text-base text-ink-900">Kasir Jualan Kampus (Walk-in)</h2>
               <p className="text-xs text-ink-500">
@@ -549,7 +553,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                     placeholder="Filter menu..."
                     value={posItemSearch}
                     onChange={(e) => setPosItemSearch(e.target.value)}
-                    className="text-xs px-2.5 py-1 border border-paper-200 rounded-md bg-paper-50 max-w-[160px]"
+                    className="min-h-[44px] px-3 border border-paper-300 rounded-md bg-paper-50 max-w-[160px]"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -600,7 +604,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
 
               <button
                 type="submit"
-                className="w-full min-h-[48px] bg-ink-900 text-surface rounded-lg text-xs sm:text-sm font-extrabold hover:bg-ink-800"
+                className="w-full min-h-[52px] bg-brand-600 text-white text-sm font-extrabold hover:bg-brand-700"
               >
                 Catat Transaksi Penjualan Masuk
               </button>
@@ -612,25 +616,25 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
         {activeTab === 'report' && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-surface p-4 rounded-lg border border-paper-200">
+              <div className="bg-surface p-4 border-t-4 border-royal-600 shadow-[0_6px_12px_-6px_rgb(8_16_48/0.4)]">
                 <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold">
                   <DollarSign className="w-3.5 h-3.5 text-green-700" />
                   <span>Total Omzet Masuk</span>
                 </div>
-                <div className="text-lg sm:text-xl font-black text-green-700 mt-1">
+                <div className="font-display text-lg text-green-700 mt-1">
                   Rp{report.totalRevenue.toLocaleString('id-ID')}
                 </div>
-                <div className="text-xs text-ink-400 mt-0.5">
+                <div className="text-xs text-ink-600 mt-0.5">
                   {report.totalOrders} transaksi lunas · semua waktu
                 </div>
               </div>
 
-              <div className="bg-surface p-4 rounded-lg border border-paper-200">
+              <div className="bg-surface p-4 border-t-4 border-royal-600 shadow-[0_6px_12px_-6px_rgb(8_16_48/0.4)]">
                 <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold">
                   <Package className="w-3.5 h-3.5 text-ink-700" />
                   <span>Pcs Terjual</span>
                 </div>
-                <div className="text-lg sm:text-xl font-black text-ink-900 mt-1">
+                <div className="font-display text-lg text-ink-900 mt-1">
                   {report.totalPiecesSold} <span className="text-xs font-medium text-ink-400">/ {report.targetPieces} pcs</span>
                 </div>
                 <div className="text-xs text-brand-600 font-bold mt-0.5">
@@ -639,23 +643,23 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 </div>
               </div>
 
-              <div className="bg-surface p-4 rounded-lg border border-paper-200">
+              <div className="bg-surface p-4 border-t-4 border-royal-600 shadow-[0_6px_12px_-6px_rgb(8_16_48/0.4)]">
                 <div className="flex items-center gap-1.5 text-xs text-ink-500 font-bold">
                   <TrendingUp className="w-3.5 h-3.5 text-brand-600" />
                   <span>Estimasi Laba</span>
                 </div>
-                <div className="text-lg sm:text-xl font-black text-brand-600 mt-1">
+                <div className="font-display text-lg text-brand-600 mt-1">
                   Rp{report.estimatedProfit.toLocaleString('id-ID')}
                 </div>
-                <div className="text-xs text-ink-400 mt-0.5">Margin ~40.5% × omzet lunas</div>
+                <div className="text-xs text-ink-600 mt-0.5">Margin ~40.5% × omzet lunas</div>
               </div>
 
-              <div className="bg-surface p-4 rounded-lg border border-paper-200">
+              <div className="bg-surface p-4 border-t-4 border-royal-600 shadow-[0_6px_12px_-6px_rgb(8_16_48/0.4)]">
                 <div className="text-xs text-ink-500 font-bold">Target Omzet Akhir</div>
-                <div className="text-lg sm:text-xl font-black text-ink-700 mt-1">
+                <div className="font-display text-base text-ink-700 mt-1 whitespace-nowrap">
                   Rp{report.targetRevenue.toLocaleString('id-ID')}
                 </div>
-                <div className="text-xs text-ink-400 mt-0.5">Proyeksi Minggu 10-12</div>
+                <div className="text-xs text-ink-600 mt-0.5">Proyeksi Minggu 10-12</div>
               </div>
             </div>
 
@@ -697,7 +701,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               </button>
               <button
                 onClick={handleDownloadCsv}
-                className="flex-1 min-h-[48px] bg-ink-900 hover:bg-ink-800 text-surface px-4 rounded-lg text-xs font-bold flex items-center justify-center gap-2"
+                className="flex-1 min-h-[48px] bg-royal-600 hover:bg-royal-700 text-white px-4 text-sm font-bold flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 <span>Export data (Google Sheets)</span>
@@ -708,7 +712,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
 
         {/* TAB 4: TEAM */}
         {activeTab === 'team' && (
-          <div className="bg-surface rounded-lg border border-paper-200 p-5 space-y-4">
+          <div className="bg-surface border-t-4 border-royal-600 shadow-[0_6px_12px_-6px_rgb(8_16_48/0.4)] p-4 space-y-4">
             <div>
               <h2 className="font-extrabold text-base text-ink-900">
                 Struktur Tim Kelompok 1 - Laris Manis
@@ -722,7 +726,6 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
               <div className="p-3 bg-brand-50 rounded-lg border border-brand-200">
                 <span className="text-xs font-bold text-brand-700">Ketua Tim</span>
                 <div className="font-black text-ink-900 mt-0.5">Muhammad Rayfan Pashya</div>
-                <div className="text-ink-500 text-xs">Nim: 102042300174</div>
               </div>
 
               <div className="p-3 bg-paper-50 rounded-lg border border-paper-200">
@@ -730,7 +733,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   Produksi & R&D
                 </span>
                 <div className="font-bold text-ink-900 mt-0.5">
-                  Afif Nur Sena, Qalam Raydathul Sabani, Fajar Maulana, Rachmat Akbar
+                  Afif Nur Sena, Qalam Raydathul Sabani, Fajar Maulana
                 </div>
                 <div className="text-ink-500 text-xs">Resep Sop, Uji Rasa, Packaging</div>
               </div>
@@ -754,7 +757,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   Penjualan & Operasional Pre-order
                 </span>
                 <div className="font-bold text-ink-900 mt-0.5">
-                  Yudi Hokiana, Willyansyah, Muhammad Fahmi Yusuf
+                  Yudi Hokiana, Willyansyah, Muhammad Fahmi Yusuf, Rachmat Akbar
                 </div>
                 <div className="text-ink-500 text-xs">
                   Verifikasi Qris, Delivery Kampus, Pelayanan Konsumen

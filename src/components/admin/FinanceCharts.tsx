@@ -65,7 +65,7 @@ const ChartCard: React.FC<{ title: string; subtitle?: string; children: React.Re
   subtitle,
   children,
 }) => (
-  <section className="bg-surface rounded-lg border border-paper-200 p-4 space-y-3">
+  <section className="bg-surface border-t-4 border-royal-600 shadow-[0_6px_12px_-6px_rgb(8_16_48/0.4)] p-4 space-y-3">
     <div>
       <h3 className="font-extrabold text-sm text-ink-900">{title}</h3>
       {subtitle && <p className="text-xs text-ink-500 mt-0.5">{subtitle}</p>}
@@ -205,7 +205,7 @@ export const DailyRevenueChart: React.FC<{ data: DailySeries }> = ({ data }) => 
                       y={y(t)}
                       dy="0.32em"
                       textAnchor="end"
-                      className="fill-ink-500 text-[10px]"
+                      className="fill-ink-500 text-xs"
                     >
                       {rpShort(t)}
                     </text>
@@ -241,7 +241,7 @@ export const DailyRevenueChart: React.FC<{ data: DailySeries }> = ({ data }) => 
                                 ? 'start'
                                 : 'middle'
                           }
-                          className="fill-ink-800 text-[10px] font-bold"
+                          className="fill-ink-800 text-xs font-bold"
                         >
                           {rpShort(d.revenue)}
                         </text>
@@ -251,7 +251,7 @@ export const DailyRevenueChart: React.FC<{ data: DailySeries }> = ({ data }) => 
                           x={x + barW / 2}
                           y={H - 6}
                           textAnchor="middle"
-                          className="fill-ink-500 text-[10px]"
+                          className="fill-ink-500 text-xs"
                         >
                           {d.label}
                         </text>
@@ -307,7 +307,7 @@ export const DailyRevenueChart: React.FC<{ data: DailySeries }> = ({ data }) => 
 
           <button
             onClick={() => setShowTable((v) => !v)}
-            className="text-xs font-bold text-ink-600 hover:text-ink-900 underline underline-offset-2"
+            className="min-h-[44px] text-sm font-bold text-royal-700 hover:text-royal-900 underline underline-offset-2"
             aria-expanded={showTable}
           >
             {showTable ? 'Sembunyikan tabel' : 'Lihat sebagai tabel'}
