@@ -1,4 +1,4 @@
-import { Order } from '../types'
+import { CartItem, Order } from '../types'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const STORAGE_KEY = 'laris_manis_orders_v1'
@@ -8,6 +8,41 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undef
 
 export const supabase: SupabaseClient | null =
   supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null
+
+/** True bila terhubung ke Supabase. Maka halaman tim memakai login Supabase, bukan kata sandi lokal. */
+export const isSupabaseConfigured = supabase !== null
+
+// Fungsi database belum dibuat (supabase/schema.sql belum dijalankan ulang): aplikasi tetap
+// jalan dengan cara lama selama masa peralihan, lalu aman begitu schema.sql dijalankan.
+function isMissingFunction(error: { code?: string; message?: string } | null): boolean {
+  return !!error && (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? ''))
+}
+
+// --- Login admin (Supabase Auth). Hanya akun yang terdaftar di tabel admins yang dianggap admin. ---
+
+export async function adminSignIn(email: string, password: string): Promise<void> {
+  if (!supabase) throw new Error('Supabase belum terhubung.')
+  const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+  if (error) throw new Error('Email atau kata sandi salah.')
+  const { data } = await supabase.rpc('is_admin')
+  if (data !== true) {
+    await supabase.auth.signOut()
+    throw new Error('Akun ini belum terdaftar sebagai admin tim.')
+  }
+}
+
+/** Sesi admin yang masih berlaku dari login sebelumnya (disimpan oleh Supabase di browser). */
+export async function adminHasSession(): Promise<boolean> {
+  if (!supabase) return false
+  const { data } = await supabase.auth.getSession()
+  if (!data.session) return false
+  const res = await supabase.rpc('is_admin')
+  return res.data === true
+}
+
+export async function adminSignOut(): Promise<void> {
+  if (supabase) await supabase.auth.signOut()
+}
 
 // Initial seed orders for demonstration
 const INITIAL_SEED_ORDERS: Order[] = [
@@ -216,21 +251,147 @@ export async function deleteOrder(orderId: string): Promise<void> {
   }
 }
 
-// Pembeli membatalkan pesanannya sendiri. Hanya berlaku selama belum dibayar: bila admin
-// sudah memverifikasi di saat yang sama, tidak ada baris yang cocok dan tidak ada yang berubah.
-// Sengaja tidak memuat seluruh tabel: pembeli hanya menyentuh pesanannya sendiri.
-export async function cancelUnpaidOrder(orderId: string): Promise<void> {
+// Definisi "penjualan sah", rekap, dan seri harian tinggal di services/analytics.ts
+// (fungsi murni + teruji). Diekspor ulang di sini agar import lama tetap jalan.
+export { isCountedOrder, calculateSalesReport } from './analytics'
+import { formatOrderCode } from './analytics'
+
+// --- Pesanan milik pembeli di perangkat ini ---
+// Pembeli tidak punya akun. Tiap pesanan punya token rahasia dari server; HP menyimpan pasangan
+// {id, token} dan hanya dengan pasangan itu pesanan bisa dilihat atau dibatalkan (lihat
+// get_my_orders / cancel_my_order di schema.sql). Kode pesanan sendiri berurutan, jadi
+// mudah ditebak dan sengaja tidak cukup untuk membuka pesanan orang lain.
+
+const MY_ORDERS_KEY = 'laris_manis_my_orders_v2'
+const LEGACY_MY_ORDERS_KEY = 'laris_manis_my_orders_v1'
+// Batas pesanan yang diingat per HP; yang lebih lama dilepas dari daftar "Pesanan Saya"
+const MAX_MY_ORDERS = 20
+
+export interface OrderRef {
+  id: string
+  token: string
+}
+
+export function getMyOrderRefs(): OrderRef[] {
+  try {
+    const raw = localStorage.getItem(MY_ORDERS_KEY)
+    const list = raw ? JSON.parse(raw) : []
+    const refs: OrderRef[] = Array.isArray(list)
+      ? list.filter((r) => r && typeof r.id === 'string' && typeof r.token === 'string')
+      : []
+    if (refs.length > 0 || supabase) return refs
+    // Mode lokal: ambil daftar lama (hanya id), tidak butuh token
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_MY_ORDERS_KEY) || '[]')
+    return Array.isArray(legacy) ? legacy.map((id: string) => ({ id, token: '' })) : []
+  } catch {
+    return []
+  }
+}
+
+export function rememberMyOrder(ref: OrderRef): void {
+  try {
+    const refs = [ref, ...getMyOrderRefs().filter((r) => r.id !== ref.id)].slice(0, MAX_MY_ORDERS)
+    localStorage.setItem(MY_ORDERS_KEY, JSON.stringify(refs))
+  } catch {
+    // Penyimpanan diblokir (mis. mode privat): pelacakan hanya berlaku selama tab terbuka
+  }
+}
+
+/**
+ * Buat pesanan. Dengan Supabase, SERVER yang menentukan kode, status awal (QRIS + belum bayar),
+ * dan total, sehingga pembeli tidak bisa membuat pesanan yang sudah "lunas". Token rahasia
+ * dikembalikan satu kali dan disimpan di HP ini.
+ */
+export async function createOrder(input: {
+  customerName: string
+  customerPhone: string
+  customerNotes: string
+  items: CartItem[]
+}): Promise<{ order: Order; ref: OrderRef }> {
   if (supabase) {
-    const { error } = await supabase
+    const { data, error } = await supabase.rpc('create_order', {
+      p_name: input.customerName,
+      p_phone: input.customerPhone,
+      p_notes: input.customerNotes,
+      p_items: input.items,
+    })
+    if (!error && data && typeof data === 'object') {
+      const { accessToken, ...order } = data as Order & { accessToken: string }
+      return { order: order as Order, ref: { id: order.id, token: accessToken } }
+    }
+    if (!isMissingFunction(error)) {
+      console.error('Failed to create order on Supabase:', error)
+      throw new Error('Pesanan gagal terkirim ke server. Periksa koneksi internet lalu coba lagi.')
+    }
+    console.warn('create_order belum ada di database, memakai cara lama sementara.')
+  }
+
+  // Mode lokal, atau masa peralihan sebelum schema.sql dijalankan
+  const subtotal = input.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+  const order: Order = {
+    id: await generateOrderCode(),
+    customerName: input.customerName,
+    customerPhone: input.customerPhone,
+    customerClass: '',
+    items: [...input.items],
+    totalItems: input.items.length,
+    totalPieces: input.items.reduce((sum, i) => sum + i.pieces * i.quantity, 0),
+    subtotal,
+    discountAmount: 0,
+    total: subtotal,
+    paymentMethod: 'qris', // checkout online selalu QRIS; tunai hanya lewat kasir walk-in
+    paymentStatus: 'pending', // baru dihitung omzet setelah admin memverifikasi mutasi
+    orderStatus: 'menunggu_pembayaran',
+    customerNotes: input.customerNotes,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date().toISOString(), // kolom wajib di database; batas bayar sudah tidak dipakai
+  }
+  await saveOrder(order)
+  return { order, ref: { id: order.id, token: '' } }
+}
+
+// Ambil pesanan milik pembeli saja (bukan seluruh tabel) agar status terbaru dari admin
+// bisa dibaca pelanggan di HP-nya sendiri.
+export async function getOrdersByRefs(refs: OrderRef[]): Promise<Order[]> {
+  if (refs.length === 0) return []
+  const byNewest = (a: Order, b: Order) => b.createdAt.localeCompare(a.createdAt)
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.rpc('get_my_orders', { p_refs: refs })
+      if (!error && Array.isArray(data)) return (data as Order[]).sort(byNewest)
+      if (isMissingFunction(error)) {
+        const legacy = await supabase.from('orders').select('*').in('id', refs.map((r) => r.id))
+        if (!legacy.error && legacy.data) return (legacy.data as Order[]).sort(byNewest)
+      }
+    } catch (e) {
+      console.warn('Supabase fetch failed, fallback to local:', e)
+    }
+  }
+
+  const ids = new Set(refs.map((r) => r.id))
+  return (await getOrders()).filter((o) => ids.has(o.id))
+}
+
+// Pembeli membatalkan pesanannya sendiri. Hanya berlaku selama belum dibayar: bila admin
+// sudah memverifikasi di saat yang sama, server tidak mengubah apa pun.
+export async function cancelUnpaidOrder(orderId: string): Promise<void> {
+  const token = getMyOrderRefs().find((r) => r.id === orderId)?.token ?? ''
+
+  if (supabase) {
+    const { error } = await supabase.rpc('cancel_my_order', { p_id: orderId, p_token: token })
+    if (!error) return
+    if (!isMissingFunction(error)) {
+      console.error('Failed to cancel order on Supabase:', error)
+      throw new Error('Pesanan gagal dibatalkan. Periksa koneksi internet lalu coba lagi.')
+    }
+    const legacy = await supabase
       .from('orders')
       .update({ orderStatus: 'dibatalkan' })
       .eq('id', orderId)
       .eq('paymentStatus', 'pending')
       .eq('orderStatus', 'menunggu_pembayaran')
-    if (error) {
-      console.error('Failed to cancel order on Supabase:', error)
-      throw new Error('Pesanan gagal dibatalkan. Periksa koneksi internet lalu coba lagi.')
-    }
+    if (legacy.error) throw new Error('Pesanan gagal dibatalkan. Periksa koneksi internet lalu coba lagi.')
     return
   }
 
@@ -244,66 +405,15 @@ export async function cancelUnpaidOrder(orderId: string): Promise<void> {
   notifyListeners(updated)
 }
 
-// Definisi "penjualan sah", rekap, dan seri harian tinggal di services/analytics.ts
-// (fungsi murni + teruji). Diekspor ulang di sini agar import lama tetap jalan.
-export { isCountedOrder, calculateSalesReport } from './analytics'
-import { formatOrderCode } from './analytics'
-
-// --- Pelacakan pesanan milik pelanggan di perangkat ini ---
-
-const MY_ORDERS_KEY = 'laris_manis_my_orders_v1'
-// Batas pesanan yang diingat per HP; yang lebih lama dilepas dari daftar "Pesanan Saya"
-const MAX_MY_ORDERS = 20
-
-export function getMyOrderIds(): string[] {
-  try {
-    const raw = localStorage.getItem(MY_ORDERS_KEY)
-    const ids = raw ? JSON.parse(raw) : []
-    return Array.isArray(ids) ? ids : []
-  } catch {
-    return []
-  }
-}
-
-export function rememberMyOrder(orderId: string): void {
-  try {
-    const ids = [orderId, ...getMyOrderIds().filter((id) => id !== orderId)].slice(0, MAX_MY_ORDERS)
-    localStorage.setItem(MY_ORDERS_KEY, JSON.stringify(ids))
-  } catch {
-    // Penyimpanan diblokir (mis. mode privat): pelacakan hanya berlaku selama tab terbuka
-  }
-}
-
-// Ambil pesanan tertentu saja (bukan seluruh tabel) agar status terbaru dari admin
-// bisa dibaca pelanggan di HP-nya sendiri.
-export async function getOrdersByIds(ids: string[]): Promise<Order[]> {
-  if (ids.length === 0) return []
-
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from('orders').select('*').in('id', ids)
-      if (!error && data) {
-        return (data as Order[]).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      }
-    } catch (e) {
-      console.warn('Supabase fetch failed, fallback to local:', e)
-    }
-  }
-
-  const local = await getOrders()
-  return local.filter((o) => ids.includes(o.id))
-}
-
 // Kode pesanan LM-DDMMYY-NNN, urutan reset tiap hari (hari kalender Jakarta).
-// Dengan Supabase, nomor diambil dari fungsi database next_order_code() sehingga dua pembeli
-// yang klik bersamaan tidak pernah dapat nomor kembar. Tanpa Supabase (mode lokal), nomor
-// dihitung dari pesanan hari ini di perangkat ini.
+// Dipakai kasir admin dan mode lokal. Dengan Supabase, nomor diambil dari fungsi database
+// next_order_code() (atomik, tidak pernah kembar). Pembeli memakai create_order di atas.
 export async function generateOrderCode(): Promise<string> {
   const now = new Date()
   if (supabase) {
     const { data, error } = await supabase.rpc('next_order_code')
     if (!error && typeof data === 'string' && data) return data
-    // Fungsi belum dibuat di database (schema.sql belum dijalankan ulang): jangan blokir pembeli
+    // Fungsi belum dibuat / bukan admin: jangan blokir, pakai nomor cadangan 9xx
     console.warn('next_order_code belum tersedia, memakai nomor cadangan:', error)
     return formatOrderCode(now, 900 + Math.floor(Math.random() * 100))
   }

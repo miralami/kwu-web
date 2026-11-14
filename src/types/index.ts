@@ -63,6 +63,7 @@ export interface Order {
   customerNotes?: string
   adminNotes?: string
   createdAt: string
+  accessToken?: string // hanya dikembalikan sekali saat pesanan dibuat; rahasia milik pembeli
   expiresAt: string // tidak dipakai lagi (batas bayar dihapus); tetap diisi karena kolom database wajib
 }
 
