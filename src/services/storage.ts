@@ -120,17 +120,58 @@ const INITIAL_SEED_ORDERS: Order[] = [
 type OrderListener = (orders: Order[]) => void
 const listeners: Set<OrderListener> = new Set()
 
-// Realtime Supabase: setiap perubahan di tabel orders (dari HP mana pun) memicu muat ulang
+// Status sinkronisasi untuk indikator di dashboard admin:
+//  live    = realtime Supabase tersambung (perubahan admin lain muncul seketika)
+//  polling = realtime putus; dashboard tetap menyegarkan berkala sebagai cadangan
+//  local   = tanpa Supabase; hanya sinkron antar-tab di perangkat yang sama
+export type SyncState = 'idle' | 'live' | 'polling' | 'local'
+let syncState: SyncState = 'idle'
+const syncListeners = new Set<(s: SyncState) => void>()
+
+function setSyncState(next: SyncState) {
+  if (next === syncState) return
+  syncState = next
+  syncListeners.forEach((l) => l(next))
+}
+
+export function subscribeSyncState(listener: (s: SyncState) => void) {
+  listener(syncState)
+  syncListeners.add(listener)
+  return () => {
+    syncListeners.delete(listener)
+  }
+}
+
+// Realtime Supabase: setiap perubahan di tabel orders (dari HP admin mana pun) memicu muat ulang.
+// Rentetan kejadian digabung (debounce) agar satu aksi tidak memuat ulang berkali-kali.
 let realtimeChannel: ReturnType<SupabaseClient['channel']> | null = null
+let refetchTimer: ReturnType<typeof setTimeout> | null = null
+
+function scheduleRefetch() {
+  if (refetchTimer) clearTimeout(refetchTimer)
+  refetchTimer = setTimeout(() => {
+    refetchTimer = null
+    getOrders().then(notifyListeners)
+  }, 250)
+}
 
 function startRealtime() {
-  if (!supabase || realtimeChannel) return
+  if (!supabase) {
+    setSyncState('local')
+    return
+  }
+  if (realtimeChannel) return
   realtimeChannel = supabase
     .channel('orders-changes')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-      getOrders().then(notifyListeners)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, scheduleRefetch)
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        setSyncState('live')
+        scheduleRefetch() // kejar perubahan yang terlewat selama belum tersambung
+      } else {
+        setSyncState('polling')
+      }
     })
-    .subscribe()
 }
 
 function stopRealtime() {
@@ -138,20 +179,34 @@ function stopRealtime() {
     supabase.removeChannel(realtimeChannel)
     realtimeChannel = null
   }
+  setSyncState('idle')
+}
+
+// Mode lokal: tab lain di perangkat yang sama menulis ke localStorage
+function onStorageEvent(e: StorageEvent) {
+  if (e.key === STORAGE_KEY) getOrders().then(notifyListeners)
 }
 
 export function subscribeOrders(listener: OrderListener) {
+  if (listeners.size === 0 && !supabase) window.addEventListener('storage', onStorageEvent)
   listeners.add(listener)
   startRealtime()
   return () => {
     listeners.delete(listener)
-    if (listeners.size === 0) stopRealtime()
+    if (listeners.size === 0) {
+      window.removeEventListener('storage', onStorageEvent)
+      stopRealtime()
+    }
   }
 }
 
 function notifyListeners(orders: Order[]) {
   listeners.forEach((l) => l(orders))
 }
+
+// Hasil terakhir yang berhasil dimuat dari server. Bila satu pemuatan gagal (sinyal putus),
+// dashboard tetap menampilkan data ini, bukan data contoh lokal.
+let lastServerOrders: Order[] = []
 
 export async function getOrders(): Promise<Order[]> {
   if (supabase) {
@@ -161,11 +216,13 @@ export async function getOrders(): Promise<Order[]> {
         .select('*')
         .order('createdAt', { ascending: false })
       if (!error && data) {
-        return data as Order[]
+        lastServerOrders = data as Order[]
+        return lastServerOrders
       }
     } catch (e) {
-      console.warn('Supabase fetch failed, fallback to local:', e)
+      console.warn('Supabase fetch failed:', e)
     }
+    return lastServerOrders
   }
 
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -232,6 +289,39 @@ export async function updateOrderStatus(
       getOrders().then(notifyListeners) // kembalikan tampilan ke data server
     }
   }
+}
+
+/**
+ * Verifikasi pembayaran: hanya berhasil bila pesanan MASIH belum dibayar dan belum dibatalkan.
+ * Bila admin lain sudah memprosesnya lebih dulu, mengembalikan false dan tidak mengubah apa pun,
+ * jadi dua admin yang menekan tombol bersamaan tidak saling menimpa.
+ */
+export async function verifyPayment(orderId: string): Promise<boolean> {
+  if (supabase) {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ orderStatus: 'sedang_diproses', paymentStatus: 'verified' })
+      .eq('id', orderId)
+      .eq('paymentStatus', 'pending')
+      .neq('orderStatus', 'dibatalkan')
+      .select('id')
+    if (error) {
+      console.error('Failed to verify payment on Supabase:', error)
+      throw new Error('Gagal memverifikasi di server. Periksa koneksi lalu coba lagi.')
+    }
+    getOrders().then(notifyListeners)
+    return (data?.length ?? 0) > 0
+  }
+
+  const current = await getOrders()
+  const target = current.find((o) => o.id === orderId)
+  if (!target || target.paymentStatus !== 'pending' || target.orderStatus === 'dibatalkan') return false
+  const updated = current.map((o) =>
+    o.id === orderId ? { ...o, orderStatus: 'sedang_diproses' as const, paymentStatus: 'verified' as const } : o
+  )
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  notifyListeners(updated)
+  return true
 }
 
 export async function deleteOrder(orderId: string): Promise<void> {

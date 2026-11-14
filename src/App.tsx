@@ -6,6 +6,9 @@ import { isOrderActive, isAwaitingPayment } from './data/orderStatus'
 import {
   getOrders,
   updateOrderStatus,
+  verifyPayment,
+  subscribeSyncState,
+  SyncState,
   deleteOrder,
   cancelUnpaidOrder,
   subscribeOrders,
@@ -73,11 +76,37 @@ export function App() {
   // Seluruh tabel pesanan (berisi nama & nomor WA semua pembeli) hanya dimuat dan
   // disiarkan realtime untuk tim yang sudah lolos gerbang tim. Pembeli cukup memuat
   // pesanannya sendiri lewat refreshMyOrders di bawah.
+  const [ordersLoaded, setOrdersLoaded] = useState(false)
+  const [syncState, setSyncState] = useState<SyncState>('idle')
+
   useEffect(() => {
     if (!isAdminPath || !isTeamed) return
-    getOrders().then(setOrders)
+    const reload = () =>
+      getOrders().then((list) => {
+        setOrders(list)
+        setOrdersLoaded(true)
+      })
+    reload()
     const unsubscribe = subscribeOrders(setOrders)
-    return () => unsubscribe()
+    const unsubscribeSync = subscribeSyncState(setSyncState)
+
+    // Cadangan bila realtime putus (HP tidur, sinyal hilang): segarkan tiap 20 detik selama tab
+    // terlihat, dan seketika saat tab kembali aktif atau internet tersambung lagi.
+    const poll = setInterval(() => {
+      if (document.visibilityState === 'visible') reload()
+    }, 20000)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') reload()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('online', reload)
+    return () => {
+      unsubscribe()
+      unsubscribeSync()
+      clearInterval(poll)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('online', reload)
+    }
   }, [isTeamed])
 
   const refreshMyOrders = useCallback(async () => {
@@ -317,6 +346,9 @@ export function App() {
       <div className="min-h-screen bg-surface text-ink-900">
         <AdminDashboard
           orders={orders}
+          ordersLoaded={ordersLoaded}
+          syncState={syncState}
+          onVerifyPayment={(id) => verifyPayment(id)}
           onUpdateStatus={(id, oStatus, pStatus) => updateOrderStatus(id, oStatus, pStatus)}
           onDeleteOrder={(id) => deleteOrder(id)}
           onClose={async () => {

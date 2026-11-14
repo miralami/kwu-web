@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Order, OrderStatus, PaymentStatus } from '../../types'
 import { MENU_ITEMS, ADMIN_CONTACT } from '../../data/menu'
-import { saveOrder, generateOrderCode } from '../../services/storage'
+import { saveOrder, generateOrderCode, SyncState } from '../../services/storage'
 import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../services/analytics'
 import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
 import {
@@ -23,13 +23,22 @@ import {
 
 interface AdminDashboardProps {
   orders: Order[]
+  ordersLoaded: boolean
+  syncState: SyncState
+  onVerifyPayment: (orderId: string) => Promise<boolean>
   onUpdateStatus: (orderId: string, orderStatus: OrderStatus, paymentStatus?: PaymentStatus) => void
   onDeleteOrder: (orderId: string) => void
   onClose: () => void
 }
 
+// Pembeli kasir tidak punya nomor HP asli (nomor tiruan), jadi tidak ditampilkan
+const isWalkIn = (o: Order) => o.customerPhone === '080000000000'
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   orders,
+  ordersLoaded,
+  syncState,
+  onVerifyPayment,
   onUpdateStatus,
   onDeleteOrder,
   onClose,
@@ -49,6 +58,71 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Pesanan kasir yang sedang menunggu pembayaran (layar bayar tampil di HP admin)
   const [posPending, setPosPending] = useState<Order | null>(null)
   const [posCashGiven, setPosCashGiven] = useState('')
+
+  // Pemberitahuan singkat (pesanan baru, bentrok dengan admin lain)
+  const [notice, setNotice] = useState<string | null>(null)
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const showNotice = (text: string) => {
+    setNotice(text)
+    if (noticeTimer.current) clearTimeout(noticeTimer.current)
+    noticeTimer.current = setTimeout(() => setNotice(null), 5000)
+  }
+  useEffect(() => () => {
+    if (noticeTimer.current) clearTimeout(noticeTimer.current)
+  }, [])
+
+  // Pesanan baru dari pembeli online yang masuk saat dashboard terbuka: umumkan + getar
+  const seenIds = useRef<Set<string> | null>(null)
+  useEffect(() => {
+    if (!ordersLoaded) return
+    if (seenIds.current === null) {
+      seenIds.current = new Set(orders.map((o) => o.id))
+      return
+    }
+    const seen = seenIds.current
+    const fresh = orders.filter((o) => !seen.has(o.id))
+    fresh.forEach((o) => seen.add(o.id))
+    const incoming = fresh.filter((o) => !isWalkIn(o) && o.paymentStatus === 'pending')
+    if (incoming.length > 0) {
+      const o = incoming[0]
+      showNotice(
+        incoming.length === 1
+          ? `Pesanan baru #${o.id} · Rp${o.total.toLocaleString('id-ID')}`
+          : `${incoming.length} pesanan baru masuk`
+      )
+      try {
+        navigator.vibrate?.(200)
+      } catch {
+        // perangkat tidak mendukung getar
+      }
+    }
+  }, [orders, ordersLoaded])
+
+  // Layar bayar kasir otomatis menutup bila admin lain sudah memverifikasi/membatalkan pesanan itu
+  useEffect(() => {
+    if (!posPending) return
+    const current = orders.find((o) => o.id === posPending.id)
+    if (current && (current.paymentStatus === 'verified' || current.orderStatus === 'dibatalkan')) {
+      setPosPending(null)
+      showNotice(
+        current.orderStatus === 'dibatalkan'
+          ? `#${current.id} sudah dibatalkan admin lain.`
+          : `#${current.id} sudah dibayar dan diproses admin lain.`
+      )
+    }
+  }, [orders, posPending])
+
+  // Verifikasi aman untuk banyak admin: bila sudah diproses admin lain, jangan menimpa
+  const verifyOrder = async (id: string): Promise<boolean> => {
+    try {
+      const ok = await onVerifyPayment(id)
+      if (!ok) showNotice(`#${id} sudah diproses admin lain.`)
+      return ok
+    } catch (err) {
+      showNotice(err instanceof Error ? err.message : 'Gagal memverifikasi. Coba lagi.')
+      return false
+    }
+  }
 
   const report = calculateSalesReport(orders)
   const dailySeries = buildDailySeries(orders)
@@ -154,12 +228,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }
 
   // Pembayaran diterima: terverifikasi dan langsung masuk antrean masak
-  const handlePosPaid = () => {
+  const handlePosPaid = async () => {
     if (!posPending) return
-    onUpdateStatus(posPending.id, 'sedang_diproses', 'verified')
-    setPosFeedback({ type: 'success', text: `#${posPending.id} lunas dan masuk antrean masak.` })
-    setPosCustomerName('Pembeli Kampus / Walk-in')
+    const order = posPending
+    const ok = await verifyOrder(order.id)
     setPosPending(null)
+    if (ok) {
+      setPosFeedback({ type: 'success', text: `#${order.id} lunas dan masuk antrean masak.` })
+      setPosCustomerName('Pembeli Kampus / Walk-in')
+    }
   }
 
   const handlePosCancel = () => {
@@ -227,6 +304,29 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
             </span>
             <span className="truncate">Dashboard Tim</span>
           </h1>
+          <span
+            role="status"
+            className="shrink-0 ml-auto flex items-center gap-1.5 text-xs font-bold"
+            title={
+              syncState === 'live'
+                ? 'Tersambung langsung: perubahan admin lain muncul seketika'
+                : syncState === 'polling'
+                ? 'Sambungan langsung putus, data disegarkan berkala'
+                : 'Mode lokal: hanya sinkron antar-tab di perangkat ini'
+            }
+          >
+            <span
+              aria-hidden="true"
+              className={`w-2.5 h-2.5 rounded-full ${
+                syncState === 'live'
+                  ? 'bg-green-400 motion-safe:animate-pulse'
+                  : syncState === 'polling'
+                  ? 'bg-amber-400'
+                  : 'bg-white/50'
+              }`}
+            />
+            {syncState === 'live' ? 'Live' : syncState === 'polling' ? 'Berkala' : 'Lokal'}
+          </span>
           <button
             onClick={onClose}
             className="shrink-0 min-h-[44px] px-4 bg-white/15 hover:bg-white/25 text-white text-sm font-bold"
@@ -371,6 +471,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                               {order.customerName}
                             </div>
                             {order.customerClass && <div className="text-xs text-ink-600">{order.customerClass}</div>}
+                            {!isWalkIn(order) && (
                             <a
                               href={`https://wa.me/${order.customerPhone.replace(/^0/, '62')}`}
                               target="_blank"
@@ -379,6 +480,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                             >
                               <MessageCircle className="w-4 h-4" /> {order.customerPhone}
                             </a>
+                            )}
                           </div>
                           <span
                             className={`shrink-0 text-xs font-extrabold px-2.5 py-1 border-2 border-double -rotate-3 ${
@@ -435,7 +537,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                         {/* Aksi: verifikasi dulu (bila perlu), lalu tiga langkah sejajar */}
                         {needsQrisCheck && (
                           <button
-                            onClick={() => onUpdateStatus(order.id, 'sedang_diproses', 'verified')}
+                            onClick={() => verifyOrder(order.id)}
                             className="btn-card w-full min-h-[52px] bg-green-700 hover:bg-green-800 text-white text-sm font-extrabold flex items-center justify-center gap-2"
                           >
                             <CheckCircle className="w-4 h-4" />
@@ -444,7 +546,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                         )}
                         {needsCash && (
                           <button
-                            onClick={() => onUpdateStatus(order.id, 'sedang_diproses', 'verified')}
+                            onClick={() => verifyOrder(order.id)}
                             className="btn-card w-full min-h-[52px] bg-green-700 hover:bg-green-800 text-white text-sm font-extrabold flex items-center justify-center gap-2"
                           >
                             <CheckCircle className="w-4 h-4" />
@@ -810,6 +912,15 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
           </div>
         )}
       </div>
+
+      {notice && (
+        <div
+          role="status"
+          className="fixed left-3 right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[70] bg-ink-900 text-surface px-4 py-3 text-sm font-bold shadow-[0_10px_24px_-6px_rgb(0_0_0/0.6)] motion-safe:animate-status-in"
+        >
+          {notice}
+        </div>
+      )}
 
       {/* Layar bayar kasir: QRIS ditampilkan dari HP admin untuk discan pembeli */}
       {posPending && (
