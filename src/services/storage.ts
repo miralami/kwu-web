@@ -252,6 +252,8 @@ import { formatOrderCode } from './analytics'
 // --- Pelacakan pesanan milik pelanggan di perangkat ini ---
 
 const MY_ORDERS_KEY = 'laris_manis_my_orders_v1'
+// Batas pesanan yang diingat per HP; yang lebih lama dilepas dari daftar "Pesanan Saya"
+const MAX_MY_ORDERS = 20
 
 export function getMyOrderIds(): string[] {
   try {
@@ -265,7 +267,7 @@ export function getMyOrderIds(): string[] {
 
 export function rememberMyOrder(orderId: string): void {
   try {
-    const ids = [orderId, ...getMyOrderIds().filter((id) => id !== orderId)].slice(0, 10)
+    const ids = [orderId, ...getMyOrderIds().filter((id) => id !== orderId)].slice(0, MAX_MY_ORDERS)
     localStorage.setItem(MY_ORDERS_KEY, JSON.stringify(ids))
   } catch {
     // Penyimpanan diblokir (mis. mode privat): pelacakan hanya berlaku selama tab terbuka

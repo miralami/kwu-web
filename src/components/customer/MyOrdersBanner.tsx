@@ -1,5 +1,5 @@
-import React from 'react'
-import { ChevronRight, ReceiptText } from 'lucide-react'
+import React, { useState } from 'react'
+import { ChevronDown, ChevronRight, ChevronUp, ReceiptText } from 'lucide-react'
 import { Order } from '../../types'
 import {
   getCustomerStatus,
@@ -13,8 +13,21 @@ interface MyOrdersBannerProps {
   onOpenOrder: (orderId: string) => void
 }
 
-export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOrder }) => {
-  if (orders.length === 0) return null
+// Yang tampil sekilas dibatasi; sisanya di balik "Lihat selengkapnya" supaya halaman menu
+// tidak tenggelam oleh riwayat (HP hanya menyimpan 20 pesanan terakhir, lihat storage.ts).
+const PREVIEW_COUNT = 3
+
+export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders: allOrders, onOpenOrder }) => {
+  const [expanded, setExpanded] = useState(false)
+  if (allOrders.length === 0) return null
+
+  // Pesanan yang masih berjalan didahulukan, lalu yang terbaru
+  const orders = [...allOrders].sort((a, b) => {
+    const act = Number(isOrderActive(b)) - Number(isOrderActive(a))
+    return act !== 0 ? act : b.createdAt.localeCompare(a.createdAt)
+  })
+  const hidden = Math.max(0, orders.length - PREVIEW_COUNT)
+  const shown = expanded ? orders : orders.slice(0, PREVIEW_COUNT)
 
   return (
     <section aria-labelledby="my-orders-title" className="mb-4 space-y-2">
@@ -23,8 +36,9 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
         className="text-sm font-extrabold text-ink-800 flex items-center gap-1.5"
       >
         <ReceiptText className="w-4 h-4" /> Pesanan Saya
+        <span className="font-medium text-ink-600">({orders.length})</span>
       </h2>
-      {orders.map((order) => {
+      {shown.map((order) => {
         const status = getCustomerStatus(order)
         return (
           <button
@@ -60,6 +74,24 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
           </button>
         )
       })}
+      {hidden > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="btn-card w-full min-h-[48px] border-2 border-dashed border-royal-600/50 text-royal-700 text-sm font-extrabold flex items-center justify-center gap-1.5 hover:border-royal-600 active:bg-paper-100"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp className="w-4 h-4" /> Tampilkan lebih sedikit
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4" /> Lihat selengkapnya ({hidden} lagi)
+            </>
+          )}
+        </button>
+      )}
     </section>
   )
 }
