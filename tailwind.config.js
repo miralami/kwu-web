@@ -86,6 +86,10 @@ export default {
         'spin-tick': 'spin 2.4s steps(12) infinite',
       },
       colors: themeColors,
+      fontFamily: {
+        // Judul poster: Archivo ekstra-lebar, tebal. Isi teks tetap Plus Jakarta Sans.
+        display: ['Archivo', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [

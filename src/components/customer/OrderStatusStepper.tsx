@@ -15,7 +15,7 @@ interface StepDef {
 
 const STEPS: StepDef[] = [
   {
-    label: 'Verifikasi',
+    label: 'Bayar',
     icon: Clock,
     currentClass: 'bg-accent-500 text-stone-900',
     motionClass: 'motion-safe:animate-spin-tick',
@@ -40,8 +40,8 @@ function getStage(order: Order): number {
   if (order.orderStatus === 'selesai') return 3
   if (order.orderStatus === 'siap_diambil') return 2
   if (order.orderStatus === 'sedang_diproses') return 1
-  // Sudah lunas (tunai / QRIS terverifikasi) tapi belum mulai dimasak: antre di langkah masak
-  if (order.paymentStatus === 'verified' || order.paymentMethod === 'tunai') return 1
+  // Sudah lunas tapi belum mulai dimasak: antre di langkah masak
+  if (order.paymentStatus === 'verified') return 1
   return 0
 }
 

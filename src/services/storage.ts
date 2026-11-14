@@ -13,85 +13,71 @@ export const supabase: SupabaseClient | null =
 const INITIAL_SEED_ORDERS: Order[] = [
   {
     id: 'LM-1001',
-    customerName: 'Rayhan Arya',
-    customerPhone: '081234567890',
-    customerClass: 'S1SI-KJ-23-002',
-    pickupTime: '12:30',
+    customerName: 'Contoh Pembeli 1',
+    customerPhone: '081200000001',
+    customerClass: '',
     items: [
       {
-        id: 'cibay-pedas-cibay-2',
+        id: 'cibay-pedas-cibay-porsi',
         menuItemId: 'cibay-pedas',
-        name: 'Cibay Lumer Gurih',
-        optionId: 'cibay-2',
-        optionLabel: '2 Pcs (Paling Laris)',
-        pieces: 2,
-        price: 5000,
-        quantity: 2,
-        notes: 'Bumbu cabai dipisah',
+        name: 'Mozarela Sunda',
+        optionId: 'cibay-porsi',
+        optionLabel: '1 Porsi (Isi 3 Pcs)',
+        pieces: 3,
+        price: 10000,
+        quantity: 1,
       },
       {
-        id: 'puding-karamel-puding-std',
+        id: 'puding-karamel-puding-cup',
         menuItemId: 'puding-karamel',
-        name: 'Puding Karamel & Buah Dingin',
-        optionId: 'puding-std',
-        optionLabel: '1 Cup Reguler (Segar Dingin)',
+        name: 'Puding Buah',
+        optionId: 'puding-cup',
+        optionLabel: '1 Cup',
         pieces: 1,
+        price: 15000,
+        quantity: 1,
+      },
+    ],
+    totalItems: 2,
+    totalPieces: 4,
+    subtotal: 25000,
+    discountAmount: 0,
+    total: 25000,
+    paymentMethod: 'qris',
+    paymentStatus: 'verified',
+    orderStatus: 'selesai',
+    customerNotes: 'Contoh data, bukan pesanan sungguhan',
+    createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+    expiresAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+  },
+  {
+    id: 'LM-1002',
+    customerName: 'Contoh Pembeli 2',
+    customerPhone: '081200000002',
+    customerClass: '',
+    items: [
+      {
+        id: 'ramyeon-roll-roll-porsi',
+        menuItemId: 'ramyeon-roll',
+        name: 'Spicy Ramyeon Roll',
+        optionId: 'roll-porsi',
+        optionLabel: '1 Porsi (Isi 4 Pcs)',
+        pieces: 4,
         price: 10000,
         quantity: 1,
       },
     ],
-    totalItems: 3,
-    totalPieces: 5,
-    subtotal: 20000,
-    discountAmount: 1000,
-    referralCode: 'RAWONSETO',
-    total: 19000,
-    paymentMethod: 'qris',
-    paymentStatus: 'verified',
-    orderStatus: 'selesai',
-    customerNotes: 'Kirim ke lab lantai 3',
-    createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
-    expiresAt: new Date(Date.now() - 3600000 * 2.75).toISOString(),
-  },
-  {
-    id: 'LM-1002',
-    customerName: 'Dosen Pak Ardi',
-    customerPhone: '085717600986',
-    customerClass: 'Ruang Dosen Lt 2',
-    pickupTime: '13:00',
-    items: [
-      {
-        id: 'paket-combo-combo-super',
-        menuItemId: 'paket-combo',
-        name: 'Paket Combo Juara (Cibay + Roll)',
-        optionId: 'combo-super',
-        optionLabel: '1 Paket (2 Cibay + 2 Roll)',
-        pieces: 4,
-        price: 13000,
-        quantity: 2,
-      },
-      {
-        id: 'puding-karamel-puding-premium',
-        menuItemId: 'puding-karamel',
-        name: 'Puding Karamel & Buah Dingin',
-        optionId: 'puding-premium',
-        optionLabel: '1 Cup Jumbo Extra Buah',
-        pieces: 1,
-        price: 12000,
-        quantity: 2,
-      },
-    ],
-    totalItems: 4,
-    totalPieces: 10,
-    subtotal: 50000,
+    totalItems: 1,
+    totalPieces: 4,
+    subtotal: 10000,
     discountAmount: 0,
-    total: 50000,
+    total: 10000,
     paymentMethod: 'qris',
     paymentStatus: 'verified',
     orderStatus: 'sedang_diproses',
-    customerNotes: 'Jangan terlalu pedas',
+    customerNotes: 'Contoh data, bukan pesanan sungguhan',
     createdAt: new Date(Date.now() - 1800000).toISOString(),
-    expiresAt: new Date(Date.now() + 1800000).toISOString(),
+    expiresAt: new Date(Date.now() - 1800000).toISOString(),
   },
 ]
 
@@ -228,6 +214,34 @@ export async function deleteOrder(orderId: string): Promise<void> {
       getOrders().then(notifyListeners)
     }
   }
+}
+
+// Pembeli membatalkan pesanannya sendiri. Hanya berlaku selama belum dibayar: bila admin
+// sudah memverifikasi di saat yang sama, tidak ada baris yang cocok dan tidak ada yang berubah.
+// Sengaja tidak memuat seluruh tabel: pembeli hanya menyentuh pesanannya sendiri.
+export async function cancelUnpaidOrder(orderId: string): Promise<void> {
+  if (supabase) {
+    const { error } = await supabase
+      .from('orders')
+      .update({ orderStatus: 'dibatalkan' })
+      .eq('id', orderId)
+      .eq('paymentStatus', 'pending')
+      .eq('orderStatus', 'menunggu_pembayaran')
+    if (error) {
+      console.error('Failed to cancel order on Supabase:', error)
+      throw new Error('Pesanan gagal dibatalkan. Periksa koneksi internet lalu coba lagi.')
+    }
+    return
+  }
+
+  const current = await getOrders()
+  const updated = current.map((o) =>
+    o.id === orderId && o.paymentStatus === 'pending' && o.orderStatus === 'menunggu_pembayaran'
+      ? { ...o, orderStatus: 'dibatalkan' as const }
+      : o
+  )
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
+  notifyListeners(updated)
 }
 
 // Definisi "penjualan sah", rekap, dan seri harian tinggal di services/analytics.ts

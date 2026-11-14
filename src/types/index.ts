@@ -1,4 +1,4 @@
-export type ProductCategory = 'semua' | 'gurih' | 'manis' | 'combo'
+export type ProductCategory = 'semua' | 'gurih' | 'manis'
 
 export interface MenuOption {
   id: string
@@ -11,14 +11,12 @@ export interface MenuOption {
 export interface MenuItem {
   id: string
   name: string
-  category: 'gurih' | 'manis' | 'combo'
+  category: 'gurih' | 'manis'
   tagline: string
   description: string
   image: string
   options: MenuOption[]
-  spicyLevel?: number // 0 to 3
   isPopular?: boolean
-  isBestValue?: boolean
 }
 
 export interface CartItem {
@@ -33,6 +31,7 @@ export interface CartItem {
   notes?: string
 }
 
+// 'tunai' hanya dari kasir walk-in (uang diterima langsung di booth); checkout online selalu QRIS
 export type PaymentMethod = 'qris' | 'tunai'
 
 export type PaymentStatus = 'pending' | 'verified' | 'rejected'
@@ -64,7 +63,7 @@ export interface Order {
   customerNotes?: string
   adminNotes?: string
   createdAt: string
-  expiresAt: string // 15 mins after creation
+  expiresAt: string // tidak dipakai lagi (batas bayar dihapus); tetap diisi karena kolom database wajib
 }
 
 export interface SalesReport {

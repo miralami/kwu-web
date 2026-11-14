@@ -4,15 +4,15 @@
 // saat <html> diberi kelas "dark".
 module.exports = {
   // Latar halaman & kartu (gantikan bg-white). Teks putih di atas tombol tetap pakai text-white.
-  surface: { DEFAULT: ['#ffffff', '#171514'] },
+  surface: { DEFAULT: ['#f3efe4', '#171514'] },
   // Header gelap (bukti pesanan, chatbot, dashboard admin): tetap gelap di kedua mode
-  inverse: { DEFAULT: ['#1c1917', '#241e1b'] },
+  inverse: { DEFAULT: ['#14204d', '#14204d'] },
   paper: {
-    50: ['#ffffff', '#1f1c1a'],
-    100: ['#f7f5f0', '#282422'],
-    200: ['#ede8df', '#36312e'],
-    300: ['#ded7c9', '#4a4440'],
-    400: ['#c5bbae', '#635c56'],
+    50: ['#faf7ef', '#1f1c1a'],
+    100: ['#ebe5d6', '#282422'],
+    200: ['#e0d8c5', '#36312e'],
+    300: ['#cdc3ab', '#4a4440'],
+    400: ['#b4a98f', '#635c56'],
   },
   ink: {
     900: ['#1c1917', '#f5f2ee'],
@@ -35,6 +35,14 @@ module.exports = {
     900: ['#6b1a09', '#fecab5'],
   },
   // Kuning aksen #fdb41d: selalu pakai teks gelap tetap (text-stone-900) di atas accent-500
+  // Biru royal dari poster menu (#29418b): pasangan merah brand. Terang di mode gelap agar teks terbaca.
+  royal: {
+    50: ['#eceff8', '#161c33'],
+    100: ['#d7def1', '#1f2850'],
+    600: ['#29418b', '#4a63c4'],
+    700: ['#1f3270', '#8ea2ea'],
+    900: ['#141f4d', '#c9d3f7'],
+  },
   accent: {
     50: ['#fff9eb', '#2a2110'],
     100: ['#ffefc6', '#3b2d12'],
@@ -47,7 +55,7 @@ module.exports = {
   // Warna grafik kategori ke-2 (pasangan merah brand). Pasangan merah+biru lolos validator
   // dataviz (buta warna & kontras) di kedua mode; kuning brand terlalu terang untuk isi grafik.
   chart: {
-    blue: ['#2a78d6', '#3987e5'],
+    blue: ['#29418b', '#29418b'],
   },
   // Warna status bawaan Tailwind yang dipakai aplikasi; nilai terang = bawaan Tailwind
   green: {

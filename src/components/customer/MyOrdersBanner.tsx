@@ -1,7 +1,12 @@
 import React from 'react'
 import { ChevronRight, ReceiptText } from 'lucide-react'
 import { Order } from '../../types'
-import { getCustomerStatus, isOrderActive, STATUS_TONE_CLASS } from '../../data/orderStatus'
+import {
+  getCustomerStatus,
+  isAwaitingPayment,
+  isOrderActive,
+  STATUS_TONE_CLASS,
+} from '../../data/orderStatus'
 
 interface MyOrdersBannerProps {
   orders: Order[]
@@ -12,12 +17,12 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
   if (orders.length === 0) return null
 
   return (
-    <section aria-labelledby="my-orders-title" className="mb-5 space-y-2">
+    <section aria-labelledby="my-orders-title" className="mb-4 space-y-2">
       <h2
         id="my-orders-title"
-        className="text-xs font-extrabold text-ink-600 flex items-center gap-1.5"
+        className="text-sm font-extrabold text-ink-800 flex items-center gap-1.5"
       >
-        <ReceiptText className="w-3.5 h-3.5" /> Pesanan Saya
+        <ReceiptText className="w-4 h-4" /> Pesanan Saya
       </h2>
       {orders.map((order) => {
         const status = getCustomerStatus(order)
@@ -25,12 +30,12 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
           <button
             key={order.id}
             onClick={() => onOpenOrder(order.id)}
-            className="w-full min-h-[56px] bg-surface border border-paper-200 rounded-xl p-3.5 flex items-center justify-between gap-3 text-left hover:border-ink-500 transition-colors shadow-sm"
+            className="btn-card w-full min-h-[64px] bg-surface border border-paper-300 px-3.5 py-3 flex items-center justify-between gap-3 text-left hover:border-ink-500 active:bg-paper-100 transition-colors"
           >
             <div className="min-w-0">
-              <div className="text-sm font-extrabold text-ink-900">
+              <div className="text-sm font-extrabold text-ink-900 tabular-nums">
                 #{order.id}{' '}
-                <span className="text-xs font-semibold text-ink-500">
+                <span className="text-xs font-semibold text-ink-600">
                   • Rp{order.total.toLocaleString('id-ID')}
                 </span>
               </div>
@@ -48,8 +53,9 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders, onOpenOr
                 {status.label}
               </span>
             </div>
-            <span className="text-xs font-bold text-brand-700 flex items-center gap-0.5 shrink-0">
-              Lihat <ChevronRight className="w-4 h-4" />
+            <span className="text-sm font-bold text-brand-700 flex items-center gap-0.5 shrink-0">
+              {isAwaitingPayment(order) && order.paymentMethod === 'qris' ? 'Bayar' : 'Lihat'}{' '}
+              <ChevronRight className="w-4 h-4" />
             </span>
           </button>
         )

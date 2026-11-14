@@ -46,16 +46,25 @@ export function getCustomerStatus(order: Order): CustomerStatus {
       tone: 'cooking',
     }
   }
-  if (order.paymentMethod === 'qris' && order.paymentStatus === 'pending') {
+  if (order.paymentStatus === 'verified') {
     return {
-      label: 'Menunggu verifikasi',
-      message: 'Admin sedang mengecek pembayaran QRIS kamu. Status akan berubah otomatis.',
+      label: 'Pembayaran diterima',
+      message: 'Pembayaran sudah dikonfirmasi. Pesananmu masuk antrean masak.',
+      tone: 'waiting',
+    }
+  }
+  if (order.paymentMethod === 'tunai') {
+    // Pesanan lama: bayar tunai kini hanya dicatat kasir di booth, tidak lagi dari checkout
+    return {
+      label: 'Bayar saat ambil',
+      message: 'Siapkan uang pas saat mengambil pesanan di booth.',
       tone: 'waiting',
     }
   }
   return {
-    label: 'Pesanan diterima',
-    message: 'Pesanan sudah masuk dan segera dimasak.',
+    label: 'Menunggu pembayaran',
+    message:
+      'Bayar lewat QRIS, lalu kirim buktinya ke WhatsApp admin. Pesanan mulai dimasak setelah admin mengonfirmasi.',
     tone: 'waiting',
   }
 }
@@ -70,4 +79,17 @@ export const STATUS_TONE_CLASS: Record<StatusTone, string> = {
 
 export function isOrderActive(order: Order): boolean {
   return order.orderStatus !== 'selesai' && order.orderStatus !== 'dibatalkan'
+}
+
+// Belum dibayar / belum dikonfirmasi admin: belum masuk omzet dan belum dimasak
+export function isAwaitingPayment(order: Order): boolean {
+  return (
+    order.paymentStatus === 'pending' &&
+    (order.orderStatus === 'menunggu_pembayaran' || order.orderStatus === 'menunggu_verifikasi')
+  )
+}
+
+// Pembeli hanya boleh membatalkan sendiri selama pesanan belum dibayar
+export function canCustomerCancel(order: Order): boolean {
+  return order.paymentStatus === 'pending' && order.orderStatus === 'menunggu_pembayaran'
 }
