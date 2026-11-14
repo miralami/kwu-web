@@ -92,8 +92,6 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
         </div>
       </div>
 
-      {header && <div className="px-4 pt-4">{header}</div>}
-
       <div
         className="mt-4 grid grid-cols-[3.25rem_1fr_5.75rem] bg-royal-600 text-white text-[0.7rem] font-extrabold uppercase tracking-wide"
         aria-hidden="true"
@@ -178,6 +176,9 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
           )
         })}
       </ul>
+
+      {/* Riwayat pesanan di bawah daftar menu, setelah garis sobek */}
+      {header && <div className="border-t-[3px] border-dashed border-royal-600 px-4 pt-4">{header}</div>}
 
       <div className="border-t-[3px] border-dashed border-royal-600 px-4 py-4 text-xs text-ink-700">
         Bayar, tunggu sebentar, lalu siap disantap. Terima kasih sudah jajan!
