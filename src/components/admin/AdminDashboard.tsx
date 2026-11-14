@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Order, OrderStatus, PaymentStatus } from '../../types'
-import { MENU_ITEMS } from '../../data/menu'
+import { MENU_ITEMS, ADMIN_CONTACT } from '../../data/menu'
 import { saveOrder, generateOrderCode } from '../../services/storage'
 import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../services/analytics'
 import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
@@ -17,6 +17,8 @@ import {
   DollarSign,
   TrendingUp,
   Package,
+  X,
+  Banknote,
 } from 'lucide-react'
 
 interface AdminDashboardProps {
@@ -44,6 +46,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [posCart, setPosCart] = useState<{ [key: string]: number }>({})
   const [posItemSearch, setPosItemSearch] = useState('')
   const [posFeedback, setPosFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  // Pesanan kasir yang sedang menunggu pembayaran (layar bayar tampil di HP admin)
+  const [posPending, setPosPending] = useState<Order | null>(null)
+  const [posCashGiven, setPosCashGiven] = useState('')
 
   const report = calculateSalesReport(orders)
   const dailySeries = buildDailySeries(orders)
@@ -115,9 +120,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     const newOrder: Order = {
       id: await generateOrderCode(),
-      customerName: posCustomerName.trim() || 'Offline Customer',
+      customerName: posCustomerName.trim() || 'Pembeli Walk-in',
       customerPhone: '080000000000',
-      customerClass: 'Kampus Tel-U (Kasir)',
+      customerClass: 'Kasir (walk-in)',
       items,
       totalItems: items.length,
       totalPieces,
@@ -125,9 +130,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       discountAmount: 0,
       total: subtotal,
       paymentMethod: posMethod,
-      paymentStatus: 'verified',
-      orderStatus: 'selesai',
-      customerNotes: 'Transaksi Kasir Langsung',
+      // Dicatat dulu sebagai BELUM BAYAR: admin tidak bisa lupa mencatat, dan omzet baru
+      // bertambah setelah admin menekan "Sudah Dibayar" di layar bayar.
+      paymentStatus: 'pending',
+      orderStatus: 'menunggu_pembayaran',
+      customerNotes: 'Transaksi kasir langsung',
       createdAt: new Date().toISOString(),
       expiresAt: new Date().toISOString(), // kolom wajib di database; batas bayar sudah tidak dipakai
     }
@@ -137,13 +144,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     } catch (err) {
       setPosFeedback({
         type: 'error',
-        text: err instanceof Error ? err.message : 'Transaksi gagal dicatat. Coba lagi.',
+        text: err instanceof Error ? err.message : 'Pesanan gagal dicatat. Coba lagi.',
       })
       return
     }
     setPosCart({})
+    setPosCashGiven('')
+    setPosPending(newOrder)
+  }
+
+  // Pembayaran diterima: terverifikasi dan langsung masuk antrean masak
+  const handlePosPaid = () => {
+    if (!posPending) return
+    onUpdateStatus(posPending.id, 'sedang_diproses', 'verified')
+    setPosFeedback({ type: 'success', text: `#${posPending.id} lunas dan masuk antrean masak.` })
     setPosCustomerName('Pembeli Kampus / Walk-in')
-    setPosFeedback({ type: 'success', text: `Transaksi #${newOrder.id} berhasil dicatat & masuk rekap!` })
+    setPosPending(null)
+  }
+
+  const handlePosCancel = () => {
+    if (!posPending) return
+    onUpdateStatus(posPending.id, 'dibatalkan')
+    setPosFeedback({ type: 'error', text: `#${posPending.id} dibatalkan.` })
+    setPosPending(null)
   }
 
   const handleCopyWhatsAppReport = () => {
@@ -421,7 +444,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                         )}
                         {needsCash && (
                           <button
-                            onClick={() => onUpdateStatus(order.id, order.orderStatus, 'verified')}
+                            onClick={() => onUpdateStatus(order.id, 'sedang_diproses', 'verified')}
                             className="btn-card w-full min-h-[52px] bg-green-700 hover:bg-green-800 text-white text-sm font-extrabold flex items-center justify-center gap-2"
                           >
                             <CheckCircle className="w-4 h-4" />
@@ -507,7 +530,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
             <div>
               <h2 className="font-extrabold text-base text-ink-900">Kasir Jualan Kampus (Walk-in)</h2>
               <p className="text-xs text-ink-500">
-                Pencatatan langsung bagi mahasiswa/dosen yang membeli di booth tanpa order online.
+                Pembeli di booth: pilih menu, lalu bayar lewat QRIS dari HP ini atau tunai.
               </p>
             </div>
 
@@ -626,7 +649,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 type="submit"
                 className="w-full min-h-[52px] bg-brand-600 text-white text-sm font-extrabold hover:bg-brand-700"
               >
-                Catat Transaksi Penjualan Masuk
+                Buat Pesanan & Lanjut Bayar
               </button>
             </form>
           </div>
@@ -787,6 +810,117 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
           </div>
         )}
       </div>
+
+      {/* Layar bayar kasir: QRIS ditampilkan dari HP admin untuk discan pembeli */}
+      {posPending && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pos-pay-title"
+          className="fixed inset-0 z-[60] bg-royal-600 flex flex-col"
+        >
+          <div className="shrink-0 pl-4 pr-2 h-14 flex items-center justify-between text-white">
+            <h2 id="pos-pay-title" className="font-display uppercase text-lg leading-none tabular-nums">
+              Bayar #{posPending.id}
+            </h2>
+            <button
+              onClick={() => setPosPending(null)}
+              className="min-h-[48px] min-w-[48px] flex items-center justify-center text-white/90 hover:text-white"
+              aria-label="Tutup, pesanan tetap tersimpan belum bayar"
+              title="Tutup (pesanan tetap tersimpan, belum bayar)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto overscroll-contain px-3 pb-4">
+            <div className="bg-surface p-4 space-y-4 shadow-[0_10px_20px_-8px_rgb(8_16_48/0.6)]">
+              <div className="text-center">
+                <div className="text-xs font-extrabold uppercase text-royal-700">
+                  {posPending.paymentMethod === 'qris' ? 'Pembeli scan QRIS ini' : 'Terima uang tunai'}
+                </div>
+                <div className="font-display text-4xl leading-tight text-brand-600 tabular-nums">
+                  Rp{posPending.total.toLocaleString('id-ID')}
+                </div>
+                <div className="text-sm text-ink-700">
+                  {posPending.customerName} · {posPending.totalPieces} pcs
+                </div>
+              </div>
+
+              {posPending.paymentMethod === 'qris' ? (
+                <>
+                  <img
+                    src={ADMIN_CONTACT.qrisImage}
+                    alt={`QRIS statis a.n. ${ADMIN_CONTACT.qrisName}`}
+                    width={904}
+                    height={1280}
+                    className="mx-auto w-full max-w-[300px] h-auto border border-paper-300"
+                  />
+                  <p className="text-sm text-ink-700 text-center">
+                    Minta pembeli memasukkan nominal <strong className="tabular-nums">Rp{posPending.total.toLocaleString('id-ID')}</strong>.
+                    Tekan <strong>Sudah Dibayar</strong> hanya setelah notifikasi uang masuk muncul di HP admin.
+                  </p>
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <label htmlFor="pos-cash" className="block text-sm font-bold text-ink-800">
+                    Uang diterima (opsional, untuk kembalian)
+                  </label>
+                  <input
+                    id="pos-cash"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Contoh: 20000"
+                    value={posCashGiven}
+                    onChange={(e) => setPosCashGiven(e.target.value.replace(/\D/g, '').slice(0, 7))}
+                    className="w-full min-h-[48px] px-3.5 text-lg font-extrabold tabular-nums border-2 border-paper-300 rounded-lg focus:outline-none focus:border-royal-600 bg-paper-50"
+                  />
+                  {posCashGiven !== '' && (
+                    <p
+                      className={`text-center text-lg font-extrabold tabular-nums ${
+                        Number(posCashGiven) >= posPending.total ? 'text-green-700' : 'text-red-700'
+                      }`}
+                    >
+                      {Number(posCashGiven) >= posPending.total
+                        ? `Kembalian Rp${(Number(posCashGiven) - posPending.total).toLocaleString('id-ID')}`
+                        : `Kurang Rp${(posPending.total - Number(posCashGiven)).toLocaleString('id-ID')}`}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <ul className="divide-y divide-dashed divide-royal-600/30 border-y border-dashed border-royal-600/30 text-sm">
+                {posPending.items.map((i) => (
+                  <li key={i.id} className="py-1.5 flex justify-between gap-3">
+                    <span className="font-bold text-ink-900">
+                      {i.quantity}× {i.name}
+                    </span>
+                    <span className="shrink-0 font-bold tabular-nums">
+                      Rp{(i.price * i.quantity).toLocaleString('id-ID')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="shrink-0 bg-surface border-t-[3px] border-dashed border-royal-600 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2">
+            <button
+              onClick={handlePosPaid}
+              className="btn-card w-full min-h-[56px] bg-green-700 hover:bg-green-800 text-white text-base font-extrabold flex items-center justify-center gap-2"
+            >
+              {posPending.paymentMethod === 'qris' ? <CheckCircle className="w-5 h-5" /> : <Banknote className="w-5 h-5" />}
+              <span>Sudah Dibayar · Masak</span>
+            </button>
+            <button
+              onClick={handlePosCancel}
+              className="w-full min-h-[44px] text-sm font-bold text-ink-600 hover:text-red-700"
+            >
+              Batalkan pesanan ini
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
