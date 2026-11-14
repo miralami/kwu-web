@@ -195,48 +195,54 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
       aria-label="Dashboard Admin Tim & Kasir"
       className="fixed inset-0 z-50 bg-paper-100 flex flex-col overflow-hidden"
     >
-      {/* Header: satu baris supaya layar HP tidak habis oleh judul */}
-      <div className="shrink-0 bg-inverse text-white pl-4 pr-2 flex items-center justify-between gap-2 h-14">
-        <h1 className="font-display uppercase text-lg leading-none flex items-center gap-2 min-w-0">
-          <ShieldAlert className="w-5 h-5 text-accent-500 shrink-0" />
-          <span className="truncate">Dashboard Tim</span>
-        </h1>
-        <button
-          onClick={onClose}
-          className="shrink-0 min-h-[44px] px-4 bg-white/10 hover:bg-white/20 text-white text-sm font-bold"
-        >
-          Keluar
-        </button>
-      </div>
+      {/* Header + tab: satu blok biru; tab aktif menyatu dengan halaman krem di bawahnya (seperti map folder) */}
+      <div className="shrink-0 bg-royal-600 relative overflow-hidden shadow-[0_6px_14px_-4px_rgb(8_16_48/0.55)] z-10">
+        <div aria-hidden="true" className="ground-rays-soft pointer-events-none absolute -right-24 -top-40 w-[26rem] h-[26rem]" />
+        <div className="relative pl-4 pr-2 flex items-center justify-between gap-2 h-14 text-white">
+          <h1 className="font-display uppercase text-lg leading-none flex items-center gap-2 min-w-0">
+            <span className="shrink-0 w-8 h-8 rounded-full bg-accent-500 text-stone-900 flex items-center justify-center shadow-[0_3px_0_rgb(var(--c-accent-700))]">
+              <ShieldAlert className="w-4 h-4" />
+            </span>
+            <span className="truncate">Dashboard Tim</span>
+          </h1>
+          <button
+            onClick={onClose}
+            className="shrink-0 min-h-[44px] px-4 bg-white/15 hover:bg-white/25 text-white text-sm font-bold"
+          >
+            Keluar
+          </button>
+        </div>
 
-      {/* Tabs */}
-      <div className="shrink-0 bg-surface border-b-[3px] border-double border-royal-600 px-2 grid grid-cols-4">
-        {[
-          { id: 'orders', label: 'Pesanan', count: orders.length },
-          { id: 'pos', label: 'Kasir' },
-          { id: 'report', label: 'Rekap' },
-          { id: 'team', label: 'Tim' },
-        ].map((tab) => {
-          const isActive = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`min-h-[48px] py-2 px-1 text-sm font-extrabold whitespace-nowrap border-b-4 transition-all flex items-center justify-center gap-1.5 ${
-                isActive
-                  ? 'border-brand-600 text-brand-600'
-                  : 'border-transparent text-ink-600 hover:text-ink-900'
-              }`}
-            >
-              <span>{tab.label}</span>
-              {tab.count !== undefined && (
-                <span className="bg-paper-200 text-ink-800 text-xs px-1.5 py-0.5 rounded font-extrabold">
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          )
-        })}
+        <div className="relative px-2 pt-1 grid grid-cols-4 gap-1" role="tablist">
+          {[
+            { id: 'orders', label: 'Pesanan', count: orders.length },
+            { id: 'pos', label: 'Kasir' },
+            { id: 'report', label: 'Rekap' },
+            { id: 'team', label: 'Tim' },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`tab-folder min-h-[48px] px-1 text-sm font-extrabold whitespace-nowrap transition-colors flex items-center justify-center gap-1.5 ${
+                  isActive
+                    ? 'bg-paper-100 text-brand-600 shadow-[0_-3px_6px_-2px_rgb(8_16_48/0.35)]'
+                    : 'bg-royal-700/60 text-white/90 hover:bg-royal-700'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className="bg-brand-600 text-white text-xs min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center font-extrabold tabular-nums">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -244,19 +250,19 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
         {/* TAB 1: ORDERS */}
         {activeTab === 'orders' && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-2 justify-between items-stretch sm:items-center">
+            <div className="flex flex-col sm:flex-row gap-3.5 justify-between items-stretch sm:items-center">
               <div className="relative flex-1 max-w-sm">
-                <Search className="w-4 h-4 text-ink-400 absolute left-3 top-3" />
+                <Search className="w-5 h-5 text-royal-600 absolute left-3.5 top-3" />
                 <input
                   type="text"
                   placeholder="Cari ID, nama pemesan, kelas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full min-h-[44px] pl-9 pr-3 py-2 text-xs bg-surface border border-paper-200 rounded-lg"
+                  className="w-full min-h-[48px] pl-11 pr-3 py-2 bg-surface border-2 border-royal-600 rounded-xl shadow-[0_3px_0_rgb(var(--c-royal-600))] placeholder:text-ink-500 focus:outline-none focus:border-brand-600"
                 />
               </div>
 
-              <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+              <div className="flex flex-wrap items-center gap-2">
                 {[
                   { id: 'all', label: 'Semua' },
                   { id: 'pending', label: 'Cek Qris' },
@@ -271,10 +277,11 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   <button
                     key={f.id}
                     onClick={() => setOrderFilter(f.id)}
-                    className={`min-h-[44px] px-3 rounded-lg text-xs font-bold whitespace-nowrap border ${
+                    aria-pressed={orderFilter === f.id}
+                    className={`min-h-[44px] px-4 text-sm font-extrabold whitespace-nowrap border-2 transition-[transform,box-shadow] duration-100 ${
                       orderFilter === f.id
-                        ? 'bg-royal-600 text-white border-royal-600'
-                        : 'bg-surface text-ink-700 border-paper-200 hover:bg-paper-50'
+                        ? 'bg-royal-600 text-white border-royal-600 shadow-[0_3px_0_rgb(var(--c-royal-900))] -translate-y-0.5'
+                        : 'bg-surface text-royal-700 border-royal-600/40 hover:border-royal-600 active:translate-y-0.5'
                     }`}
                   >
                     {f.label}

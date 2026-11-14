@@ -293,3 +293,14 @@ button,
   }
   55% { opacity: 1; transform: perspective(420px) rotateY(9deg) rotateX(3deg) rotate(-1deg) scale(0.96); }
 }
+
+/* Tab seperti map folder: hanya sudut atas membulat */
+.tab-folder {
+  border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+/* Sinar lembut di pojok header admin */
+.ground-rays-soft {
+  background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / 0.08) 0deg 6deg, transparent 6deg 12deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 65%);
+  mask-image: radial-gradient(circle, #000 0%, transparent 65%);
+}
