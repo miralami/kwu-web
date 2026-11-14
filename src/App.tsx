@@ -10,7 +10,7 @@ import {
   deleteOrder,
   cancelUnpaidOrder,
   subscribeOrders,
-  generateOrderId,
+  generateOrderCode,
   getMyOrderIds,
   rememberMyOrder,
   getOrdersByIds,
@@ -169,7 +169,7 @@ export function App() {
     const totalPieces = cartItems.reduce((sum, item) => sum + item.pieces * item.quantity, 0)
 
     const newOrder: Order = {
-      id: generateOrderId(),
+      id: await generateOrderCode(),
       customerName: formData.customerName,
       customerPhone: formData.customerPhone,
       customerClass: '', // form lokasi dihapus; kolom tetap ada di database (default kosong)

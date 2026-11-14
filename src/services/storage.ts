@@ -247,6 +247,7 @@ export async function cancelUnpaidOrder(orderId: string): Promise<void> {
 // Definisi "penjualan sah", rekap, dan seri harian tinggal di services/analytics.ts
 // (fungsi murni + teruji). Diekspor ulang di sini agar import lama tetap jalan.
 export { isCountedOrder, calculateSalesReport } from './analytics'
+import { formatOrderCode } from './analytics'
 
 // --- Pelacakan pesanan milik pelanggan di perangkat ini ---
 
@@ -291,9 +292,20 @@ export async function getOrdersByIds(ids: string[]): Promise<Order[]> {
   return local.filter((o) => ids.includes(o.id))
 }
 
-// Generate unique order ID: LM-XXXXXX
-// 6 digit (900 ribu kombinasi): dengan 4 digit, ratusan pesanan hampir pasti ada yang bentrok
-export function generateOrderId(): string {
-  const num = Math.floor(100000 + Math.random() * 900000)
-  return `LM-${num}`
+// Kode pesanan LM-DDMMYY-NNN, urutan reset tiap hari (hari kalender Jakarta).
+// Dengan Supabase, nomor diambil dari fungsi database next_order_code() sehingga dua pembeli
+// yang klik bersamaan tidak pernah dapat nomor kembar. Tanpa Supabase (mode lokal), nomor
+// dihitung dari pesanan hari ini di perangkat ini.
+export async function generateOrderCode(): Promise<string> {
+  const now = new Date()
+  if (supabase) {
+    const { data, error } = await supabase.rpc('next_order_code')
+    if (!error && typeof data === 'string' && data) return data
+    // Fungsi belum dibuat di database (schema.sql belum dijalankan ulang): jangan blokir pembeli
+    console.warn('next_order_code belum tersedia, memakai nomor cadangan:', error)
+    return formatOrderCode(now, 900 + Math.floor(Math.random() * 100))
+  }
+  const dayKey = formatOrderCode(now, 0).slice(0, -3) // "LM-141125-"
+  const today = (await getOrders()).filter((o) => o.id.startsWith(dayKey)).length
+  return formatOrderCode(now, today + 1)
 }

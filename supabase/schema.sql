@@ -58,3 +58,33 @@ begin
     alter publication supabase_realtime add table public.orders;
   end if;
 end $$;
+
+-- Kode pesanan LM-DDMMYY-NNN: urutan reset tiap hari (hari kalender Jakarta).
+-- Nomor diambil atomik di database sehingga tidak pernah kembar walau dua pembeli klik bersamaan.
+create table if not exists public.order_counters (
+  "day"  date    primary key,
+  "last" integer not null default 0
+);
+alter table public.order_counters enable row level security;
+revoke all on public.order_counters from anon, authenticated;
+
+create or replace function public.next_order_code()
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  d date := (now() at time zone 'Asia/Jakarta')::date;
+  n integer;
+begin
+  insert into public.order_counters ("day", "last") values (d, 1)
+  on conflict ("day") do update set "last" = public.order_counters."last" + 1
+  returning "last" into n;
+  return 'LM-' || to_char(d, 'DDMMYY') || '-' ||
+         case when n < 1000 then lpad(n::text, 3, '0') else n::text end;
+end;
+$$;
+
+revoke all on function public.next_order_code() from public;
+grant execute on function public.next_order_code() to anon, authenticated;

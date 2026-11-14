@@ -4,6 +4,7 @@ import {
   allocateAmounts,
   buildDailySeries,
   calculateSalesReport,
+  formatOrderCode,
   isAwaitingCash,
   isCountedOrder,
   jakartaDayNumber,
@@ -160,4 +161,12 @@ test('kas tunai belum lunas dihitung terpisah dari omzet', () => {
   assert.equal(report.totalRevenue, 10000)
   assert.equal(report.totalOrders, 1)
   assert.equal(report.awaitingCashCount, 1)
+})
+
+test('kode pesanan: tanggal Jakarta + urutan tiga digit', () => {
+  // 13 Nov 2026 22:00 UTC = 14 Nov 2026 05:00 WIB: harus memakai tanggal Jakarta
+  const d = new Date('2026-11-13T22:00:00.000Z')
+  assert.equal(formatOrderCode(d, 1), 'LM-141126-001')
+  assert.equal(formatOrderCode(d, 42), 'LM-141126-042')
+  assert.equal(formatOrderCode(d, 1000), 'LM-141126-1000')
 })

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Order, OrderStatus, PaymentStatus } from '../../types'
 import { MENU_ITEMS } from '../../data/menu'
-import { saveOrder, generateOrderId } from '../../services/storage'
+import { saveOrder, generateOrderCode } from '../../services/storage'
 import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../services/analytics'
 import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
 import {
@@ -114,7 +114,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const totalPieces = items.reduce((s, i) => s + i.pieces * i.quantity, 0)
 
     const newOrder: Order = {
-      id: generateOrderId(),
+      id: await generateOrderCode(),
       customerName: posCustomerName.trim() || 'Offline Customer',
       customerPhone: '080000000000',
       customerClass: 'Kampus Tel-U (Kasir)',

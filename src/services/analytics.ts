@@ -47,6 +47,16 @@ export function dayNumberToLabel(dayNumber: number): string {
   })
 }
 
+/**
+ * Kode pesanan: LM-DDMMYY-NNN. Tanggal = hari kalender Jakarta, NNN = urutan pesanan hari itu
+ * (reset tiap hari, 001 dst). Lebih dari 999 pesanan sehari tetap benar: 1000, 1001, ...
+ */
+export function formatOrderCode(when: Date, sequence: number): string {
+  const parts = dayFmt.formatToParts(when) // en-CA: tahun, bulan, hari
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '00'
+  return `LM-${get('day')}${get('month')}${get('year').slice(-2)}-${String(sequence).padStart(3, '0')}`
+}
+
 /** Pesanan dihitung sebagai penjualan hanya bila uangnya sudah diterima. */
 export function isCountedOrder(o: Order): boolean {
   return o.orderStatus !== 'dibatalkan' && o.paymentStatus === 'verified'
