@@ -12,6 +12,13 @@ export const supabase: SupabaseClient | null =
 /** True bila terhubung ke Supabase. Maka halaman tim memakai login Supabase, bukan kata sandi lokal. */
 export const isSupabaseConfigured = supabase !== null
 
+/**
+ * Situs online (hasil build produksi) tanpa env Supabase: pesanan hanya akan tersimpan di
+ * browser pembeli dan tidak pernah sampai ke admin. Kondisi ini harus terlihat jelas, bukan
+ * diam-diam jalan. Env VITE_* ikut tertanam saat BUILD, jadi menambah env di Vercel butuh redeploy.
+ */
+export const isProductionWithoutServer = import.meta.env.PROD && !supabase
+
 // Fungsi database belum dibuat (supabase/schema.sql belum dijalankan ulang): aplikasi tetap
 // jalan dengan cara lama selama masa peralihan, lalu aman begitu schema.sql dijalankan.
 function isMissingFunction(error: { code?: string; message?: string } | null): boolean {
@@ -426,7 +433,11 @@ export async function createOrder(input: {
     console.warn('create_order belum ada di database, memakai cara lama sementara.')
   }
 
-  // Mode lokal, atau masa peralihan sebelum schema.sql dijalankan
+  if (isProductionWithoutServer) {
+    throw new Error('Pemesanan online belum tersambung ke server. Mohon hubungi admin, pesananmu belum terkirim.')
+  }
+
+  // Mode lokal (demo/pengembangan), atau masa peralihan sebelum schema.sql dijalankan
   const subtotal = input.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const order: Order = {
     id: await generateOrderCode(),

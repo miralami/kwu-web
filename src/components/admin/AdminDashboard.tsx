@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Order, OrderStatus, PaymentStatus } from '../../types'
 import { MENU_ITEMS, ADMIN_CONTACT } from '../../data/menu'
-import { saveOrder, generateOrderCode, SyncState } from '../../services/storage'
+import { saveOrder, generateOrderCode, SyncState, isProductionWithoutServer } from '../../services/storage'
 import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../services/analytics'
 import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
 import {
@@ -366,6 +366,14 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
           })}
         </div>
       </div>
+
+      {isProductionWithoutServer && (
+        <div role="alert" className="shrink-0 bg-red-700 text-white text-sm font-bold px-4 py-3">
+          Supabase belum tersambung di versi ini. Pesanan pembeli TIDAK masuk ke sini dan data di layar ini
+          hanya ada di browser ini. Pasang env VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY di Vercel, lalu
+          Redeploy.
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 pb-10 max-w-4xl w-full mx-auto">
