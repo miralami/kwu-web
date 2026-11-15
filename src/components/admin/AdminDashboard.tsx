@@ -19,6 +19,7 @@ import {
   Package,
   X,
   Banknote,
+  Check,
 } from 'lucide-react'
 
 interface AdminDashboardProps {
@@ -47,6 +48,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [orderFilter, setOrderFilter] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [copiedReport, setCopiedReport] = useState(false)
+  const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null)
+
+  const handleCopyOrderId = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(id)
+      setCopiedOrderId(id)
+      setTimeout(() => setCopiedOrderId((cur) => (cur === id ? null : cur)), 1500)
+    } catch {
+      // Clipboard diblokir browser: nomor tetap terbaca di layar
+    }
+  }
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   // POS Offline state
@@ -463,7 +475,26 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                     >
                       {/* Kepala nota: nomor pesanan, jam, dan status bayar */}
                       <div className="bg-royal-600 text-white px-3 py-2 flex items-center justify-between gap-2">
-                        <span className="font-display text-lg leading-none tabular-nums">#{order.id}</span>
+                        <span className="flex items-center gap-1.5 min-w-0">
+                          <span className="font-display text-lg leading-none tabular-nums">#{order.id}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyOrderId(order.id)}
+                            aria-label={
+                              copiedOrderId === order.id
+                                ? `Nomor pesanan ${order.id} tersalin`
+                                : `Salin nomor pesanan ${order.id}`
+                            }
+                            title="Salin nomor pesanan"
+                            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/85 hover:bg-white/15 hover:text-white active:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+                          >
+                            {copiedOrderId === order.id ? (
+                              <Check className="h-4 w-4" aria-hidden="true" />
+                            ) : (
+                              <Copy className="h-4 w-4" aria-hidden="true" />
+                            )}
+                          </button>
+                        </span>
                         <span className="text-xs font-bold tabular-nums">
                           {new Date(order.createdAt).toLocaleTimeString('id-ID', {
                             hour: '2-digit',
