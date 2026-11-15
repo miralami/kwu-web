@@ -1,11 +1,20 @@
 import React from 'react'
 import { ShoppingBag } from 'lucide-react'
-import { ADMIN_CONTACT } from '../data/menu'
+import { ADMIN_CONTACT, PO_INFO } from '../data/menu'
 
 interface NavbarProps {
   cartCount: number
   onOpenCart: () => void
 }
+
+// Teks berjalan info PO per batch (jadwal diatur di PO_INFO, src/data/menu.ts).
+// Kalau semua hari ambil punya jam yang sama, digabung: "Selasa/Rabu 10.00–13.00 WIB".
+const pickupTimes = new Set(PO_INFO.pickups.map((p) => p.time))
+const PICKUP_TEXT =
+  pickupTimes.size === 1
+    ? `${PO_INFO.pickups.map((p) => p.day).join('/')} ${PO_INFO.pickups[0].time}`
+    : PO_INFO.pickups.map((p) => `${p.day} ${p.time}`).join(' / ')
+const TICKER_TEXT = `PO batch ini tutup ${PO_INFO.closeLabel}  •  Ambil ${PICKUP_TEXT}  •  Telat? Masuk batch berikutnya.  •  `
 
 export const Navbar: React.FC<NavbarProps> = ({ cartCount, onOpenCart }) => (
   // Papan header timbul: tepi bawah tebal gelap + bayangan jatuh ke halaman di bawahnya
@@ -50,6 +59,17 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onOpenCart }) => (
             {cartCount}
           </span>
         </button>
+      </div>
+    </div>
+    {/* Papan info PO: teks berjalan. Pengguna "kurangi gerakan" melihat teks diam */}
+    <div role="region" aria-label="Informasi pre-order" className="ticker bg-accent-500 text-stone-900 border-t-2 border-royal-900 overflow-hidden">
+      <div className="ticker-track flex w-max motion-reduce:w-auto motion-reduce:justify-center">
+        <p className="shrink-0 py-1.5 text-xs font-extrabold uppercase tracking-wide whitespace-pre motion-reduce:whitespace-normal motion-reduce:text-center motion-reduce:px-3">
+          {TICKER_TEXT}
+        </p>
+        <p aria-hidden="true" className="shrink-0 py-1.5 text-xs font-extrabold uppercase tracking-wide whitespace-pre motion-reduce:hidden">
+          {TICKER_TEXT}
+        </p>
       </div>
     </div>
   </header>

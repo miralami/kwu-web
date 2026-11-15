@@ -304,3 +304,18 @@ button,
   -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 65%);
   mask-image: radial-gradient(circle, #000 0%, transparent 65%);
 }
+
+/* Teks berjalan info PO: dua salinan teks berjajar, digeser separuh lebar lalu diulang mulus */
+@keyframes ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ticker-track {
+    animation: ticker 22s linear infinite;
+  }
+  .ticker:hover .ticker-track,
+  .ticker:active .ticker-track {
+    animation-play-state: paused;
+  }
+}

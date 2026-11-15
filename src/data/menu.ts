@@ -56,3 +56,12 @@ export const ADMIN_CONTACT = {
   qrisImage: '/qris-larismanis.jpg', // QRIS statis GoPay Merchant
   pickupPoint: 'Lantai 3 Gedung C / Gazebo Kampus Telkom University Jakarta',
 }
+
+// Jadwal PO yang tampil di kartu info halaman menu. Ubah di sini tiap periode PO baru.
+export const PO_INFO = {
+  closeLabel: 'Senin 18.00 WIB',
+  pickups: [
+    { day: 'Selasa', time: '10.00–13.00 WIB' },
+    { day: 'Rabu', time: '10.00–13.00 WIB' },
+  ],
+}
