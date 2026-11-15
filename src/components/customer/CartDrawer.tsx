@@ -302,7 +302,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     type="text"
                     enterKeyHint="done"
                     maxLength={120}
-                    placeholder="Contoh: ambil pas istirahat jam 12.00"
+                    placeholder="Contoh: ambil hari Senin jam 12.00"
                     value={customerNotes}
                     onChange={(e) => setCustomerNotes(e.target.value)}
                     className={inputClass(false)}
