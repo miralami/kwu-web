@@ -1,0 +1,21 @@
+# Fork qlmrs11/kwu-web menarik perubahan dari miralami/kwu-web secara berkala.
+# Hanya jalan di fork; di repo miralami job ini dilewati.
+name: Sync dari miralami
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.repository == 'qlmrs11/kwu-web'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync main dari upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh repo sync qlmrs11/kwu-web --source miralami/kwu-web --branch main
