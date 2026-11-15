@@ -51,8 +51,8 @@ export const REFERRAL_CODES: Record<string, { discount: number; label: string }>
 export const ADMIN_CONTACT = {
   name: 'Admin PO Laris Manis (Yudi / Willy)',
   phone: '6285717600986', // WhatsApp number from group chat
-  qrisName: 'LARIS MANIS KWU TELKOM',
-  qrisNmid: 'ID1025439257516',
-  qrisImage: '/qris.png', // QRIS statis GoPay Merchant
+  qrisName: 'LARIS MANIS',
+  qrisNmid: 'ID1025428535906',
+  qrisImage: '/qris-larismanis.jpg', // QRIS statis GoPay Merchant
   pickupPoint: 'Lantai 3 Gedung C / Gazebo Kampus Telkom University Jakarta',
 }

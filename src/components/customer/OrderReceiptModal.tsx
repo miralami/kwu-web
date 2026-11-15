@@ -70,7 +70,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
 
   const handleDownloadQris = () => {
     const link = document.createElement('a')
-    link.download = `QRIS-LarisManis-${order.id}.png`
+    link.download = `QRIS-LarisManis-${order.id}.jpg`
     link.href = ADMIN_CONTACT.qrisImage
     link.click()
   }
