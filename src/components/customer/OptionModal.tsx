@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 import { MenuItem, MenuOption } from '../../types'
 import { X, Plus, Minus, Check } from 'lucide-react'
+import { Review, MenuRatingSummary, formatAverage, reviewsForMenu } from '../../services/reviews'
+import { StarsRow } from './Stars'
 
 interface OptionModalProps {
   item: MenuItem
   onClose: () => void
   onAddToCart: (item: MenuItem, option: MenuOption, quantity: number, notes: string) => void
+  reviews?: Review[]
+  rating?: MenuRatingSummary
 }
 
-export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddToCart }) => {
+export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddToCart, reviews = [], rating }) => {
+  const menuReviews = reviewsForMenu(reviews, item.id)
   const [selectedOption, setSelectedOption] = useState<MenuOption>(item.options[0])
   const [quantity, setQuantity] = useState(1)
   const [notes, setNotes] = useState('')
@@ -63,6 +68,35 @@ export const OptionModal: React.FC<OptionModalProps> = ({ item, onClose, onAddTo
           </div>
 
           <p className="text-sm text-ink-700 leading-relaxed">{item.description}</p>
+
+          <section aria-labelledby="menu-reviews-title" className="border-t border-paper-200 pt-4">
+            <h3 id="menu-reviews-title" className="text-sm font-bold text-ink-800 flex items-center gap-2">
+              Ulasan
+              {rating && (
+                <span className="inline-flex items-center gap-1.5 font-bold text-royal-700">
+                  <StarsRow value={rating.average} />
+                  <span className="tabular-nums">
+                    {formatAverage(rating.average)} ({rating.count})
+                  </span>
+                </span>
+              )}
+            </h3>
+            {menuReviews.length === 0 ? (
+              <p className="mt-1 text-sm text-ink-600">Belum ada ulasan. Jadi yang pertama setelah pesananmu selesai!</p>
+            ) : (
+              <ul className="mt-2 divide-y divide-paper-200">
+                {menuReviews.map((r) => (
+                  <li key={r.id} className="py-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-extrabold text-ink-900 truncate">{r.displayName}</span>
+                      <StarsRow value={r.ratings[item.id]} />
+                    </div>
+                    {r.comment && <p className="mt-0.5 text-sm text-ink-700 break-words">{r.comment}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
 
           <div>
             <div id="option-group-label" className="text-sm font-bold text-ink-800 mb-2">

@@ -11,17 +11,27 @@ const STAMP_TONE: Record<string, string> = {
   done: 'text-ink-700 border-ink-700',
   problem: 'text-red-700 border-red-700',
 }
-import { X, Download, Copy, CheckCircle2, Send } from 'lucide-react'
+import { X, Download, Copy, CheckCircle2, Send, Star } from 'lucide-react'
 
 interface OrderReceiptModalProps {
   order: Order | null
   onClose: () => void
   onCancel: (orderId: string) => Promise<void>
+  canReview?: boolean // pesanan selesai dan belum diulas
+  hasReviewed?: boolean
+  onReview?: () => void
 }
 
 const rupiah = (n: number) => `Rp${n.toLocaleString('id-ID')}`
 
-export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onClose, onCancel }) => {
+export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
+  order,
+  onClose,
+  onCancel,
+  canReview = false,
+  hasReviewed = false,
+  onReview,
+}) => {
   const [copied, setCopied] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
@@ -125,6 +135,24 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               </p>
             )}
           </section>
+
+          {/* Ulasan: hanya setelah pesanan selesai, satu kali per pesanan */}
+          {canReview && onReview && (
+            <section aria-label="Ulasan" className="border-t border-paper-200 pt-5">
+              <p className="text-sm text-ink-800">Sudah dicoba? Bantu pembeli lain dengan ulasanmu.</p>
+              <button
+                onClick={onReview}
+                className="btn-3d mt-2 w-full min-h-[48px] bg-brand-600 text-white text-sm font-extrabold flex items-center justify-center gap-2"
+              >
+                <Star className="w-4 h-4 fill-white" /> Beri ulasan
+              </button>
+            </section>
+          )}
+          {hasReviewed && (
+            <p className="border-t border-paper-200 pt-5 text-sm font-bold text-green-700 flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4" /> Terima kasih, ulasanmu sudah terkirim.
+            </p>
+          )}
 
           {/* Pembayaran QRIS. Urutan mengikuti cara bayar di satu HP: nominal, simpan gambar, baru gambar QR */}
           {showPayment && (

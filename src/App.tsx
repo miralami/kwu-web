@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import confetti from 'canvas-confetti'
 import { MenuItem, MenuOption, CartItem, Order } from './types'
 import { MENU_ITEMS } from './data/menu'
@@ -27,7 +27,15 @@ import { MenuCatalog } from './components/customer/MenuCatalog'
 import { OptionModal } from './components/customer/OptionModal'
 import { CartDrawer } from './components/customer/CartDrawer'
 import { OrderReceiptModal } from './components/customer/OrderReceiptModal'
+import { ReviewModal } from './components/customer/ReviewModal'
 import { AdminDashboard } from './components/admin/AdminDashboard'
+import { Review, summarizeByMenu } from './services/reviews'
+import {
+  createReview,
+  getPublicReviews,
+  getReviewedOrderIds,
+  subscribeReviews,
+} from './services/reviewStorage'
 import { Lock } from 'lucide-react'
 
 // Kata sandi tim. Bukan rahasia yang aman (ikut ter-bundle); cukup untuk menutup pintu dashboard.
@@ -57,6 +65,12 @@ export function App() {
   const [myOrders, setMyOrders] = useState<Order[]>([])
   const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null)
   const activeReceiptOrder = myOrders.find((o) => o.id === trackedOrderId) ?? null
+
+  // Ulasan publik (rata-rata di katalog + daftar di rincian menu)
+  const [reviews, setReviews] = useState<Review[]>([])
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(() => getReviewedOrderIds())
+  const [isReviewOpen, setIsReviewOpen] = useState(false)
+  const ratingSummary = useMemo(() => summarizeByMenu(reviews), [reviews])
 
   // Gerbang tim. Dengan Supabase: login Supabase Auth memakai akun admin bersama (admin cukup
   // mengetik PIN) dan akun harus terdaftar di tabel admins; database sendiri menolak pembaca lain. Tanpa Supabase
@@ -107,6 +121,20 @@ export function App() {
       window.removeEventListener('online', reload)
     }
   }, [isTeamed])
+
+  useEffect(() => {
+    if (isAdminPath) return
+    getPublicReviews().then(setReviews)
+    const unsubscribe = subscribeReviews(setReviews)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') getPublicReviews().then(setReviews)
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      unsubscribe()
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
 
   const refreshMyOrders = useCallback(async () => {
     const fresh = await getOrdersByRefs(getMyOrderRefs())
@@ -234,6 +262,20 @@ export function App() {
     await refreshMyOrders()
   }
 
+  const handleSubmitReview = async (input: {
+    ratings: Record<string, number>
+    comment: string
+    anonymous: boolean
+  }) => {
+    if (!activeReceiptOrder) return
+    try {
+      await createReview({ order: activeReceiptOrder, ...input })
+    } finally {
+      setReviewedIds(getReviewedOrderIds())
+    }
+    setIsReviewOpen(false)
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isLoggingIn) return
@@ -255,7 +297,7 @@ export function App() {
   }
 
   // Kunci scroll halaman utama selama modal (menu, keranjang, bukti pesanan) terbuka
-  const isAnyModalOpen = isCartOpen || !!activeItemForOption || !!activeReceiptOrder
+  const isAnyModalOpen = isCartOpen || !!activeItemForOption || !!activeReceiptOrder || isReviewOpen
   useEffect(() => {
     if (!isAnyModalOpen) return
     const html = document.documentElement
@@ -361,6 +403,7 @@ export function App() {
             onSelectItem={(item) => setActiveItemForOption(item)}
             onAdd={(item) => handleQuickAdd(item, item.options[0])}
             onRemove={(item) => handleUpdateQuantity(`${item.id}-${item.options[0].id}`, -1)}
+            ratings={ratingSummary}
             header={<MyOrdersBanner orders={visibleMyOrders} onOpenOrder={setTrackedOrderId} />}
           />
         </main>
@@ -398,6 +441,8 @@ export function App() {
           item={activeItemForOption}
           onClose={() => setActiveItemForOption(null)}
           onAddToCart={handleAddToCart}
+          reviews={reviews}
+          rating={ratingSummary[activeItemForOption.id]}
         />
       )}
 
@@ -418,7 +463,24 @@ export function App() {
         order={activeReceiptOrder}
         onClose={() => setTrackedOrderId(null)}
         onCancel={handleCancelOrder}
+        canReview={
+          !!activeReceiptOrder &&
+          activeReceiptOrder.orderStatus === 'selesai' &&
+          activeReceiptOrder.paymentStatus === 'verified' &&
+          !reviewedIds.has(activeReceiptOrder.id)
+        }
+        hasReviewed={!!activeReceiptOrder && reviewedIds.has(activeReceiptOrder.id)}
+        onReview={() => setIsReviewOpen(true)}
       />
+
+      {/* Ulasan pesanan selesai */}
+      {isReviewOpen && activeReceiptOrder && (
+        <ReviewModal
+          order={activeReceiptOrder}
+          onClose={() => setIsReviewOpen(false)}
+          onSubmit={handleSubmitReview}
+        />
+      )}
 
     </div>
   )

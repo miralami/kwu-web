@@ -3,6 +3,7 @@ import { Order, OrderStatus, PaymentStatus } from '../../types'
 import { MENU_ITEMS, ADMIN_CONTACT } from '../../data/menu'
 import { saveOrder, generateOrderCode, SyncState, isProductionWithoutServer } from '../../services/storage'
 import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../services/analytics'
+import { ReviewsPanel } from './ReviewsPanel'
 import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
 import {
   ShieldAlert,
@@ -54,7 +55,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteOrder,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'orders' | 'pos' | 'report' | 'team'>('orders')
+  const [activeTab, setActiveTab] = useState<'orders' | 'pos' | 'report' | 'reviews' | 'team'>('orders')
   const [orderFilter, setOrderFilter] = useState<string>('all')
   // Rentang tanggal (YYYY-MM-DD, hari lokal). Kosong = semua tanggal.
   const [dateFrom, setDateFrom] = useState('')
@@ -392,11 +393,12 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
           </button>
         </div>
 
-        <div className="relative px-2 pt-1 grid grid-cols-4 gap-1" role="tablist">
+        <div className="relative px-2 pt-1 grid grid-cols-5 gap-1" role="tablist">
           {[
             { id: 'orders', label: 'Pesanan', count: orders.length },
             { id: 'pos', label: 'Kasir' },
             { id: 'report', label: 'Rekap' },
+            { id: 'reviews', label: 'Ulasan' },
             { id: 'team', label: 'Tim' },
           ].map((tab) => {
             const isActive = activeTab === tab.id
@@ -1002,6 +1004,8 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
             </div>
           </div>
         )}
+
+        {activeTab === 'reviews' && <ReviewsPanel />}
 
         {/* TAB 4: TEAM */}
         {activeTab === 'team' && (

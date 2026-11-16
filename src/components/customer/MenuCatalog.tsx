@@ -1,6 +1,8 @@
 import React from 'react'
 import { MenuItem } from '../../types'
 import { Plus, Minus } from 'lucide-react'
+import { MenuRatingSummary, formatAverage } from '../../services/reviews'
+import { StarsRow } from './Stars'
 
 interface MenuCatalogProps {
   items: MenuItem[]
@@ -8,6 +10,7 @@ interface MenuCatalogProps {
   onSelectItem: (item: MenuItem) => void
   onAdd: (item: MenuItem) => void
   onRemove: (item: MenuItem) => void
+  ratings?: Record<string, MenuRatingSummary> // rata-rata ulasan per id menu
   header?: React.ReactNode // mis. "Pesanan Saya", tampil di dalam nota
 }
 
@@ -64,6 +67,7 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
   onSelectItem,
   onAdd,
   onRemove,
+  ratings = {},
   header,
 }) => (
   <div className="nota-stack relative">
@@ -140,6 +144,16 @@ export const MenuCatalog: React.FC<MenuCatalogProps> = ({
                 <span className="min-w-0">
                   <span className="block font-extrabold text-[1.05rem] leading-[1.1] text-royal-700">{item.name}</span>
                   <span className="mt-1 block text-xs text-ink-700 leading-snug">{option.label}</span>
+                  {ratings[item.id] ? (
+                    <span className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-royal-700">
+                      <StarsRow value={ratings[item.id].average} />
+                      <span className="tabular-nums">
+                        {formatAverage(ratings[item.id].average)} ({ratings[item.id].count})
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="mt-1.5 block text-xs text-ink-600">Belum ada ulasan</span>
+                  )}
                 </span>
               </button>
 

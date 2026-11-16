@@ -261,3 +261,116 @@ begin
     alter publication supabase_realtime add table public.orders;
   end if;
 end $$;
+
+-- ULASAN PEMBELI
+-- Satu ulasan per pesanan, hanya untuk pesanan yang sudah selesai dan terverifikasi.
+-- Ulasan langsung tampil (auto-approve); admin bisa menyembunyikan atau menghapus.
+-- Publik hanya membaca lewat get_public_reviews (tanpa nomor pesanan).
+create table if not exists public.reviews (
+  "id"          uuid primary key default gen_random_uuid(),
+  "orderId"     text        not null unique references public.orders ("id") on delete cascade,
+  "displayName" text        not null,
+  "ratings"     jsonb       not null,
+  "comment"     text        not null default '',
+  "hidden"      boolean     not null default false,
+  "createdAt"   timestamptz not null default now()
+);
+
+alter table public.reviews enable row level security;
+drop policy if exists "reviews_admin_all" on public.reviews;
+create policy "reviews_admin_all" on public.reviews
+  for all to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+revoke all on public.reviews from anon, authenticated;
+grant select, delete on public.reviews to authenticated;
+grant update ("hidden") on public.reviews to authenticated;
+
+-- PEMBELI: kirim ulasan. Server memeriksa token, status pesanan, menu yang boleh dinilai,
+-- dan menyamarkan nama ("Budi S." atau "Anonim").
+create or replace function public.create_review(
+  p_order_id  text,
+  p_token     text,
+  p_ratings   jsonb,
+  p_comment   text,
+  p_anonymous boolean
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  o       public.orders;
+  k       text;
+  v       integer;
+  v_clean jsonb := '{}'::jsonb;
+  v_name  text;
+  parts   text[];
+begin
+  select * into o from public.orders
+   where "id" = p_order_id and "accessToken"::text = p_token;
+  if not found then
+    raise exception 'pesanan tidak ditemukan';
+  end if;
+  if o."orderStatus" <> 'selesai' or o."paymentStatus" <> 'verified' then
+    raise exception 'pesanan belum selesai';
+  end if;
+  if exists (select 1 from public.reviews where "orderId" = p_order_id) then
+    raise exception 'pesanan sudah diulas';
+  end if;
+
+  if jsonb_typeof(p_ratings) = 'object' then
+    for k in select jsonb_object_keys(p_ratings) loop
+      if jsonb_typeof(p_ratings -> k) = 'number'
+         and exists (select 1 from jsonb_array_elements(o."items") i where i ->> 'menuItemId' = k) then
+        v := (p_ratings ->> k)::numeric::integer;
+        if v between 1 and 5 and (p_ratings ->> k)::numeric = v then
+          v_clean := v_clean || jsonb_build_object(k, v);
+        end if;
+      end if;
+    end loop;
+  end if;
+  if v_clean = '{}'::jsonb then
+    raise exception 'rating tidak valid';
+  end if;
+
+  parts := regexp_split_to_array(btrim(o."customerName"), '\s+');
+  if coalesce(p_anonymous, false) or array_length(parts, 1) is null or parts[1] = '' then
+    v_name := 'Anonim';
+  elsif array_length(parts, 1) = 1 then
+    v_name := left(parts[1], 20);
+  else
+    v_name := left(parts[1], 20) || ' ' || upper(left(parts[array_length(parts, 1)], 1)) || '.';
+  end if;
+
+  insert into public.reviews ("orderId", "displayName", "ratings", "comment")
+  values (p_order_id, v_name, v_clean, left(btrim(coalesce(p_comment, '')), 200));
+end;
+$$;
+
+revoke all on function public.create_review(text, text, jsonb, text, boolean) from public;
+grant execute on function public.create_review(text, text, jsonb, text, boolean) to anon, authenticated;
+
+-- PUBLIK: ulasan yang tidak disembunyikan (200 terbaru), tanpa nomor pesanan.
+create or replace function public.get_public_reviews()
+returns jsonb
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select coalesce(jsonb_agg(to_jsonb(x) order by x."createdAt" desc), '[]'::jsonb)
+  from (
+    select r."id", '' as "orderId", r."displayName", r."ratings", r."comment",
+           r."hidden", r."createdAt"
+    from public.reviews r
+    where not r."hidden"
+    order by r."createdAt" desc
+    limit 200
+  ) x;
+$$;
+
+revoke all on function public.get_public_reviews() from public;
+grant execute on function public.get_public_reviews() to anon, authenticated;

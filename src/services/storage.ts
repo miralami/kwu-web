@@ -21,7 +21,7 @@ export const isProductionWithoutServer = import.meta.env.PROD && !supabase
 
 // Fungsi database belum dibuat (supabase/schema.sql belum dijalankan ulang): aplikasi tetap
 // jalan dengan cara lama selama masa peralihan, lalu aman begitu schema.sql dijalankan.
-function isMissingFunction(error: { code?: string; message?: string } | null): boolean {
+export function isMissingFunction(error: { code?: string; message?: string } | null): boolean {
   return !!error && (error.code === 'PGRST202' || /could not find the function/i.test(error.message ?? ''))
 }
 
