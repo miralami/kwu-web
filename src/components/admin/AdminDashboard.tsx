@@ -35,6 +35,16 @@ interface AdminDashboardProps {
 // Pembeli kasir tidak punya nomor HP asli (nomor tiruan), jadi tidak ditampilkan
 const isWalkIn = (o: Order) => o.customerPhone === '080000000000'
 
+// Filter tanggal pesanan: rentang paling lama 7 hari (hari awal dan akhir dihitung)
+const MAX_RANGE_DAYS = 7
+const toYmd = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+const addDays = (ymd: string, n: number) => {
+  const d = new Date(`${ymd}T12:00:00`)
+  d.setDate(d.getDate() + n)
+  return toYmd(d)
+}
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   orders,
   ordersLoaded,
@@ -46,6 +56,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'orders' | 'pos' | 'report' | 'team'>('orders')
   const [orderFilter, setOrderFilter] = useState<string>('all')
+  // Rentang tanggal (YYYY-MM-DD, hari lokal). Kosong = semua tanggal.
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [copiedReport, setCopiedReport] = useState(false)
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null)
@@ -63,6 +76,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // POS Offline state
   const [posCustomerName, setPosCustomerName] = useState('Pembeli Kampus / Walk-in')
+  const [posNotes, setPosNotes] = useState('')
   const [posMethod, setPosMethod] = useState<'qris' | 'tunai'>('tunai')
   const [posCart, setPosCart] = useState<{ [key: string]: number }>({})
   const [posItemSearch, setPosItemSearch] = useState('')
@@ -146,6 +160,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     if (!matchesSearch) return false
 
+    if (dateFrom && dateTo) {
+      const day = toYmd(new Date(order.createdAt))
+      if (day < dateFrom || day > dateTo) return false
+    }
+
     if (orderFilter === 'pending') {
       return (
         order.paymentStatus === 'pending' &&
@@ -167,6 +186,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
     return true
   })
+
+  const todayYmd = toYmd(new Date())
+  const pickFrom = (v: string) => {
+    if (!v) return clearDates()
+    setDateFrom(v)
+    // Akhir rentang dijaga: tidak sebelum awal, tidak lebih dari 7 hari, tidak melewati hari ini
+    const limit = addDays(v, MAX_RANGE_DAYS - 1)
+    const cap = limit > todayYmd ? todayYmd : limit
+    if (!dateTo || dateTo < v || dateTo > cap) setDateTo(cap)
+  }
+  const pickTo = (v: string) => {
+    if (!v) return clearDates()
+    setDateTo(v)
+    const earliest = addDays(v, -(MAX_RANGE_DAYS - 1))
+    if (!dateFrom || dateFrom < earliest) setDateFrom(earliest)
+    else if (dateFrom > v) setDateFrom(v)
+  }
+  const setLastDays = (n: number) => {
+    setDateFrom(addDays(todayYmd, -(n - 1)))
+    setDateTo(todayYmd)
+  }
+  const clearDates = () => {
+    setDateFrom('')
+    setDateTo('')
+  }
 
   const handlePosChange = (key: string, delta: number) => {
     setPosCart((prev) => {
@@ -220,7 +264,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       // bertambah setelah admin menekan "Sudah Dibayar" di layar bayar.
       paymentStatus: 'pending',
       orderStatus: 'menunggu_pembayaran',
-      customerNotes: 'Transaksi kasir langsung',
+      customerNotes: posNotes.trim() || 'Transaksi kasir langsung',
       createdAt: new Date().toISOString(),
       expiresAt: new Date().toISOString(), // kolom wajib di database; batas bayar sudah tidak dipakai
     }
@@ -248,6 +292,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (ok) {
       setPosFeedback({ type: 'success', text: `#${order.id} lunas dan masuk antrean masak.` })
       setPosCustomerName('Pembeli Kampus / Walk-in')
+      setPosNotes('')
     }
   }
 
@@ -430,6 +475,55 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   </button>
                 ))}
               </div>
+
+              {/* Filter tanggal: maksimal 7 hari */}
+              <div className="flex flex-wrap items-end gap-2" role="group" aria-label="Filter tanggal pesanan">
+                <label className="text-xs font-bold text-ink-800">
+                  Dari
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    max={todayYmd}
+                    onChange={(e) => pickFrom(e.target.value)}
+                    className="mt-1 block min-h-[44px] px-3 bg-surface border-2 border-royal-600/40 rounded-lg text-sm"
+                  />
+                </label>
+                <label className="text-xs font-bold text-ink-800">
+                  Sampai
+                  <input
+                    type="date"
+                    value={dateTo}
+                    max={todayYmd}
+                    min={dateFrom || undefined}
+                    onChange={(e) => pickTo(e.target.value)}
+                    className="mt-1 block min-h-[44px] px-3 bg-surface border-2 border-royal-600/40 rounded-lg text-sm"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setLastDays(1)}
+                  className="min-h-[44px] px-3 text-sm font-extrabold border-2 border-royal-600/40 bg-surface text-royal-700"
+                >
+                  Hari ini
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLastDays(MAX_RANGE_DAYS)}
+                  className="min-h-[44px] px-3 text-sm font-extrabold border-2 border-royal-600/40 bg-surface text-royal-700"
+                >
+                  7 hari terakhir
+                </button>
+                {(dateFrom || dateTo) && (
+                  <button
+                    type="button"
+                    onClick={clearDates}
+                    className="min-h-[44px] px-3 text-sm font-extrabold text-brand-600 underline"
+                  >
+                    Reset tanggal
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-ink-600">Rentang tanggal paling lama {MAX_RANGE_DAYS} hari.</p>
             </div>
 
             {report.awaitingCashCount > 0 && (
@@ -727,6 +821,21 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                     </button>
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label htmlFor="pos-notes" className="block text-xs font-bold text-ink-800 mb-1">
+                  Catatan <span className="font-medium text-ink-600">(opsional)</span>
+                </label>
+                <input
+                  id="pos-notes"
+                  type="text"
+                  value={posNotes}
+                  onChange={(e) => setPosNotes(e.target.value)}
+                  maxLength={200}
+                  placeholder="Contoh: tanpa pedas, dibungkus"
+                  className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg bg-paper-50"
+                />
               </div>
 
               <div>
