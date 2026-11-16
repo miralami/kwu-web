@@ -6,6 +6,7 @@ import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../se
 import { ReviewsPanel } from './ReviewsPanel'
 import { SchedulePanel } from './SchedulePanel'
 import { dayLabel, formatPickup } from '../../services/schedule'
+import { downloadSalesExcel } from '../../services/exportExcel'
 import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
 import {
   ShieldAlert,
@@ -65,6 +66,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [dateTo, setDateTo] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [copiedReport, setCopiedReport] = useState(false)
+  const [exportingXlsx, setExportingXlsx] = useState(false)
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null)
 
   const handleCopyOrderId = async (id: string) => {
@@ -337,6 +339,19 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
     navigator.clipboard.writeText(text)
     setCopiedReport(true)
     setTimeout(() => setCopiedReport(false), 2000)
+  }
+
+  const handleDownloadExcel = async () => {
+    if (exportingXlsx) return
+    setExportingXlsx(true)
+    try {
+      await downloadSalesExcel(orders)
+    } catch (err) {
+      console.error('Export Excel gagal:', err)
+      showNotice('Gagal membuat file Excel. Coba lagi, atau pakai Export data (CSV).')
+    } finally {
+      setExportingXlsx(false)
+    }
   }
 
   const handleDownloadCsv = () => {
@@ -1035,7 +1050,15 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 className="flex-1 min-h-[48px] bg-royal-600 hover:bg-royal-700 text-white px-4 text-sm font-bold flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                <span>Export data (Google Sheets)</span>
+                <span>Export data (CSV)</span>
+              </button>
+              <button
+                onClick={handleDownloadExcel}
+                disabled={exportingXlsx}
+                className="flex-1 min-h-[48px] bg-royal-600 hover:bg-royal-700 text-white px-4 text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60"
+              >
+                <Download className="w-4 h-4" />
+                <span>{exportingXlsx ? 'Membuat file...' : 'Export Excel (.xlsx)'}</span>
               </button>
             </div>
           </div>
