@@ -33,8 +33,9 @@ export function orderType(o: Pick<Order, 'customerClass'>): SalesRow['type'] {
 }
 
 /** Sama dengan rumus kolom L di Excel. */
-export function paidLabel(type: SalesRow['type'], verification: string): SalesRow['paid'] {
-  return type === 'Walk-in' || verification === 'verified' ? 'Lunas' : 'Belum Bayar'
+export function paidLabel(verification: string): SalesRow['paid'] {
+  // Walk-in pun baru Lunas setelah diverifikasi: kasir mencatatnya dulu sebagai belum bayar
+  return verification === 'verified' ? 'Lunas' : 'Belum Bayar'
 }
 
 export function buildSalesRows(orders: Order[]): SalesRow[] {
@@ -45,7 +46,7 @@ export function buildSalesRows(orders: Order[]): SalesRow[] {
     const date = new Date(Date.parse(o.createdAt) + WIB_OFFSET_MS)
     for (const item of o.items) {
       const subtotal = item.quantity * item.price
-      const paid = paidLabel(type, o.paymentStatus)
+      const paid = paidLabel(o.paymentStatus)
       rows.push({
         no: rows.length + 1,
         orderId: o.id,
@@ -133,7 +134,7 @@ export async function buildSalesWorkbook(orders: Order[]) {
       r.method,
       r.type,
       r.verification,
-      { formula: `IF(OR(J${n}="Walk-in",K${n}="verified"),"Lunas","Belum Bayar")`, result: r.paid },
+      { formula: `IF(K${n}="verified","Lunas","Belum Bayar")`, result: r.paid },
       { formula: `IF(L${n}="Lunas",H${n},0)`, result: r.recognized },
     ])
   })

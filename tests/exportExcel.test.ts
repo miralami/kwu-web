@@ -50,10 +50,15 @@ test('urut dari pesanan terlama dan nomor tidak mengulang antar pesanan', () => 
   assert.deepEqual(rows.map((r) => r.no), [1, 2])
 })
 
-test('tipe order dan status bayar mengikuti aturan kolom J dan L', () => {
-  const walkin = buildSalesRows([order({ customerClass: 'Kasir (walk-in)', paymentStatus: 'pending' })])[0]
-  assert.equal(walkin.type, 'Walk-in')
-  assert.equal(walkin.paid, 'Lunas')
+test('tipe order mengikuti kolom J; status bayar hanya Lunas bila terverifikasi (walk-in juga)', () => {
+  const walkinUnpaid = buildSalesRows([order({ customerClass: 'Kasir (walk-in)', paymentStatus: 'pending' })])[0]
+  assert.equal(walkinUnpaid.type, 'Walk-in')
+  assert.equal(walkinUnpaid.paid, 'Belum Bayar')
+  assert.equal(walkinUnpaid.recognized, 0)
+
+  const walkinPaid = buildSalesRows([order({ customerClass: 'Kasir (walk-in)', paymentStatus: 'verified' })])[0]
+  assert.equal(walkinPaid.paid, 'Lunas')
+  assert.equal(walkinPaid.recognized, 20000)
 
   const preOrderPending = buildSalesRows([order({ paymentStatus: 'pending' })])[0]
   assert.equal(preOrderPending.type, 'Pre-order')
@@ -64,7 +69,7 @@ test('tipe order dan status bayar mengikuti aturan kolom J dan L', () => {
   assert.equal(preOrderPaid.paid, 'Lunas')
   assert.equal(preOrderPaid.recognized, 20000)
 
-  assert.equal(paidLabel('Pre-order', 'rejected'), 'Belum Bayar')
+  assert.equal(paidLabel('rejected'), 'Belum Bayar')
 })
 
 test('workbook: 13 kolom, rumus H/L/M terpasang, judul sheet Penjualan', async () => {
@@ -73,7 +78,7 @@ test('workbook: 13 kolom, rumus H/L/M terpasang, judul sheet Penjualan', async (
   assert.ok(ws)
   assert.equal(ws.getRow(1).values.length - 1, 13)
   assert.equal(ws.getCell('H2').value.formula, 'F2*G2')
-  assert.equal(ws.getCell('L2').value.formula, 'IF(OR(J2="Walk-in",K2="verified"),"Lunas","Belum Bayar")')
+  assert.equal(ws.getCell('L2').value.formula, 'IF(K2="verified","Lunas","Belum Bayar")')
   assert.equal(ws.getCell('M2').value.formula, 'IF(L2="Lunas",H2,0)')
   assert.equal(ws.getCell('M2').value.result, 20000)
   assert.equal(ws.getCell('M4').value.formula, 'IF(L4="Lunas",H4,0)') // pesanan X (belum bayar); nilai 0 dihitung Excel
