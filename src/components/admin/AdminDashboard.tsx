@@ -4,6 +4,8 @@ import { MENU_ITEMS, ADMIN_CONTACT } from '../../data/menu'
 import { saveOrder, generateOrderCode, SyncState, isProductionWithoutServer } from '../../services/storage'
 import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../services/analytics'
 import { ReviewsPanel } from './ReviewsPanel'
+import { SchedulePanel } from './SchedulePanel'
+import { dayLabel, formatPickup } from '../../services/schedule'
 import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
 import {
   ShieldAlert,
@@ -55,8 +57,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteOrder,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'orders' | 'pos' | 'report' | 'reviews' | 'team'>('orders')
+  const [activeTab, setActiveTab] = useState<'orders' | 'pos' | 'report' | 'schedule' | 'reviews' | 'team'>('orders')
   const [orderFilter, setOrderFilter] = useState<string>('all')
+  const [pickupFilter, setPickupFilter] = useState<string>('all') // 'all' | tanggal YYYY-MM-DD | 'none'
   // Rentang tanggal (YYYY-MM-DD, hari lokal). Kosong = semua tanggal.
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -161,6 +164,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     if (!matchesSearch) return false
 
+    if (pickupFilter === 'none' && order.pickupTime) return false
+    if (pickupFilter !== 'all' && pickupFilter !== 'none' && !order.pickupTime?.startsWith(`${pickupFilter}|`)) return false
+
     if (dateFrom && dateTo) {
       const day = toYmd(new Date(order.createdAt))
       if (day < dateFrom || day > dateTo) return false
@@ -187,6 +193,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
     return true
   })
+
+  // Tanggal ambil yang muncul di pesanan, untuk filter "Hari ambil"
+  const pickupDates = [
+    ...new Set(orders.map((o) => o.pickupTime?.match(/^(\d{4}-\d{2}-\d{2})\|/)?.[1]).filter((d): d is string => !!d)),
+  ].sort()
 
   const todayYmd = toYmd(new Date())
   const pickFrom = (v: string) => {
@@ -330,11 +341,11 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
 
   const handleDownloadCsv = () => {
     const headers =
-      'ID,Tanggal,Nama,Kelas/Lokasi,No WA,Metode,Status Bayar,Status Pesanan,Total Pcs,Subtotal,Diskon,Total Tagihan\n'
+      'ID,Tanggal,Nama,Kelas/Lokasi,No WA,Jadwal Ambil,Metode,Status Bayar,Status Pesanan,Total Pcs,Subtotal,Diskon,Total Tagihan\n'
     const rows = orders
       .map(
         (o) =>
-          `"${o.id}","${new Date(o.createdAt).toLocaleString('id-ID')}","${o.customerName}","${o.customerClass}","${o.customerPhone}","${o.paymentMethod}","${o.paymentStatus}","${o.orderStatus}",${o.totalPieces},${o.subtotal},${o.discountAmount},${o.total}`
+          `"${o.id}","${new Date(o.createdAt).toLocaleString('id-ID')}","${o.customerName}","${o.customerClass}","${o.customerPhone}","${formatPickup(o.pickupTime)}","${o.paymentMethod}","${o.paymentStatus}","${o.orderStatus}",${o.totalPieces},${o.subtotal},${o.discountAmount},${o.total}`
       )
       .join('\n')
 
@@ -393,11 +404,12 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
           </button>
         </div>
 
-        <div className="relative px-2 pt-1 grid grid-cols-5 gap-1" role="tablist">
+        <div className="relative px-2 pt-1 flex gap-1 overflow-x-auto" role="tablist">
           {[
             { id: 'orders', label: 'Pesanan', count: orders.length },
             { id: 'pos', label: 'Kasir' },
             { id: 'report', label: 'Rekap' },
+            { id: 'schedule', label: 'Jadwal' },
             { id: 'reviews', label: 'Ulasan' },
             { id: 'team', label: 'Tim' },
           ].map((tab) => {
@@ -408,7 +420,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                 role="tab"
                 aria-selected={isActive}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`tab-folder min-h-[48px] px-1 text-sm font-extrabold whitespace-nowrap transition-colors flex items-center justify-center gap-1.5 ${
+                className={`tab-folder flex-1 min-w-[4.5rem] shrink-0 min-h-[48px] px-2 text-sm font-extrabold whitespace-nowrap transition-colors flex items-center justify-center gap-1.5 ${
                   isActive
                     ? 'bg-paper-100 text-brand-600 shadow-[0_-3px_6px_-2px_rgb(8_16_48/0.35)]'
                     : 'bg-royal-700/60 text-white/90 hover:bg-royal-700'
@@ -477,6 +489,26 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                   </button>
                 ))}
               </div>
+
+              {/* Filter hari ambil (dari jadwal yang dipilih pembeli) */}
+              {pickupDates.length > 0 && (
+                <label className="text-xs font-bold text-ink-800">
+                  Hari ambil
+                  <select
+                    value={pickupFilter}
+                    onChange={(e) => setPickupFilter(e.target.value)}
+                    className="mt-1 block min-h-[44px] px-3 bg-surface border-2 border-royal-600/40 rounded-lg text-sm"
+                  >
+                    <option value="all">Semua</option>
+                    {pickupDates.map((d) => (
+                      <option key={d} value={d}>
+                        {dayLabel(d)}
+                      </option>
+                    ))}
+                    <option value="none">Belum diisi</option>
+                  </select>
+                </label>
+              )}
 
               {/* Filter tanggal: maksimal 7 hari */}
               <div className="flex flex-wrap items-end gap-2" role="group" aria-label="Filter tanggal pesanan">
@@ -639,7 +671,7 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                         </div>
 
                         {order.pickupTime && (
-                          <p className="text-sm font-extrabold text-royal-700">Ambil hari {order.pickupTime}</p>
+                          <p className="text-sm font-extrabold text-royal-700">Ambil: {formatPickup(order.pickupTime)}</p>
                         )}
 
                         {order.customerNotes && (
@@ -1008,6 +1040,8 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
             </div>
           </div>
         )}
+
+        {activeTab === 'schedule' && <SchedulePanel orders={orders} />}
 
         {activeTab === 'reviews' && <ReviewsPanel />}
 

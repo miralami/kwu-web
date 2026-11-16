@@ -121,17 +121,115 @@ $$;
 revoke all on function public.next_order_code() from public, anon, authenticated;
 grant execute on function public.next_order_code() to authenticated;
 
+-- JADWAL PO (diatur admin dari tab Jadwal)
+-- Satu baris (id = 1): { open, closeLabel, days: [{ id, date, start, end, step, active }] }.
+-- Publik hanya membaca lewat get_po_settings; hanya admin yang boleh menulis.
+create table if not exists public.po_settings (
+  "id"        integer primary key check ("id" = 1),
+  "data"      jsonb       not null,
+  "updatedAt" timestamptz not null default now()
+);
+alter table public.po_settings enable row level security;
+drop policy if exists "po_settings_admin_all" on public.po_settings;
+create policy "po_settings_admin_all" on public.po_settings
+  for all to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+revoke all on public.po_settings from anon, authenticated;
+grant select, insert, update on public.po_settings to authenticated;
+
+create or replace function public.get_po_settings()
+returns jsonb
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select "data" from public.po_settings where "id" = 1;
+$$;
+revoke all on function public.get_po_settings() from public;
+grant execute on function public.get_po_settings() to anon, authenticated;
+
+-- Memeriksa hari+jam ambil pilihan pembeli, format "YYYY-MM-DD|HH:MM|HH:MM", terhadap jadwal aktif.
+-- Aturannya sama dengan isValidPickup() di src/services/schedule.ts. Bila jadwal belum pernah
+-- diatur (tidak ada baris), pesanan tidak dibatasi supaya database baru tetap bisa dipakai.
+create or replace function public.pickup_is_valid(p_pickup text)
+returns boolean
+language plpgsql
+security definer
+stable
+set search_path = public
+as $$
+declare
+  s       jsonb;
+  d       jsonb;
+  parts   text[];
+  v_date  date;
+  v_start time;
+  v_end   time;
+  d_start time;
+  d_end   time;
+  v_step  integer;
+begin
+  if p_pickup is not null and p_pickup !~ '^\d{4}-\d{2}-\d{2}\|\d{2}:\d{2}\|\d{2}:\d{2}$' then
+    return false;
+  end if;
+  select "data" into s from public.po_settings where "id" = 1;
+  if s is null then
+    return true;
+  end if;
+  if coalesce((s ->> 'open')::boolean, true) = false then
+    return false;
+  end if;
+
+  parts := string_to_array(coalesce(p_pickup, ''), '|');
+  if array_length(parts, 1) is distinct from 3 then
+    return false;
+  end if;
+  begin
+    v_date  := parts[1]::date;
+    v_start := parts[2]::time;
+    v_end   := parts[3]::time;
+  exception when others then
+    return false;
+  end;
+  if v_date < (now() at time zone 'Asia/Jakarta')::date then
+    return false;
+  end if;
+
+  for d in select * from jsonb_array_elements(coalesce(s -> 'days', '[]'::jsonb)) loop
+    begin
+      if coalesce((d ->> 'active')::boolean, true) and (d ->> 'date')::date = v_date then
+        d_start := (d ->> 'start')::time;
+        d_end   := (d ->> 'end')::time;
+        v_step  := (d ->> 'step')::integer;
+        if v_step between 5 and 240
+           and v_start >= d_start and v_end <= d_end
+           and v_end - v_start = make_interval(mins => v_step)
+           and mod((extract(epoch from (v_start - d_start)) / 60)::integer, v_step) = 0 then
+          return true;
+        end if;
+      end if;
+    exception when others then
+      null; -- data hari ini rusak: lewati
+    end;
+  end loop;
+  return false;
+end;
+$$;
+revoke all on function public.pickup_is_valid(text) from public, anon, authenticated;
+
+-- Tanda tangan lama (tanpa hari ambil) dilepas agar tidak ada dua versi fungsi.
+drop function if exists public.create_order(text, text, text, jsonb);
 -- PEMBELI: buat pesanan.
 -- Server menentukan kode, status awal (selalu QRIS + belum bayar), total, dan token.
 -- Input dibersihkan dan dibatasi, jadi pembeli tidak bisa membuat pesanan yang sudah "lunas".
--- Tanda tangan lama (tanpa hari ambil) dilepas agar tidak ada dua versi fungsi.
-drop function if exists public.create_order(text, text, text, jsonb);
 create or replace function public.create_order(
   p_name  text,
   p_phone text,
   p_notes text,
   p_items jsonb,
-  p_pickup text default null -- hari ambil pilihan pembeli (Selasa/Rabu), disimpan di kolom pickupTime
+  p_pickup text default null -- "YYYY-MM-DD|HH:MM|HH:MM" dari jadwal PO, disimpan di kolom pickupTime
 )
 returns jsonb
 language plpgsql
@@ -160,8 +258,8 @@ begin
     raise exception 'nomor tidak valid';
   end if;
   p_pickup := nullif(btrim(coalesce(p_pickup, '')), '');
-  if p_pickup is not null and char_length(p_pickup) > 20 then
-    raise exception 'hari ambil tidak valid';
+  if not public.pickup_is_valid(p_pickup) then
+    raise exception 'hari ambil tidak valid atau PO sedang tutup';
   end if;
   if jsonb_typeof(p_items) <> 'array'
      or jsonb_array_length(p_items) < 1

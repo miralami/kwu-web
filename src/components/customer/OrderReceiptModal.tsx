@@ -3,6 +3,7 @@ import { Order } from '../../types'
 import { ADMIN_CONTACT } from '../../data/menu'
 import { canCustomerCancel, getCustomerStatus, isOrderActive } from '../../data/orderStatus'
 import { OrderStatusStepper } from './OrderStatusStepper'
+import { formatPickup } from '../../services/schedule'
 
 const STAMP_TONE: Record<string, string> = {
   waiting: 'text-royal-700 border-royal-700',
@@ -73,7 +74,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
     .join('\n')
 
   const waMessage = encodeURIComponent(
-    `Halo Admin Laris Manis! 🙌\nSaya mau konfirmasi pesanan PO:\n\n*ID Pesanan: #${order.id}*\nNama: ${order.customerName}\n${order.customerClass ? `Kelas/Lokasi: ${order.customerClass}\n` : ''}${order.pickupTime ? `Hari ambil: ${order.pickupTime}\n` : ''}Metode: ${order.paymentMethod.toUpperCase()}\nTotal: *${rupiah(order.total)}*\n\n*Detail Menu:*\n${itemsText}\n\nCatatan: ${order.customerNotes || '-'}\n\nMohon dicek ya min, terima kasih!`
+    `Halo Admin Laris Manis! 🙌\nSaya mau konfirmasi pesanan PO:\n\n*ID Pesanan: #${order.id}*\nNama: ${order.customerName}\n${order.customerClass ? `Kelas/Lokasi: ${order.customerClass}\n` : ''}${order.pickupTime ? `Jadwal ambil: ${formatPickup(order.pickupTime)}\n` : ''}Metode: ${order.paymentMethod.toUpperCase()}\nTotal: *${rupiah(order.total)}*\n\n*Detail Menu:*\n${itemsText}\n\nCatatan: ${order.customerNotes || '-'}\n\nMohon dicek ya min, terima kasih!`
   )
 
   const waLink = `https://wa.me/${ADMIN_CONTACT.phone}?text=${waMessage}`
@@ -103,7 +104,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
             <p className="text-sm text-stone-300 truncate">
               {order.customerName}
               {order.customerClass ? ` • ${order.customerClass}` : ''}
-              {order.pickupTime ? ` • Ambil ${order.pickupTime}` : ''}
+              {order.pickupTime ? ` • Ambil ${formatPickup(order.pickupTime)}` : ''}
             </p>
           </div>
           <button

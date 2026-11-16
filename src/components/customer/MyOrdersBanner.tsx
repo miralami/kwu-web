@@ -11,13 +11,18 @@ import {
 interface MyOrdersBannerProps {
   orders: Order[]
   onOpenOrder: (orderId: string) => void
+  reviewableIds?: Set<string> // pesanan selesai yang belum diulas
 }
 
 // Yang tampil sekilas dibatasi; sisanya di balik "Lihat selengkapnya" supaya halaman menu
 // tidak tenggelam oleh riwayat (HP hanya menyimpan 20 pesanan terakhir, lihat storage.ts).
 const PREVIEW_COUNT = 3
 
-export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders: allOrders, onOpenOrder }) => {
+export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({
+  orders: allOrders,
+  onOpenOrder,
+  reviewableIds,
+}) => {
   const [expanded, setExpanded] = useState(false)
   if (allOrders.length === 0) return null
 
@@ -68,7 +73,11 @@ export const MyOrdersBanner: React.FC<MyOrdersBannerProps> = ({ orders: allOrder
               </span>
             </div>
             <span className="text-sm font-bold text-brand-700 flex items-center gap-0.5 shrink-0">
-              {isAwaitingPayment(order) && order.paymentMethod === 'qris' ? 'Bayar' : 'Lihat'}{' '}
+              {isAwaitingPayment(order) && order.paymentMethod === 'qris'
+                ? 'Bayar'
+                : reviewableIds?.has(order.id)
+                ? 'Beri ulasan'
+                : 'Lihat'}{' '}
               <ChevronRight className="w-4 h-4" />
             </span>
           </button>

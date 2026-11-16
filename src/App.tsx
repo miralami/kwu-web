@@ -30,6 +30,8 @@ import { OrderReceiptModal } from './components/customer/OrderReceiptModal'
 import { ReviewModal } from './components/customer/ReviewModal'
 import { AdminDashboard } from './components/admin/AdminDashboard'
 import { Review, summarizeByMenu } from './services/reviews'
+import { PoSettings } from './services/schedule'
+import { getCachedPoSettings, getPoSettings, subscribePoSettings } from './services/poSettingsStorage'
 import {
   createReview,
   getPublicReviews,
@@ -71,6 +73,9 @@ export function App() {
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(() => getReviewedOrderIds())
   const [isReviewOpen, setIsReviewOpen] = useState(false)
   const ratingSummary = useMemo(() => summarizeByMenu(reviews), [reviews])
+
+  // Jadwal PO yang diatur admin (hari/jam ambil, buka/tutup)
+  const [poSettings, setPoSettings] = useState<PoSettings>(() => getCachedPoSettings())
 
   // Gerbang tim. Dengan Supabase: login Supabase Auth memakai akun admin bersama (admin cukup
   // mengetik PIN) dan akun harus terdaftar di tabel admins; database sendiri menolak pembaca lain. Tanpa Supabase
@@ -128,6 +133,20 @@ export function App() {
     const unsubscribe = subscribeReviews(setReviews)
     const onVisible = () => {
       if (document.visibilityState === 'visible') getPublicReviews().then(setReviews)
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      unsubscribe()
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isAdminPath) return
+    getPoSettings().then(setPoSettings)
+    const unsubscribe = subscribePoSettings(setPoSettings)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') getPoSettings().then(setPoSettings)
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => {
@@ -232,13 +251,13 @@ export function App() {
     customerName: string
     customerPhone: string
     customerNotes: string
-    pickupDay: string
+    pickup: string
   }) => {
     const { order: newOrder, ref } = await createOrder({
       customerName: formData.customerName,
       customerPhone: formData.customerPhone,
       customerNotes: formData.customerNotes,
-      pickupDay: formData.pickupDay,
+      pickup: formData.pickup,
       items: cartItems,
     })
     rememberMyOrder(ref)
@@ -396,7 +415,7 @@ export function App() {
     >
       <div aria-hidden="true" className="ground-rays pointer-events-none -z-10" />
       <div>
-        <Navbar cartCount={totalCartCount} onOpenCart={() => setIsCartOpen(true)} />
+        <Navbar cartCount={totalCartCount} onOpenCart={() => setIsCartOpen(true)} settings={poSettings} />
 
         <main className="max-w-xl mx-auto px-3 pt-12 pb-6 sm:pt-14 sm:pb-6">
           <MenuCatalog
@@ -406,7 +425,19 @@ export function App() {
             onAdd={(item) => handleQuickAdd(item, item.options[0])}
             onRemove={(item) => handleUpdateQuantity(`${item.id}-${item.options[0].id}`, -1)}
             ratings={ratingSummary}
-            header={<MyOrdersBanner orders={visibleMyOrders} onOpenOrder={setTrackedOrderId} />}
+            header={<MyOrdersBanner
+                orders={visibleMyOrders}
+                onOpenOrder={setTrackedOrderId}
+                reviewableIds={
+                  new Set(
+                    visibleMyOrders
+                      .filter(
+                        (o) => o.orderStatus === 'selesai' && o.paymentStatus === 'verified' && !reviewedIds.has(o.id)
+                      )
+                      .map((o) => o.id)
+                  )
+                }
+              />}
           />
         </main>
       </div>
@@ -451,6 +482,7 @@ export function App() {
       {/* Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
+        settings={poSettings}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
         onUpdateQuantity={handleUpdateQuantity}

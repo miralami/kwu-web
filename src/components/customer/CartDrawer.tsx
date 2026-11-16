@@ -1,10 +1,20 @@
 import React, { useRef, useState } from 'react'
 import { CartItem } from '../../types'
 import { X, Trash2, Plus, Minus, QrCode, ArrowRight, CalendarDays } from 'lucide-react'
-import { PO_INFO } from '../../data/menu'
+import {
+  PoSettings,
+  availableDays,
+  dayLabel,
+  dotTime,
+  encodePickup,
+  formatPickup,
+  generateSlots,
+  isValidPickup,
+} from '../../services/schedule'
 
 interface CartDrawerProps {
   isOpen: boolean
+  settings: PoSettings
   onClose: () => void
   items: CartItem[]
   onUpdateQuantity: (id: string, delta: number) => void
@@ -14,14 +24,14 @@ interface CartDrawerProps {
     customerName: string
     customerPhone: string
     customerNotes: string
-    pickupDay: string
+    pickup: string
   }) => Promise<void> | void
 }
 
 const MAX_QTY = 99
 
-// Pilihan hari ambil diambil dari jadwal PO (PO_INFO). NO_DAY = pembeli tidak bisa di hari-hari itu,
-// sehingga pesanan tidak bisa dikirim.
+// Pilihan hari dan jam ambil diambil dari jadwal PO yang diatur admin. NO_DAY = pembeli tidak bisa
+// di jadwal yang ada, sehingga pesanan tidak bisa dikirim.
 const NO_DAY = 'tidak'
 
 // Isian jumlah yang bisa diketik. Selama mengetik boleh kosong; saat selesai (blur)
@@ -60,6 +70,7 @@ const inputClass = (hasError: boolean) =>
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen,
+  settings,
   onClose,
   items,
   onUpdateQuantity,
@@ -70,7 +81,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [customerNotes, setCustomerNotes] = useState('')
-  const [pickupDay, setPickupDay] = useState('')
+  const [pickup, setPickup] = useState('') // "YYYY-MM-DD|HH:MM|HH:MM", NO_DAY, atau kosong
+  const [openDate, setOpenDate] = useState('') // hari yang daftar jamnya sedang dibuka
   const [showConfirm, setShowConfirm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -81,7 +93,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   if (!isOpen) return null
 
-  const pickupDays = PO_INFO.pickups.map((p) => p.day).join(' atau ')
+  const days = availableDays(settings)
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalPieces = items.reduce((sum, item) => sum + item.pieces * item.quantity, 0)
 
@@ -99,10 +111,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       errors.phone = 'Nomor WhatsApp belum benar. Contoh: 08123456789'
     }
 
-    if (!pickupDay) {
-      errors.pickup = 'Pilih hari ambil dulu'
-    } else if (pickupDay === NO_DAY) {
-      errors.pickup = `Maaf, pesanan hanya bisa diambil hari ${pickupDays}.`
+    if (days.length === 0) {
+      errors.pickup = settings.open ? 'Jadwal ambil belum tersedia.' : 'PO sedang tutup.'
+    } else if (!pickup) {
+      errors.pickup = 'Pilih hari dan jam ambil dulu'
+    } else if (pickup === NO_DAY) {
+      errors.pickup = 'Maaf, pesanan hanya bisa diambil pada jadwal yang tersedia.'
+    } else if (!isValidPickup(settings, pickup)) {
+      errors.pickup = 'Jadwal ini sudah tidak tersedia. Pilih ulang.'
+      setPickup('')
     }
 
     if (Object.keys(errors).length > 0) {
@@ -127,7 +144,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerNotes: customerNotes.trim(),
-        pickupDay,
+        pickup,
       })
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Pesanan gagal dikirim. Coba lagi.')
@@ -314,37 +331,88 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <fieldset ref={pickupRef} aria-describedby={formErrors.pickup ? 'checkout-pickup-error' : undefined}>
                   <legend className="block text-sm font-bold text-ink-800 mb-1.5">
                     <span className="inline-flex items-center gap-1.5">
-                      <CalendarDays className="w-4 h-4 text-brand-600" aria-hidden="true" /> Hari ambil
+                      <CalendarDays className="w-4 h-4 text-brand-600" aria-hidden="true" /> Hari dan jam ambil
                     </span>
                   </legend>
-                  <div className="space-y-2" role="radiogroup" aria-label="Hari ambil">
-                    {[
-                      ...PO_INFO.pickups.map((p) => ({ value: p.day, label: p.day, sub: p.time })),
-                      { value: NO_DAY, label: `Tidak bisa hari ${pickupDays}`, sub: '' },
-                    ].map((opt) => {
-                      const selected = pickupDay === opt.value
-                      return (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          role="radio"
-                          aria-checked={selected}
-                          onClick={() => {
-                            setPickupDay(opt.value)
-                            if (formErrors.pickup) setFormErrors((p) => ({ ...p, pickup: undefined }))
-                          }}
-                          className={`w-full min-h-[48px] flex items-center justify-between gap-3 px-3.5 py-2.5 border text-left transition-colors ${
-                            selected
-                              ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold'
-                              : 'border-paper-300 hover:border-ink-500 text-ink-800'
-                          }`}
-                        >
-                          <span className="text-sm">{opt.label}</span>
-                          {opt.sub && <span className="text-xs text-ink-600 tabular-nums">{opt.sub}</span>}
-                        </button>
-                      )
-                    })}
-                  </div>
+
+                  {days.length === 0 ? (
+                    <p role="status" className="text-sm font-bold text-red-800 bg-red-50 border border-red-200 p-3">
+                      {settings.open
+                        ? 'Jadwal ambil belum tersedia. Silakan cek lagi nanti.'
+                        : 'PO sedang tutup. Pantau info batch berikutnya ya.'}
+                    </p>
+                  ) : (
+                    <div className="space-y-2" role="group" aria-label="Hari ambil">
+                      {days.map((day) => {
+                        const expanded = openDate === day.date
+                        const hasChoice = pickup.startsWith(`${day.date}|`)
+                        return (
+                          <div key={day.id}>
+                            <button
+                              type="button"
+                              aria-expanded={expanded}
+                              onClick={() => {
+                                setOpenDate(expanded ? '' : day.date)
+                                if (pickup === NO_DAY) setPickup('')
+                              }}
+                              className={`w-full min-h-[48px] flex items-center justify-between gap-3 px-3.5 py-2.5 border text-left transition-colors ${
+                                hasChoice || expanded
+                                  ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold'
+                                  : 'border-paper-300 hover:border-ink-500 text-ink-800'
+                              }`}
+                            >
+                              <span className="text-sm">{dayLabel(day.date)}</span>
+                              <span className="text-xs text-ink-600 tabular-nums">
+                                {hasChoice ? formatPickup(pickup).split(' · ')[1] : `${dotTime(day.start)}–${dotTime(day.end)}`}
+                              </span>
+                            </button>
+                            {expanded && (
+                              <div className="mt-2 grid grid-cols-3 gap-2" role="group" aria-label={`Jam ambil ${dayLabel(day.date)}`}>
+                                {generateSlots(day).map((slot) => {
+                                  const value = encodePickup(day.date, slot.start, slot.end)
+                                  const selected = pickup === value
+                                  return (
+                                    <button
+                                      key={value}
+                                      type="button"
+                                      aria-pressed={selected}
+                                      onClick={() => {
+                                        setPickup(value)
+                                        if (formErrors.pickup) setFormErrors((p) => ({ ...p, pickup: undefined }))
+                                      }}
+                                      className={`min-h-[44px] px-1 border text-xs tabular-nums transition-colors ${
+                                        selected
+                                          ? 'border-brand-600 bg-brand-600 text-white font-extrabold'
+                                          : 'border-paper-300 bg-surface hover:border-ink-500 text-ink-800 font-bold'
+                                      }`}
+                                    >
+                                      {dotTime(slot.start)}–{dotTime(slot.end)}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                      <button
+                        type="button"
+                        aria-pressed={pickup === NO_DAY}
+                        onClick={() => {
+                          setPickup(NO_DAY)
+                          setOpenDate('')
+                          if (formErrors.pickup) setFormErrors((p) => ({ ...p, pickup: undefined }))
+                        }}
+                        className={`w-full min-h-[48px] flex items-center px-3.5 py-2.5 border text-left text-sm transition-colors ${
+                          pickup === NO_DAY
+                            ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold'
+                            : 'border-paper-300 hover:border-ink-500 text-ink-800'
+                        }`}
+                      >
+                        Tidak bisa di jadwal ini
+                      </button>
+                    </div>
+                  )}
                   {formErrors.pickup && (
                     <p id="checkout-pickup-error" role="alert" className="text-sm text-red-700 font-semibold mt-1.5">
                       {formErrors.pickup}
@@ -361,7 +429,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     type="text"
                     enterKeyHint="done"
                     maxLength={120}
-                    placeholder="Contoh: ambil hari Senin jam 12.00"
+                    placeholder="Contoh: bumbu cabai dipisah"
                     value={customerNotes}
                     onChange={(e) => setCustomerNotes(e.target.value)}
                     className={inputClass(false)}
@@ -441,8 +509,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <dd className="font-bold text-ink-900 tabular-nums">{customerPhone.trim()}</dd>
               </div>
               <div className="flex justify-between gap-3">
-                <dt className="text-ink-600">Hari ambil</dt>
-                <dd className="font-bold text-ink-900">{pickupDay}</dd>
+                <dt className="text-ink-600">Ambil</dt>
+                <dd className="font-bold text-ink-900">{formatPickup(pickup)}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-ink-600">Pesanan</dt>

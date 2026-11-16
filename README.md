@@ -67,6 +67,10 @@ Tanpa env Supabase aplikasi berjalan dalam **mode demo lokal** (data hanya di br
 4. Authentication → Sign In / Providers → Email: **matikan "Allow new users to sign up"**.
 5. Daftarkan email admin: `insert into public.admins (email) values ('admin@laris-manis.app');`
 
+### Jadwal PO dan ulasan
+- **Jadwal ambil** diatur admin di tab **Jadwal** (tanggal, jam mulai-selesai, menit per slot, buka/tutup PO). Pembeli memilih hari lalu jam di checkout, dan yang tidak bisa di jadwal itu tidak bisa memesan. Server (`pickup_is_valid` di `schema.sql`) ikut memeriksa, dan menolak pesanan saat PO tutup. Pada database baru, isi dulu jadwalnya dari tab Jadwal; selama belum pernah disimpan, server tidak membatasi hari ambil.
+- **Ulasan** (bintang per menu + komentar, nama atau anonim) hanya bisa ditulis pembeli setelah pesanannya selesai, satu kali per pesanan. Langsung tampil; admin bisa menyembunyikan atau menghapusnya di tab **Ulasan**.
+
 Model keamanannya:
 - Pembeli (kunci publik) **tidak bisa membaca, mengubah, atau menghapus** tabel pesanan. Mereka membuat dan melihat pesanan lewat fungsi database (`create_order`, `get_my_orders`, `cancel_my_order`) dengan **token rahasia per pesanan**.
 - Server menentukan kode pesanan, status awal (QRIS, belum bayar), dan total. Pembeli tidak bisa membuat pesanan yang sudah "lunas".

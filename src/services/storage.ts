@@ -413,7 +413,7 @@ export async function createOrder(input: {
   customerName: string
   customerPhone: string
   customerNotes: string
-  pickupDay: string // hari ambil (Selasa/Rabu), disimpan di kolom pickupTime
+  pickup: string // "YYYY-MM-DD|HH:MM|HH:MM" dari jadwal PO, disimpan di kolom pickupTime
   items: CartItem[]
 }): Promise<{ order: Order; ref: OrderRef }> {
   if (supabase) {
@@ -423,7 +423,7 @@ export async function createOrder(input: {
       p_notes: input.customerNotes,
       p_items: input.items,
     }
-    let { data, error } = await supabase.rpc('create_order', { ...params, p_pickup: input.pickupDay })
+    let { data, error } = await supabase.rpc('create_order', { ...params, p_pickup: input.pickup })
     if (isMissingFunction(error)) {
       // schema.sql versi lama (belum ada p_pickup): kirim tanpa hari ambil
       ;({ data, error } = await supabase.rpc('create_order', params))
@@ -431,6 +431,9 @@ export async function createOrder(input: {
     if (!error && data && typeof data === 'object') {
       const { accessToken, ...order } = data as Order & { accessToken: string }
       return { order: order as Order, ref: { id: order.id, token: accessToken } }
+    }
+    if (/hari ambil tidak valid/i.test(error?.message ?? '')) {
+      throw new Error('Jadwal ambil sudah berubah atau PO sedang tutup. Tutup lalu buka lagi keranjang, dan pilih ulang jadwalnya.')
     }
     if (!isMissingFunction(error)) {
       console.error('Failed to create order on Supabase:', error)
@@ -460,7 +463,7 @@ export async function createOrder(input: {
     paymentStatus: 'pending', // baru dihitung omzet setelah admin memverifikasi mutasi
     orderStatus: 'menunggu_pembayaran',
     customerNotes: input.customerNotes,
-    pickupTime: input.pickupDay,
+    pickupTime: input.pickup,
     createdAt: new Date().toISOString(),
     expiresAt: new Date().toISOString(), // kolom wajib di database; batas bayar sudah tidak dipakai
   }

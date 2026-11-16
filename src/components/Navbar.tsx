@@ -1,22 +1,26 @@
 import React from 'react'
 import { ShoppingBag } from 'lucide-react'
-import { ADMIN_CONTACT, PO_INFO } from '../data/menu'
+import { ADMIN_CONTACT } from '../data/menu'
+import { PoSettings, scheduleSummary } from '../services/schedule'
 
 interface NavbarProps {
   cartCount: number
   onOpenCart: () => void
+  settings: PoSettings
 }
 
-// Teks berjalan info PO per batch (jadwal diatur di PO_INFO, src/data/menu.ts).
-// Kalau semua hari ambil punya jam yang sama, digabung: "Selasa/Rabu 10.00–13.00 WIB".
-const pickupTimes = new Set(PO_INFO.pickups.map((p) => p.time))
-const PICKUP_TEXT =
-  pickupTimes.size === 1
-    ? `${PO_INFO.pickups.map((p) => p.day).join('/')} ${PO_INFO.pickups[0].time}`
-    : PO_INFO.pickups.map((p) => `${p.day} ${p.time}`).join(' / ')
-const TICKER_TEXT = `PO batch ini tutup ${PO_INFO.closeLabel}  •  Ambil ${PICKUP_TEXT}  •  Telat? Masuk batch berikutnya.  •  `
+// Teks berjalan info PO per batch. Jadwalnya diatur admin di tab Jadwal (lihat services/schedule.ts).
+// Kalau semua hari ambil punya jam yang sama, digabung: "Selasa 17 Nov/Rabu 18 Nov 10.00–13.00 WIB".
+function tickerText(settings: PoSettings): string {
+  if (!settings.open) return 'PO sedang tutup  •  Pantau info batch berikutnya.  •  '
+  const summary = scheduleSummary(settings)
+  if (!summary) return 'Jadwal ambil batch ini segera diumumkan.  •  '
+  return `PO batch ini tutup ${settings.closeLabel}  •  Ambil ${summary}  •  Telat? Masuk batch berikutnya.  •  `
+}
 
-export const Navbar: React.FC<NavbarProps> = ({ cartCount, onOpenCart }) => (
+export const Navbar: React.FC<NavbarProps> = ({ cartCount, onOpenCart, settings }) => {
+  const TICKER_TEXT = tickerText(settings)
+  return (
   // Papan header timbul: tepi bawah tebal gelap + bayangan jatuh ke halaman di bawahnya
   <header className="sticky top-0 z-40 bg-royal-600 border-b-[6px] border-royal-900 shadow-[0_10px_16px_-6px_rgb(8_16_48/0.6)]">
     <div className="max-w-xl mx-auto px-3 h-16 flex items-center justify-between">
@@ -73,4 +77,5 @@ export const Navbar: React.FC<NavbarProps> = ({ cartCount, onOpenCart }) => (
       </div>
     </div>
   </header>
-)
+  )
+}
