@@ -413,15 +413,21 @@ export async function createOrder(input: {
   customerName: string
   customerPhone: string
   customerNotes: string
+  pickupDay: string // hari ambil (Selasa/Rabu), disimpan di kolom pickupTime
   items: CartItem[]
 }): Promise<{ order: Order; ref: OrderRef }> {
   if (supabase) {
-    const { data, error } = await supabase.rpc('create_order', {
+    const params = {
       p_name: input.customerName,
       p_phone: input.customerPhone,
       p_notes: input.customerNotes,
       p_items: input.items,
-    })
+    }
+    let { data, error } = await supabase.rpc('create_order', { ...params, p_pickup: input.pickupDay })
+    if (isMissingFunction(error)) {
+      // schema.sql versi lama (belum ada p_pickup): kirim tanpa hari ambil
+      ;({ data, error } = await supabase.rpc('create_order', params))
+    }
     if (!error && data && typeof data === 'object') {
       const { accessToken, ...order } = data as Order & { accessToken: string }
       return { order: order as Order, ref: { id: order.id, token: accessToken } }
@@ -454,6 +460,7 @@ export async function createOrder(input: {
     paymentStatus: 'pending', // baru dihitung omzet setelah admin memverifikasi mutasi
     orderStatus: 'menunggu_pembayaran',
     customerNotes: input.customerNotes,
+    pickupTime: input.pickupDay,
     createdAt: new Date().toISOString(),
     expiresAt: new Date().toISOString(), // kolom wajib di database; batas bayar sudah tidak dipakai
   }

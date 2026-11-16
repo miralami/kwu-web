@@ -638,6 +638,10 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                           </span>
                         </div>
 
+                        {order.pickupTime && (
+                          <p className="text-sm font-extrabold text-royal-700">Ambil hari {order.pickupTime}</p>
+                        )}
+
                         {order.customerNotes && (
                           <p className="text-sm bg-paper-100 text-ink-800 px-3 py-2">
                             <span className="font-bold">Catatan:</span> {order.customerNotes}

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { CartItem } from '../../types'
-import { X, Trash2, Plus, Minus, QrCode, ArrowRight } from 'lucide-react'
+import { X, Trash2, Plus, Minus, QrCode, ArrowRight, CalendarDays } from 'lucide-react'
+import { PO_INFO } from '../../data/menu'
 
 interface CartDrawerProps {
   isOpen: boolean
@@ -13,10 +14,15 @@ interface CartDrawerProps {
     customerName: string
     customerPhone: string
     customerNotes: string
+    pickupDay: string
   }) => Promise<void> | void
 }
 
 const MAX_QTY = 99
+
+// Pilihan hari ambil diambil dari jadwal PO (PO_INFO). NO_DAY = pembeli tidak bisa di hari-hari itu,
+// sehingga pesanan tidak bisa dikirim.
+const NO_DAY = 'tidak'
 
 // Isian jumlah yang bisa diketik. Selama mengetik boleh kosong; saat selesai (blur)
 // nilai yang tidak valid dikembalikan ke jumlah terakhir, bukan menghapus item.
@@ -64,15 +70,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
   const [customerNotes, setCustomerNotes] = useState('')
+  const [pickupDay, setPickupDay] = useState('')
   const [showConfirm, setShowConfirm] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
-  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string }>({})
+  const [formErrors, setFormErrors] = useState<{ name?: string; phone?: string; pickup?: string }>({})
   const nameRef = useRef<HTMLInputElement>(null)
   const phoneRef = useRef<HTMLInputElement>(null)
+  const pickupRef = useRef<HTMLFieldSetElement>(null)
 
   if (!isOpen) return null
 
+  const pickupDays = PO_INFO.pickups.map((p) => p.day).join(' atau ')
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const totalPieces = items.reduce((sum, item) => sum + item.pieces * item.quantity, 0)
 
@@ -81,7 +90,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     e.preventDefault()
     if (isSubmitting) return
 
-    const errors: { name?: string; phone?: string } = {}
+    const errors: { name?: string; phone?: string; pickup?: string } = {}
     if (!customerName.trim()) {
       errors.name = 'Nama wajib diisi'
     }
@@ -90,10 +99,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       errors.phone = 'Nomor WhatsApp belum benar. Contoh: 08123456789'
     }
 
+    if (!pickupDay) {
+      errors.pickup = 'Pilih hari ambil dulu'
+    } else if (pickupDay === NO_DAY) {
+      errors.pickup = `Maaf, pesanan hanya bisa diambil hari ${pickupDays}.`
+    }
+
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors)
       // Fokus ke isian pertama yang salah: di HP form bisa sedang tergulir di luar layar
-      ;(errors.name ? nameRef : phoneRef).current?.focus()
+      if (errors.name) nameRef.current?.focus()
+      else if (errors.phone) phoneRef.current?.focus()
+      else pickupRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })
       return
     }
     setFormErrors({})
@@ -110,6 +127,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerNotes: customerNotes.trim(),
+        pickupDay,
       })
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Pesanan gagal dikirim. Coba lagi.')
@@ -293,6 +311,47 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   )}
                 </div>
 
+                <fieldset ref={pickupRef} aria-describedby={formErrors.pickup ? 'checkout-pickup-error' : undefined}>
+                  <legend className="block text-sm font-bold text-ink-800 mb-1.5">
+                    <span className="inline-flex items-center gap-1.5">
+                      <CalendarDays className="w-4 h-4 text-brand-600" aria-hidden="true" /> Hari ambil
+                    </span>
+                  </legend>
+                  <div className="space-y-2" role="radiogroup" aria-label="Hari ambil">
+                    {[
+                      ...PO_INFO.pickups.map((p) => ({ value: p.day, label: p.day, sub: p.time })),
+                      { value: NO_DAY, label: `Tidak bisa hari ${pickupDays}`, sub: '' },
+                    ].map((opt) => {
+                      const selected = pickupDay === opt.value
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => {
+                            setPickupDay(opt.value)
+                            if (formErrors.pickup) setFormErrors((p) => ({ ...p, pickup: undefined }))
+                          }}
+                          className={`w-full min-h-[48px] flex items-center justify-between gap-3 px-3.5 py-2.5 border text-left transition-colors ${
+                            selected
+                              ? 'border-brand-600 bg-brand-50 text-brand-900 font-bold'
+                              : 'border-paper-300 hover:border-ink-500 text-ink-800'
+                          }`}
+                        >
+                          <span className="text-sm">{opt.label}</span>
+                          {opt.sub && <span className="text-xs text-ink-600 tabular-nums">{opt.sub}</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {formErrors.pickup && (
+                    <p id="checkout-pickup-error" role="alert" className="text-sm text-red-700 font-semibold mt-1.5">
+                      {formErrors.pickup}
+                    </p>
+                  )}
+                </fieldset>
+
                 <div>
                   <label htmlFor="checkout-notes" className="block text-sm font-bold text-ink-800 mb-1.5">
                     Catatan <span className="font-medium text-ink-600">(opsional)</span>
@@ -380,6 +439,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <div className="flex justify-between gap-3">
                 <dt className="text-ink-600">WhatsApp</dt>
                 <dd className="font-bold text-ink-900 tabular-nums">{customerPhone.trim()}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-ink-600">Hari ambil</dt>
+                <dd className="font-bold text-ink-900">{pickupDay}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-ink-600">Pesanan</dt>

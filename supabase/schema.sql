@@ -124,11 +124,14 @@ grant execute on function public.next_order_code() to authenticated;
 -- PEMBELI: buat pesanan.
 -- Server menentukan kode, status awal (selalu QRIS + belum bayar), total, dan token.
 -- Input dibersihkan dan dibatasi, jadi pembeli tidak bisa membuat pesanan yang sudah "lunas".
+-- Tanda tangan lama (tanpa hari ambil) dilepas agar tidak ada dua versi fungsi.
+drop function if exists public.create_order(text, text, text, jsonb);
 create or replace function public.create_order(
   p_name  text,
   p_phone text,
   p_notes text,
-  p_items jsonb
+  p_items jsonb,
+  p_pickup text default null -- hari ambil pilihan pembeli (Selasa/Rabu), disimpan di kolom pickupTime
 )
 returns jsonb
 language plpgsql
@@ -155,6 +158,10 @@ begin
   if char_length(regexp_replace(v_phone, '\D', '', 'g')) not between 9 and 15
      or char_length(v_phone) > 20 then
     raise exception 'nomor tidak valid';
+  end if;
+  p_pickup := nullif(btrim(coalesce(p_pickup, '')), '');
+  if p_pickup is not null and char_length(p_pickup) > 20 then
+    raise exception 'hari ambil tidak valid';
   end if;
   if jsonb_typeof(p_items) <> 'array'
      or jsonb_array_length(p_items) < 1
@@ -195,11 +202,11 @@ begin
   insert into public.orders (
     "id", "customerName", "customerPhone", "customerClass", "items", "totalItems", "totalPieces",
     "subtotal", "discountAmount", "total", "paymentMethod", "paymentStatus", "orderStatus",
-    "customerNotes", "createdAt", "expiresAt"
+    "customerNotes", "createdAt", "expiresAt", "pickupTime"
   ) values (
     public.next_order_code(), p_name, v_phone, '', v_items, v_count, v_pieces_sum,
     v_subtotal, 0, v_subtotal, 'qris', 'pending', 'menunggu_pembayaran',
-    left(btrim(coalesce(p_notes, '')), 120), now(), now()
+    left(btrim(coalesce(p_notes, '')), 120), now(), now(), p_pickup
   ) returning * into v_row;
 
   return (to_jsonb(v_row) - 'accessToken') || jsonb_build_object('accessToken', v_row."accessToken");
@@ -244,10 +251,10 @@ begin
 end;
 $$;
 
-revoke all on function public.create_order(text, text, text, jsonb) from public, anon, authenticated;
+revoke all on function public.create_order(text, text, text, jsonb, text) from public, anon, authenticated;
 revoke all on function public.get_my_orders(jsonb) from public, anon, authenticated;
 revoke all on function public.cancel_my_order(text, text) from public, anon, authenticated;
-grant execute on function public.create_order(text, text, text, jsonb) to anon, authenticated;
+grant execute on function public.create_order(text, text, text, jsonb, text) to anon, authenticated;
 grant execute on function public.get_my_orders(jsonb) to anon, authenticated;
 grant execute on function public.cancel_my_order(text, text) to anon, authenticated;
 

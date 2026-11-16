@@ -232,11 +232,13 @@ export function App() {
     customerName: string
     customerPhone: string
     customerNotes: string
+    pickupDay: string
   }) => {
     const { order: newOrder, ref } = await createOrder({
       customerName: formData.customerName,
       customerPhone: formData.customerPhone,
       customerNotes: formData.customerNotes,
+      pickupDay: formData.pickupDay,
       items: cartItems,
     })
     rememberMyOrder(ref)

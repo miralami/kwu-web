@@ -73,7 +73,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
     .join('\n')
 
   const waMessage = encodeURIComponent(
-    `Halo Admin Laris Manis! 🙌\nSaya mau konfirmasi pesanan PO:\n\n*ID Pesanan: #${order.id}*\nNama: ${order.customerName}\n${order.customerClass ? `Kelas/Lokasi: ${order.customerClass}\n` : ''}Metode: ${order.paymentMethod.toUpperCase()}\nTotal: *${rupiah(order.total)}*\n\n*Detail Menu:*\n${itemsText}\n\nCatatan: ${order.customerNotes || '-'}\n\nMohon dicek ya min, terima kasih!`
+    `Halo Admin Laris Manis! 🙌\nSaya mau konfirmasi pesanan PO:\n\n*ID Pesanan: #${order.id}*\nNama: ${order.customerName}\n${order.customerClass ? `Kelas/Lokasi: ${order.customerClass}\n` : ''}${order.pickupTime ? `Hari ambil: ${order.pickupTime}\n` : ''}Metode: ${order.paymentMethod.toUpperCase()}\nTotal: *${rupiah(order.total)}*\n\n*Detail Menu:*\n${itemsText}\n\nCatatan: ${order.customerNotes || '-'}\n\nMohon dicek ya min, terima kasih!`
   )
 
   const waLink = `https://wa.me/${ADMIN_CONTACT.phone}?text=${waMessage}`
@@ -103,6 +103,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({
             <p className="text-sm text-stone-300 truncate">
               {order.customerName}
               {order.customerClass ? ` • ${order.customerClass}` : ''}
+              {order.pickupTime ? ` • Ambil ${order.pickupTime}` : ''}
             </p>
           </div>
           <button
