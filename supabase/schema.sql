@@ -479,3 +479,22 @@ $$;
 
 revoke all on function public.get_public_reviews() from public;
 grant execute on function public.get_public_reviews() to anon, authenticated;
+
+-- PEMBELI: cari pesanan dari token rahasianya saja (tautan ulasan /ulas/<token>, tanpa kode pesanan).
+-- Token berupa UUID acak per pesanan, jadi tidak bisa ditebak. Mengembalikan pesanan tanpa kolom token,
+-- atau null bila tidak ada yang cocok.
+create or replace function public.get_order_by_token(p_token text)
+returns jsonb
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select to_jsonb(o) - 'accessToken'
+  from public.orders o
+  where o."accessToken"::text = btrim(coalesce(p_token, ''))
+  limit 1;
+$$;
+
+revoke all on function public.get_order_by_token(text) from public;
+grant execute on function public.get_order_by_token(text) to anon, authenticated;

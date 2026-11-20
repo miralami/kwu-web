@@ -6,6 +6,8 @@ import { calculateSalesReport, buildDailySeries, isAwaitingCash } from '../../se
 import { ReviewsPanel } from './ReviewsPanel'
 import { SchedulePanel } from './SchedulePanel'
 import { dayLabel, formatPickup } from '../../services/schedule'
+import { WALKIN_CLASS } from '../../services/exportExcel'
+import { WALKIN_PHONE, buildReviewUrl, reviewRequestMessage, toWaNumber } from '../../services/reviewLink'
 import { downloadSalesExcel } from '../../services/exportExcel'
 import { TargetMeters, DailyRevenueChart, MenuRevenueBars, PaymentSplitBar } from './FinanceCharts'
 import {
@@ -37,7 +39,7 @@ interface AdminDashboardProps {
 }
 
 // Pembeli kasir tidak punya nomor HP asli (nomor tiruan), jadi tidak ditampilkan
-const isWalkIn = (o: Order) => o.customerPhone === '080000000000'
+const isWalkIn = (o: Order) => o.customerClass === WALKIN_CLASS || o.customerPhone === WALKIN_PHONE
 
 // Filter tanggal pesanan: rentang paling lama 7 hari (hari awal dan akhir dihitung)
 const MAX_RANGE_DAYS = 7
@@ -68,6 +70,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [copiedReport, setCopiedReport] = useState(false)
   const [exportingXlsx, setExportingXlsx] = useState(false)
   const [copiedOrderId, setCopiedOrderId] = useState<string | null>(null)
+  const [copiedReviewId, setCopiedReviewId] = useState<string | null>(null)
+
+  // Tautan ulasan per pesanan: berisi token rahasia pesanan itu (tanpa kode pesanan), dikirim admin ke pembeli
+  const reviewUrlFor = (o: Order) => buildReviewUrl(window.location.origin, o.accessToken || o.id)
+  const handleCopyReviewLink = async (o: Order) => {
+    try {
+      await navigator.clipboard.writeText(reviewUrlFor(o))
+      setCopiedReviewId(o.id)
+      setTimeout(() => setCopiedReviewId((cur) => (cur === o.id ? null : cur)), 1500)
+    } catch {
+      // Clipboard diblokir browser: pakai tombol WhatsApp
+    }
+  }
 
   const handleCopyOrderId = async (id: string) => {
     try {
@@ -83,6 +98,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // POS Offline state
   const [posCustomerName, setPosCustomerName] = useState('Pembeli Kampus / Walk-in')
   const [posNotes, setPosNotes] = useState('')
+  const [posPhone, setPosPhone] = useState('') // opsional: untuk meminta ulasan lewat WhatsApp
   const [posMethod, setPosMethod] = useState<'qris' | 'tunai'>('tunai')
   const [posCart, setPosCart] = useState<{ [key: string]: number }>({})
   const [posItemSearch, setPosItemSearch] = useState('')
@@ -259,13 +275,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
     })
 
+    if (posPhone.trim() && !toWaNumber(posPhone)) {
+      setPosFeedback({ type: 'error', text: 'Nomor WhatsApp belum benar. Contoh: 08123456789, atau kosongkan.' })
+      return
+    }
+
     const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
     const totalPieces = items.reduce((s, i) => s + i.pieces * i.quantity, 0)
 
     const newOrder: Order = {
       id: await generateOrderCode(),
       customerName: posCustomerName.trim() || 'Pembeli Walk-in',
-      customerPhone: '080000000000',
+      customerPhone: posPhone.trim() || WALKIN_PHONE,
       customerClass: 'Kasir (walk-in)',
       items,
       totalItems: items.length,
@@ -293,6 +314,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return
     }
     setPosCart({})
+    setPosPhone('')
     setPosCashGiven('')
     setPosPending(newOrder)
   }
@@ -653,9 +675,9 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                               {order.customerName}
                             </div>
                             {order.customerClass && <div className="text-xs text-ink-600">{order.customerClass}</div>}
-                            {!isWalkIn(order) && (
+                            {toWaNumber(order.customerPhone) && (
                             <a
-                              href={`https://wa.me/${order.customerPhone.replace(/^0/, '62')}`}
+                              href={`https://wa.me/${toWaNumber(order.customerPhone)}`}
                               target="_blank"
                               rel="noreferrer"
                               className="min-h-[44px] text-sm text-green-700 font-bold hover:underline inline-flex items-center gap-1.5"
@@ -774,6 +796,42 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                           </div>
                         )}
 
+                        {/* Minta ulasan: tautan khusus pesanan ini (token rahasia), untuk pesanan web maupun WhatsApp */}
+                        {order.orderStatus === 'selesai' && order.paymentStatus === 'verified' && (
+                          <div className="space-y-1.5">
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleCopyReviewLink(order)}
+                                className="btn-card min-h-[48px] border-2 border-royal-600/40 bg-surface text-royal-700 text-sm font-extrabold flex items-center justify-center gap-1.5"
+                              >
+                                {copiedReviewId === order.id ? (
+                                  <Check className="w-4 h-4" aria-hidden="true" />
+                                ) : (
+                                  <Copy className="w-4 h-4" aria-hidden="true" />
+                                )}
+                                {copiedReviewId === order.id ? 'Tersalin' : 'Salin link ulasan'}
+                              </button>
+                              {toWaNumber(order.customerPhone) ? (
+                                <a
+                                  href={`https://wa.me/${toWaNumber(order.customerPhone)}?text=${encodeURIComponent(
+                                    reviewRequestMessage(order.customerName, reviewUrlFor(order))
+                                  )}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="btn-card min-h-[48px] bg-green-700 text-white text-sm font-extrabold flex items-center justify-center gap-1.5"
+                                >
+                                  <MessageCircle className="w-4 h-4" aria-hidden="true" /> Minta ulasan
+                                </a>
+                              ) : (
+                                <span className="text-xs text-ink-600 flex items-center">
+                                  Tanpa nomor WA: salin link lalu tempel di chat.
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
                         {confirmDeleteId === order.id ? (
                           <div className="flex items-center justify-end gap-2">
                             <span className="text-sm text-red-700 font-bold mr-auto">Hapus pesanan ini?</span>
@@ -842,6 +900,20 @@ Laporan digenerate otomatis via kwu-web Laris Manis.`
                     type="text"
                     value={posCustomerName}
                     onChange={(e) => setPosCustomerName(e.target.value)}
+                    className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg bg-paper-50"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="pos-phone" className="block text-xs font-bold text-ink-800 mb-1">
+                    No. WhatsApp <span className="font-medium text-ink-600">(opsional, untuk minta ulasan)</span>
+                  </label>
+                  <input
+                    id="pos-phone"
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="0812xxxxxxxx"
+                    value={posPhone}
+                    onChange={(e) => setPosPhone(e.target.value)}
                     className="w-full min-h-[44px] text-xs px-3 border border-paper-200 rounded-lg bg-paper-50"
                   />
                 </div>

@@ -494,6 +494,26 @@ export async function getOrdersByRefs(refs: OrderRef[]): Promise<Order[]> {
   return (await getOrders()).filter((o) => ids.has(o.id))
 }
 
+/**
+ * Pesanan dari kunci tautan ulasan. Dengan Supabase, kuncinya = token rahasia pesanan dan server yang
+ * mencari pesanannya (get_order_by_token). Mode demo lokal: kunci boleh token atau kode pesanan.
+ * Mengembalikan pesanan beserta token yang dipakai untuk menyimpannya di HP ini, atau null.
+ */
+export async function getOrderByReviewKey(key: string): Promise<{ order: Order; token: string } | null> {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.rpc('get_order_by_token', { p_token: key })
+      if (!error && data && typeof data === 'object') return { order: data as Order, token: key }
+      if (error && !isMissingFunction(error)) console.warn('get_order_by_token gagal:', error)
+    } catch (e) {
+      console.warn('Supabase fetch order by token failed:', e)
+    }
+    return null
+  }
+  const order = (await getOrders()).find((o) => o.accessToken === key || o.id === key)
+  return order ? { order, token: order.accessToken ?? '' } : null
+}
+
 // Pembeli membatalkan pesanannya sendiri. Hanya berlaku selama belum dibayar: bila admin
 // sudah memverifikasi di saat yang sama, server tidak mengubah apa pun.
 export async function cancelUnpaidOrder(orderId: string): Promise<void> {

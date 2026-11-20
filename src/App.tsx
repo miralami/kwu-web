@@ -16,6 +16,7 @@ import {
   getMyOrderRefs,
   rememberMyOrder,
   getOrdersByRefs,
+  getOrderByReviewKey,
   isSupabaseConfigured,
   adminSignIn,
   adminHasSession,
@@ -38,7 +39,8 @@ import {
   getReviewedOrderIds,
   subscribeReviews,
 } from './services/reviewStorage'
-import { Lock } from 'lucide-react'
+import { Lock, X } from 'lucide-react'
+import { parseReviewUrl } from './services/reviewLink'
 
 // Kata sandi tim. Bukan rahasia yang aman (ikut ter-bundle); cukup untuk menutup pintu dashboard.
 const ADMIN_PASSWORDS = ['0202']
@@ -72,6 +74,13 @@ export function App() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [reviewedIds, setReviewedIds] = useState<Set<string>>(() => getReviewedOrderIds())
   const [isReviewOpen, setIsReviewOpen] = useState(false)
+
+  // Tautan ulasan dari admin (/ulas/<token>): untuk pesanan yang tidak dibuat dari web ini, mis.
+  // lewat WhatsApp lalu dicatat admin di Kasir. Server mencari pesanannya dari token (kode pesanan
+  // tidak ada di tautan), pesanan diingat seperti buatan HP ini sendiri, lalu form ulasan terbuka.
+  const [pendingReview] = useState(() => (isAdminPath ? null : parseReviewUrl(window.location.pathname)))
+  const [reviewLinkHandled, setReviewLinkHandled] = useState(false)
+  const [linkNotice, setLinkNotice] = useState('')
   const ratingSummary = useMemo(() => summarizeByMenu(reviews), [reviews])
 
   // Jadwal PO yang diatur admin (hari/jam ambil, buka/tutup)
@@ -154,6 +163,34 @@ export function App() {
       document.removeEventListener('visibilitychange', onVisible)
     }
   }, [])
+
+  useEffect(() => {
+    if (!pendingReview || reviewLinkHandled) return
+    window.history.replaceState(null, '', '/') // alamat kembali bersih; token tidak ikut tersalin
+    let cancelled = false
+    getOrderByReviewKey(pendingReview).then((found) => {
+      if (cancelled) return
+      setReviewLinkHandled(true)
+      if (!found) {
+        setLinkNotice('Tautan ulasan tidak valid atau pesanannya tidak ditemukan. Minta tautan baru ke admin.')
+        return
+      }
+      const { order, token } = found
+      rememberMyOrder({ id: order.id, token })
+      setMyOrders((prev) => [order, ...prev.filter((o) => o.id !== order.id)])
+      setTrackedOrderId(order.id)
+      if (order.orderStatus !== 'selesai' || order.paymentStatus !== 'verified') {
+        setLinkNotice('Pesanan ini belum selesai, jadi belum bisa diulas. Coba lagi setelah pesananmu diambil.')
+      } else if (getReviewedOrderIds().has(order.id)) {
+        setLinkNotice('Ulasan untuk pesanan ini sudah terkirim. Terima kasih!')
+      } else {
+        setIsReviewOpen(true)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [pendingReview, reviewLinkHandled])
 
   const refreshMyOrders = useCallback(async () => {
     const fresh = await getOrdersByRefs(getMyOrderRefs())
@@ -418,6 +455,21 @@ export function App() {
         <Navbar cartCount={totalCartCount} onOpenCart={() => setIsCartOpen(true)} settings={poSettings} />
 
         <main className="max-w-xl mx-auto px-3 pt-12 pb-6 sm:pt-14 sm:pb-6">
+          {linkNotice && (
+            <div
+              role="status"
+              className="mb-3 bg-surface border-2 border-dashed border-royal-600 pl-3.5 pr-1 py-1 flex items-center justify-between gap-2 text-sm font-bold text-ink-800"
+            >
+              <span>{linkNotice}</span>
+              <button
+                onClick={() => setLinkNotice('')}
+                aria-label="Tutup pemberitahuan"
+                className="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center text-ink-600 hover:text-ink-900"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
           <MenuCatalog
             items={MENU_ITEMS}
             quantities={cartQuantities}
